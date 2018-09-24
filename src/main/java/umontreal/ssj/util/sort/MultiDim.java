@@ -30,7 +30,7 @@ package umontreal.ssj.util.sort;
  *
  * <div class="SSJ-bigskip"></div>
  */
-public interface MultiDim01 {
+public interface MultiDim {
 
    /**
     * This method returns the number dimensions of this point.
@@ -40,7 +40,7 @@ public interface MultiDim01 {
    /**
     * Returns the @f$d@f$ coordinates of this point.
     */
-   public double[] getPoint();
+   //public double[] getPoint();
 
    /**
     * Returns the value of @f$j@f$th coordinate (or dimension). This value
@@ -48,7 +48,7 @@ public interface MultiDim01 {
     * range @f$\{0,…,d-1\}@f$, this method should throw an
     * IllegalArgumentException.
     */
-   public double getCoordinate (int j);
+   //public double getCoordinate (int j);
    public double getPerformance();
-   //public double[] getState();
+   public double[] getState();
 }

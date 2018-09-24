@@ -95,4 +95,7 @@ public class SplitSort<T extends MultiDimComparable<? super T>>
    public int dimension() {
       return dimension;
    }
+   public String toString () {
+	     return "Splitsort";
+	   }
 }

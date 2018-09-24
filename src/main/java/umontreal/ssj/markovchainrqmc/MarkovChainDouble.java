@@ -28,7 +28,6 @@ import umontreal.ssj.stat.Tally;
  * <div class="SSJ-bigskip"></div><div class="SSJ-bigskip"></div>
  */
 public abstract class MarkovChainDouble extends MarkovChainComparable {
-
    protected double state = 0;             // State of this chain.
    protected int step = 0;                 // Current step.
    protected double perf = 0;

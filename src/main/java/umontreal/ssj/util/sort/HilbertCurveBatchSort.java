@@ -167,7 +167,7 @@ public class HilbertCurveBatchSort <T extends MultiDimComparable<? super T>> imp
     * Sorts the subarray `a[iMin..iMax-1]` of  @ref MultiDimComparable<T>
     * objects with this sort.
     */
-   @Override
+   
    public void sort (T[] a, int iMin, int iMax) {
         if (iMin+1 == iMax) return;
         if (iMax-iMin != nSavedIndex) 
@@ -191,7 +191,7 @@ public class HilbertCurveBatchSort <T extends MultiDimComparable<? super T>> imp
       sort (a, 0, a.length);
    }
    
-   @Override
+   
    public void sort (double[][] a, int iMin, int iMax) {
         if (iMin+1 == iMax) return;
         if (iMax-iMin != nSavedIndex) 
@@ -205,7 +205,7 @@ public class HilbertCurveBatchSort <T extends MultiDimComparable<? super T>> imp
         }
    }
     
-   @Override
+   
    public void sort (double[][] a) {
       sort (a, 0, a.length);
    }
@@ -223,5 +223,8 @@ public class HilbertCurveBatchSort <T extends MultiDimComparable<? super T>> imp
     public HilbertCurveMap getHilbertCurveMap() {
        return hcMap;
     }
+    public String toString () {
+	     return "HilbertBatch";
+	   }
 
 }

@@ -248,5 +248,8 @@ public void sort (T[] a, int iMin, int iMax) {
    public void sort (double[][] a) {
       sort (a, 0, a.length);
    }
+   public String toString () {
+	     return "BatchSort";
+	   }
 
 }

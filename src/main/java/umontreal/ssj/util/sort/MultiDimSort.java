@@ -61,12 +61,12 @@ public interface MultiDimSort<T> {
    /**
     * Sorts the subarray of `a` made of the elements with indices from
     * `iMin` to `iMax-1`.
-    *  @param a            array to sort
+    *  @param chains            array to sort
     *  @param iMin         index of first element to sort
     *  @param iMax         index of last element to sort is
     *                      @f$\mathtt{iMax}-1@f$
     */
-   public void sort (T[] a, int iMin, int iMax);
+   public void sort (T[] chains, int iMin, int iMax);
 
    /**
     * Sorts the entire array `a`.

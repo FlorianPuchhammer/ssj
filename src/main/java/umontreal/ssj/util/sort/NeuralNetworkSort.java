@@ -1,39 +1,11 @@
-/*
- * Class:        HilbertCurveSort
- * Description:  Sorts d-dimensional points in [0,1)^d based on Hilbert curve.
- * Environment:  Java
- * Software:     SSJ 
- * Copyright (C) 2014  Pierre L'Ecuyer and Universite de Montreal
- * Organization: DIRO, Universite de Montreal
- * @author       
- * @since
-
- * SSJ is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License (GPL) as published by the
- * Free Software Foundation, either version 3 of the License, or
- * any later version.
-
- * SSJ is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * A copy of the GNU General Public License is available at
-   <a href="http://www.gnu.org/licenses">GPL licence site</a>.
- */
-
-  /* IMPORTANT NOTE:
-	* Much of this code has been taken (with adaptations) from  
-  *     the hilbert.c  code  
-  * Author:	Spencer W. Thomas
-  * 		EECS Dept.
-  * 		University of Michigan
-  * Date:	Thu Feb  7 1991
-  * Copyright (c) 1991, University of Michigan
-  */
 package umontreal.ssj.util.sort;
   import java.util.Comparator;
-  import java.util.Arrays;
+
+import umontreal.ssj.util.sort.HilbertCurveSort.LongIndexComparator2;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * This class implements a  @ref MultiDimSort01<T extends MultiDim01> that can sort an array of
@@ -110,101 +82,149 @@ package umontreal.ssj.util.sort;
  *
  * <div class="SSJ-bigskip"></div>
  */
-public class HilbertCurveSort implements MultiDimSort01<MultiDim01> {
 
+public class NeuralNetworkSort implements MultiDimSortN<MultiDim> {
+static double[] w;
     int dimension;  // Dimension d of the points used for the sort. 
-    long[][] indexForSort;  // This is the index computed by the last Hilbert sort,
-		          // sorted by the second coordinate. The order of the first coordinates 
-							// gives the permutation made by that sort. 
-							// This index is recomputed each time we sort.
-    HilbertCurveMap hcMap; // The map used for sorting
-
+    double[] PerformanceForSort;  
+    NeuralNetworkMap NNMap;
+    double [][] indexForSort;
+    public static   int  batchSize = 100;
+ 
+   /* public static   String fileTrain;
+    public static   String  fileTest;
+    public static int numInputs;
+    public static int numOutputs;
+    public static int numHiddenNodes ;
+    public static int seed;
+    public static double learningRate;
+    public static  int nEpochs;*/
+    public  String fileTrain;
+    public  String  fileTest;
+    public  int numInputs;
+    public  int numOutputs;
+    public  int numHiddenNodes ;
+    public  int seed;
+    public  double learningRate;
+    public int nEpochs;
    /**
     * Constructs a HilbertCurveSort object that will use the first
     * @f$m@f$ bits of each of the first `d` coordinates to sort the
-    * points. The constructor will initialize a  @ref HilbertCurveMap with
+    * points. The constructor will initialize a  @ref NeuralNetworkMap with
     * arguments `d` and @f$m@f$. This map can be accessed with
-    * #getHilbertCurveMap.
+    * #getNeuralNetworkMap.
     *  @param d            maximum dimension
     *  @param m            number of bits used for each coordinate
     */
-   public HilbertCurveSort (int d, int m) {      
+   public NeuralNetworkSort (int d) {
       dimension = d;
-      hcMap = new HilbertCurveMap(d, m);
+     // NNMap = new NeuralNetworkMap(fileTrain,fileTest, numInputs, numOutputs, numHiddenNodes ,seed, learningRate,  nEpochs)
+    
    }
+   public NeuralNetworkSort(int d ,String fileTrain, String fileTest,  int numInputs, int numOutputs,  int numHiddenNodes , int seed, double  learningRate, int nEpochs ) {      
+     dimension = d;
+    this. NNMap = new NeuralNetworkMap(fileTrain,fileTest, numInputs, numOutputs, numHiddenNodes ,seed, learningRate,  nEpochs);
+   
+  }
 
-   /**
-    * Constructs a  @ref HilbertCurveSort object with a given mapping of
-    * the Hilbert curve in the unit hybercube.
-    *  @param map          the mapping of the Hilbert curve
-    */
-   public HilbertCurveSort (HilbertCurveMap map) {
-      this.hcMap = map;
-      this.dimension = map.dimension();
-    }
+   /*public void sort (double[] a, int iMin, int iMax) {
+ 
+  indexForSort = new Integer [iMax];
+ for (int i=0; i< iMax;i++)
+ indexForSort [i] = i;
+  Arrays.sort(indexForSort, new Comparator<Integer>() {
+   @Override public int compare(final Integer o1, final Integer o2) {
+       return Double.compare(a[o1], a[o2]);
+   }
+});
+       double[] aclone = a.clone();       // Save copy of a before the sort.
+       for (int i= iMin; i< iMax; ++i) {
+           a[i] = aclone[(int) indexForSort[i]];
+       }
+}*/
 
     /**
      * Sorts the subarray `a[iMin..iMax-1]` with this Hilbert curve sort.
      * The type `T` must actually be  MultiDimComparable01. This is
      * verified in the method.
+     * @throws InterruptedException 
+     * @throws IOException 
      */
     
-    public void sort (MultiDim01[] a, int iMin, int iMax) {
-			 // Copy the (0,1)^d transformations of the states in array b.
-    	
-       double b[][] = new double[iMax][dimension];
-       for (int i = iMin; i < iMax; ++i)
-          b[i] = a[i].getPoint();
-			 // Sort this array b by Hilbert sort.  The index 
-			 // indexForSort will contain the permutation made by that sort.
-       sort (b, iMin, iMax);
+    /*public void sort (MultiDim[] a, int iMin, int iMax)  {
+     try {
+NNMap .trainingTesting(batchSize);
+} catch (IOException | InterruptedException e) {
+ 
+e.printStackTrace();
+}        
+       PerformanceForSort = new double[iMax];
+       for (int i = iMin; i < iMax; ++i){
+          //PerformanceForSort [i] =a[i].getPerformance();
+      try {
+PerformanceForSort [i] =NNMap.prediction(a[i].getState());
+} catch (FileNotFoundException e) {
+ 
+e.printStackTrace();
+}
+       }
+ 
+       sort (PerformanceForSort, iMin, iMax);
        // Now use indexForSort to sort a.
        // We do not want to clone all the objects in a, 
        // but only the array of pointers. 
-       MultiDim01[] aclone = a.clone();    // new Object[iMax];
+       MultiDim[] aclone = a.clone();    // new Object[iMax];
        for (int i = iMin; i < iMax; ++i)
-           a[i] = aclone[(int) indexForSort[i][0]];
-    }
+           a[i] = aclone[(int) indexForSort[i]];
+    }*/
+   public void sort (MultiDim[] a, int iMin, int iMax)  {
+  /* try {
+NNMap .trainingTesting(batchSize);
+} catch (IOException | InterruptedException e) {
+ 
+e.printStackTrace();
+}        
+  PerformanceForSort = new double[iMax];
+    for (int i = iMin; i < iMax; ++i){
+       //PerformanceForSort [i] =a[i].getPerformance();
+    try {
+PerformanceForSort [i] =NNMap.prediction(a[i].getState());
+} catch (FileNotFoundException e) {
+ 
+e.printStackTrace();
+}
+    }*/
+    double b[][] = new double[iMax][dimension];
+    for (int i = iMin; i < iMax; ++i)
+       b[i] = a[i].getState();
+    System.out.println("Hello0");
+    sort (b, iMin, iMax);
+    // Now use indexForSort to sort a.
+    // We do not want to clone all the objects in a, 
+    // but only the array of pointers. 
+    MultiDim[] aclone = a.clone();    // new Object[iMax];
+    for (int i = iMin; i < iMax; ++i)
+        a[i] = aclone[(int) indexForSort[i][0]];
+ }
+   
 
     /**
      * Sorts the entire array: same as `sort (a, 0, a.length)`.
      */
     
-    public void sort (MultiDim01[] a) {
+    public void sort (MultiDim[] a) {
         sort (a, 0, a.length);
     }
 
-    /**
-     * Sort the array with Hilbert sort.
-     */
-    public void sort (double[][] a, int iMin, int iMax) {
-        if (iMin+1 == iMax) return;
-        indexForSort = new long[iMax][2];    // Index used for sort.
-        int[] icoord = new int[dimension];   // To store integer coordinates.
-        for (int i=0; i < a.length; ++i) {   
-				    // Transform to integer coordinates.
-            hcMap.pointToCoordinates (a[i], icoord);
-            indexForSort[i][0] = i;
-            indexForSort[i][1] = hcMap.coordinatesToIndex (icoord);  // Hilbert index of this point. 
-        }
-        // Sort the index based on the positions on the Hilbert curve
-        sortIndexOfLong2 (indexForSort, iMin, iMax);
-        // Now use the sorted index to sort a.
-        double[][] aclone = a.clone();       // Save copy of a before the sort.
-        for (int i= iMin; i< iMax; ++i) {
-            a[i] = aclone[(int) indexForSort[i][0]];
-        }
-    }
-    public void sort (double[][] a) {
-       sort (a, 0, a.length);
-    }
+  
+    
 
 /**
  * Returns the index computed by the last sort, which is sorted by the second
  * coordinate. It contains (in the first coordinates of its entries) the
  * permutation made by that sort.
  */
-    public long[][] getIndexAfterSort () {
+public double[][] getIndexAfterSort () {
        return indexForSort;
     }
 
@@ -215,38 +235,92 @@ public class HilbertCurveSort implements MultiDimSort01<MultiDim01> {
        return dimension;
     }
 
-    /**
-     * Returns the  @ref HilbertCurveMap used for the mapping.
-     */
-    public HilbertCurveMap getHilbertCurveMap() {
-       return hcMap;
-    }
+ 
 
-  // Compares two arrays of long according to their second coordinate.
-  // This is used to sort an index of type long[][2] by the second coordinate.
-  // The permutation can be recovered in the first coordinate.
 
-/**
- * The comparator class used by  #sortIndexOfLong2.
- */
-public static class LongIndexComparator2 implements Comparator<long[]> {
-     
-     public int compare (long[] p1, long[] p2) {
-        if (p1[1] > p2[1]) return 1;
-        else if (p1[1] < p2[1])  return -1;
-        else return 0;
-     }
-  }
-
-  /**
-   * Sorts the `index` table by its second coordinate.
-   */
-  public static void sortIndexOfLong2 (long[][] index, int iMin, int iMax) {
-      // if (iMin==(iMax-1)) return;
-      Arrays.sort (index, iMin, iMax, new LongIndexComparator2());        
-  }
+  
+  
   public String toString () {
-	     return "Hilbert";
-	   }
+    return "NeuralNetwork";
+  }
+
+ public double  LinearCombination(double [] a){
+ double sum= 0.0;
+for (int i=0;i<a.length; i++ )
+sum+=a[i]*w[i];
+ return  sum;
+  }
+
+/*public void sort (double[][] a, int iMin, int iMax) {
+    if (iMin+1 == iMax) return;
+    indexForSort = new Integer[iMax];    // Index used for sort.
+    double b[] = new double[iMax];
+    
+    for (int i=0; i < a.length; ++i) {   
+   // Transform to integer coordinates.
+    b[i] = LinearCombination(a[i]);
+    }
+    // Sort the index based on the positions on the Hilbert curve
+    sort (b, iMin, iMax);
+    // Now use the sorted index to sort a.
+    double[][] aclone = a.clone();       // Save copy of a before the sort.
+    for (int i= iMin; i< iMax; ++i) {
+        a[i] = aclone[(int) indexForSort[i]];
+    }
+}*/
+public void sort (double[][] a, int iMin, int iMax) {
+    if (iMin+1 == iMax) return;
+    indexForSort = new double[iMax][2];    
+   
+    try {
+NNMap .trainingTesting(batchSize);
+System.out.println("Hello1");
+} catch (IOException | InterruptedException e) {
+ 
+e.printStackTrace();
+}
+    
+    for (int i=0; i < a.length; ++i) {   
+ 
+    try {
+    indexForSort[i][0] = i;
+             indexForSort[i][1] = NNMap.prediction(a[i]);  // Hilbert index of this point. 
+             System.out.println("Sort "+indexForSort[i][1]);
+            // System.out.println("Hello2");
+} catch (FileNotFoundException e) {
+ 
+e.printStackTrace();
+}
+    }
+    
+    sortIndexOfDouble2 (indexForSort, iMin, iMax);
+    // Now use the sorted index to sort a.
+    double[][] aclone = a.clone();       // Save copy of a before the sort.
+    for (int i= iMin; i< iMax; ++i) {
+        a[i] = aclone[(int) indexForSort[i][0]];
+    }
+}
+public static class DoubleIndexComparator2 implements Comparator<double[]> {
+    
+    public int compare (double[] p1, double[] p2) {
+       if (p1[1] > p2[1]) return 1;
+       else if (p1[1] < p2[1])  return -1;
+       else return 0;
+    }
+ }
+
+ /**
+  * Sorts the `index` table by its second coordinate.
+  */
+ public static void sortIndexOfDouble2 (double[][] index, int iMin, int iMax) {
+     // if (iMin==(iMax-1)) return;
+     Arrays.sort (index, iMin, iMax, new DoubleIndexComparator2());        
+ }
+public void sort (double[][] a) {
+    sort (a, 0, a.length);
+ }
+
+
+
 
 }
