@@ -12,7 +12,7 @@ import umontreal.ssj.stat.TallyHistogram;
  * finite interval \f$[a,b]\f$ over which we want the histogram, and the number
  * of bins (intervals), and it constructs the histogram as a density estimator
  * over this interval. For that, it computes the number of observations in each
- * bin and rescale the heights of the bins so that the total area of the
+ * bin and rescales the heights of the bins so that the total area of the
  * histogram is equal to the proportion of the observations that fall into the
  * interval \f$[a,b]\f$. When all the observations are in \f$[a,b]\f$, then this
  * area should be 1. The density estimator is represented internally as a \ref
@@ -34,11 +34,13 @@ import umontreal.ssj.stat.TallyHistogram;
  * 
  * 
  * The constructor can take as input an array that contains the raw data,
- * together with the parameters \f$a, b, s\f$. It can also take a \ref
- * umontreal.ssj.stat.TallyHistogram or a \ref
- * umontreal.ssj.stat.ScaledHistogram instead.
+ * together with the parameters \f$a, b, s\f$. It can also take a 
+ * \ref umontreal.ssj.stat.TallyHistogram or a 
+ * \ref umontreal.ssj.stat.ScaledHistogram instead.
  * 
- * --------------------
+ * This class also offers several static methods so that the user can simply evaluate the density based on
+ * a set of observations, a `TallyHistogram` or a `ScaledHistogram` 
+ * without having to construct a histogram object.
  * 
  * Since histograms are constant within one bin, it is sometimes sufficient to
  * evaluate them only once per bin. To this end, this class provides methods to
@@ -49,12 +51,6 @@ import umontreal.ssj.stat.TallyHistogram;
  * bins relies on half-open intervals, the boundary \f$b\f$ is not included in
  * any of these intervals. Since the probability of an observation being exactly
  * equal to \f$b\f$ is zero, we can effectively ignore this subtlety.
- * 
- * This class also offers static methods so that the user can simply evaluate the density based on
- * a set of observations, a \ref
- * umontreal.ssj.stat.TallyHistogram or a \ref
- * umontreal.ssj.stat.ScaledHistogram without having to construct a histogram.
- *
  */
 
 public class DEHistogram extends DensityEstimator {
@@ -95,7 +91,7 @@ public class DEHistogram extends DensityEstimator {
 		// this.data = data;
 		TallyHistogram tallyHist = new TallyHistogram(a, b, numBins);
 		tallyHist.fillFromArray(data);
-		histDensity = new ScaledHistogram(tallyHist, tallyHist.getRelNumPoints());
+		histDensity = new ScaledHistogram(tallyHist, tallyHist.getProportionInBoundaries());
 	}
 
 	/**
@@ -107,8 +103,7 @@ public class DEHistogram extends DensityEstimator {
 	 *            is constructed.
 	 */
 	public DEHistogram(TallyHistogram tallyHist) {
-
-		histDensity = new ScaledHistogram(tallyHist, tallyHist.getRelNumPoints());
+		histDensity = new ScaledHistogram(tallyHist, tallyHist.getProportionInBoundaries());
 	}
 
 	/**
@@ -135,7 +130,7 @@ public class DEHistogram extends DensityEstimator {
 	public void setData(double[] data) {
 		TallyHistogram tallyHist = new TallyHistogram(histDensity.getA(), histDensity.getB(), histDensity.getNumBins());
 		tallyHist.fillFromArray(data);
-		histDensity = new ScaledHistogram(tallyHist, tallyHist.getRelNumPoints());
+		histDensity = new ScaledHistogram(tallyHist, tallyHist.getProportionInBoundaries());
 	}
 
 	/**
@@ -380,7 +375,7 @@ public class DEHistogram extends DensityEstimator {
 	 * @return the histogram density estimator evaluated at \a x.
 	 */
 	public static double evalDensity(double x, TallyHistogram tallyHist) {
-		ScaledHistogram hist = new ScaledHistogram(tallyHist, tallyHist.getRelNumPoints());
+		ScaledHistogram hist = new ScaledHistogram(tallyHist, tallyHist.getProportionInBoundaries());
 		double h = (hist.getB() - hist.getA()) / (double) hist.getNumBins();
 		return hist.getHeights()[(int) ((x - hist.getA()) / h)];
 	}
@@ -398,8 +393,7 @@ public class DEHistogram extends DensityEstimator {
 	 *         point in \a evalPoints.
 	 */
 	public static double[] evalDensity(double[] evalPoints, TallyHistogram tallyHist) {
-
-		ScaledHistogram hist = new ScaledHistogram(tallyHist, tallyHist.getRelNumPoints());
+		ScaledHistogram hist = new ScaledHistogram(tallyHist, tallyHist.getProportionInBoundaries());
 		int k = evalPoints.length;
 		double[] density = new double[k];
 		double h = (hist.getB() - hist.getA()) / (double) hist.getNumBins();
@@ -419,7 +413,7 @@ public class DEHistogram extends DensityEstimator {
 	 *         once in each bin.
 	 */
 	public static double[] evalDensity(TallyHistogram tallyHist) {
-		ScaledHistogram hist = new ScaledHistogram(tallyHist, tallyHist.getRelNumPoints());
+		ScaledHistogram hist = new ScaledHistogram(tallyHist, tallyHist.getProportionInBoundaries());
 		return hist.getHeights();
 	}
 
