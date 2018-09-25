@@ -1,0 +1,120 @@
+[0;1;32m●[0m strikebase
+    State: [0;1;32mrunning[0m
+     Jobs: 0 queued
+   Failed: 0 units
+    Since: Mon 2018-09-24 08:20:34 EDT; 7h ago
+   CGroup: /
+           ├─user.slice
+           │ └─user-1000.slice
+           │   ├─user@1000.service
+           │   │ ├─init.scope
+           │   │ │ ├─417 /usr/lib/systemd/systemd --user
+           │   │ │ └─418 (sd-pam)
+           │   │ ├─at-spi-dbus-bus.service
+           │   │ │ ├─3925 /usr/lib/at-spi-bus-launcher
+           │   │ │ ├─3930 /usr/bin/dbus-daemon --config-file=/usr/share/defaults/at-spi2/accessibility.conf --nofork --print-address 3
+           │   │ │ └─3933 /usr/lib/at-spi2-registryd --use-gnome-session
+           │   │ └─dbus.service
+           │   │   ├─ 460 /usr/bin/dbus-daemon --session --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
+           │   │   ├─ 555 /usr/bin/kglobalaccel5
+           │   │   ├─ 614 /usr/bin/kactivitymanagerd start-daemon
+           │   │   ├─ 660 /usr/bin/kuiserver5
+           │   │   ├─ 774 /usr/bin/kwalletd5
+           │   │   └─3021 /usr/lib/dconf-service
+           │   └─session-1.scope
+           │     ├─  341 login -- florian
+           │     ├─  423 /bin/sh /usr/bin/startx
+           │     ├─  449 xinit /home/florian/.xinitrc -- /etc/X11/xinit/xserverrc :0 vt1 -keeptty -auth /tmp/serverauth.hdjwRR1sYp
+           │     ├─  450 /usr/lib/Xorg -nolisten tcp :0 vt1 -keeptty -auth /tmp/serverauth.hdjwRR1sYp
+           │     ├─  454 xf86-video-intel-backlight-helper intel_backlight
+           │     ├─  457 /bin/sh /usr/bin/startkde
+           │     ├─  512 /usr/lib/kf5/start_kdeinit --kded +kcminit_startup
+           │     ├─  513 kdeinit5: Running...
+           │     ├─  514 /usr/lib/kf5/klauncher --fd=9
+           │     ├─  518 kded5 [kdeinit5]
+           │     ├─  536 /usr/bin/kaccess
+           │     ├─  539 kwrapper5 /usr/bin/ksmserver
+           │     ├─  541 /usr/bin/ksmserver
+           │     ├─  563 /usr/bin/kwin_x11 -session 1015113ed4ca000150853494700000004440000_1525782659_229882
+           │     ├─  565 /usr/bin/baloo_file
+           │     ├─  567 /usr/bin/krunner
+           │     ├─  569 /usr/bin/plasmashell
+           │     ├─  571 /usr/lib/polkit-kde-authentication-agent-1
+           │     ├─  573 /usr/bin/xembedsniproxy
+           │     ├─  580 /usr/bin/gmenudbusmenuproxy
+           │     ├─  586 /usr/bin/kmix -session 1015113ed4ca000150853595700000008020011_1525782659_227823
+           │     ├─  623 /usr/lib/geoclue-2.0/demos/agent
+           │     ├─  852 /usr/lib/opera/opera
+           │     ├─  854 /usr/lib/opera/opera_sandbox /usr/lib/opera/opera --type=zygote
+           │     ├─  855 /usr/lib/opera/opera --type=zygote
+           │     ├─  857 /usr/lib/opera/opera --type=zygote
+           │     ├─  879 /usr/lib/opera/opera --type=gpu-process --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --gpu-preferences=KAAAAAAAAACAAABAAQAAAAAAAAAAAGAAEAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAA --service-request-channel-token=165B842A8556352CBA08F213AC023979
+           │     ├─  943 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=A35E1D350E2FE5F83A826003380965A0 --lang=en-US --extension-process --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=A35E1D350E2FE5F83A826003380965A0 --renderer-client-id=3 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─  986 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=EC55DEC110F221F4D8190341901D1383 --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=EC55DEC110F221F4D8190341901D1383 --renderer-client-id=18 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─ 1018 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=40B7A922542B1517E994EF00C677EB7A --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=40B7A922542B1517E994EF00C677EB7A --renderer-client-id=41 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─ 1071 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=EE4AE2F97DCC4D5A3FBDD30A6BFA502D --lang=en-US --extension-process --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=EE4AE2F97DCC4D5A3FBDD30A6BFA502D --renderer-client-id=4 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─ 1161 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=4C688A7C9A23069DE0719F08F6FEC1C0 --lang=en-US --extension-process --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=4C688A7C9A23069DE0719F08F6FEC1C0 --renderer-client-id=19 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─ 1352 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=3571BC15A95D94F3CC1DCE77B764E0BE --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=3571BC15A95D94F3CC1DCE77B764E0BE --renderer-client-id=6 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─ 1386 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=46CEC04A35CC675B06408D68D2054DAA --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=46CEC04A35CC675B06408D68D2054DAA --renderer-client-id=34 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─ 1419 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=FD32323992C3D82CF98F962CBBE0B233 --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=FD32323992C3D82CF98F962CBBE0B233 --renderer-client-id=23 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─ 1436 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=0E1330E8C4133A58DE1221D67FDAAD23 --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=0E1330E8C4133A58DE1221D67FDAAD23 --renderer-client-id=24 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─ 1453 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=7BD5D49662D9CC43B9CB4C3249E72650 --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=7BD5D49662D9CC43B9CB4C3249E72650 --renderer-client-id=20 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─ 1487 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=DB6321F41018A6795526629B43A1FDAE --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=DB6321F41018A6795526629B43A1FDAE --renderer-client-id=22 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─ 1523 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=8A5013862ACB89A40F117E929DE33C7D --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=8A5013862ACB89A40F117E929DE33C7D --renderer-client-id=43 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─ 1739 /usr/bin/dolphin
+           │     ├─ 1744 /bin/bash
+           │     ├─ 3895 /usr/bin/konsole
+           │     ├─ 3899 /bin/bash
+           │     ├─ 4169 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=20A19575D2893C351EDCAA71482D95FB --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=20A19575D2893C351EDCAA71482D95FB --renderer-client-id=30 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─ 4188 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=58EC1BD140CE22C9BF48F74F19BA5B8F --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=58EC1BD140CE22C9BF48F74F19BA5B8F --renderer-client-id=29 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─ 9551 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=98AB69D4BA2FF3546D402732ABEA0011 --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=98AB69D4BA2FF3546D402732ABEA0011 --renderer-client-id=78 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─10368 /usr/bin/ksysguardd
+           │     ├─10770 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=ECBDE1BA1FE527FA4731EC256E82E204 --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=ECBDE1BA1FE527FA4731EC256E82E204 --renderer-client-id=35 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─10859 /bin/bash
+           │     ├─13484 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=CA26886F048F0F574ECB1BEB231952CF --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=CA26886F048F0F574ECB1BEB231952CF --renderer-client-id=85 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─13982 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=2AD75004603265F898B26DB5E7DDDF50 --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=2AD75004603265F898B26DB5E7DDDF50 --renderer-client-id=7 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─14002 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=BF2990D7624D7DA6C6CC7645B786269B --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=BF2990D7624D7DA6C6CC7645B786269B --renderer-client-id=9 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─14220 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=9F5DDFBFEE7E154AE36AE847E495C1DA --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=9F5DDFBFEE7E154AE36AE847E495C1DA --renderer-client-id=86 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─14238 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=DCE3A2FE233C10024E6E07FFD4565EC6 --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=DCE3A2FE233C10024E6E07FFD4565EC6 --renderer-client-id=87 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─27643 /usr/lib/opera/opera --type=renderer --field-trial-handle=10638926386538927230,16209229094648257706,131072 --disable-features=SharedArrayBuffer --service-pipe-token=EF882DB9BABFE93246C5002339EF4495 --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=EF882DB9BABFE93246C5002339EF4495 --renderer-client-id=89 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─27742 /usr/lib/eclipse/eclipse
+           │     ├─27759 /usr/bin/java -Dosgi.requiredJavaVersion=1.8 -Dosgi.instance.area.default=@user.home/eclipse-workspace -XX:+UseG1GC -XX:+UseStringDeduplication -Dosgi.requiredJavaVersion=1.8 -Dosgi.dataAreaRequiresExplicitInit=true -Xms256m -Xmx1024m -jar /usr/lib/eclipse//plugins/org.eclipse.equinox.launcher_1.5.0.v20180512-1130.jar -os linux -ws gtk -arch x86_64 -showsplash /usr/lib/eclipse//plugins/org.eclipse.epp.package.common_4.8.0.20180619-1200/splash.bmp -launcher /usr/lib/eclipse/eclipse -name Eclipse --launcher.library /usr/lib/eclipse//plugins/org.eclipse.equinox.launcher.gtk.linux.x86_64_1.1.700.v20180518-1200/eclipse_1705.so -startup /usr/lib/eclipse//plugins/org.eclipse.equinox.launcher_1.5.0.v20180512-1130.jar --launcher.appendVmargs -exitdata 1268000 -product org.eclipse.epp.package.java.product -vm /usr/bin/java -vmargs -Dosgi.requiredJavaVersion=1.8 -Dosgi.instance.area.default=@user.home/eclipse-workspace -XX:+UseG1GC -XX:+UseStringDeduplication -Dosgi.requiredJavaVersion=1.8 -Dosgi.dataAreaRequiresExplicitInit=true -Xms256m -Xmx1024m -jar /usr/lib/eclipse//plugins/org.eclipse.equinox.launcher_1.5.0.v20180512-1130.jar
+           │     ├─27809 /usr/lib/WebKitNetworkProcess 2 141
+           │     ├─28072 /usr/lib/WebKitWebProcess 3 79
+           │     ├─28175 /usr/bin/java -Xmx512m -classpath /opt/maven/boot/plexus-classworlds-2.5.2.jar -Dclassworlds.conf=/opt/maven/bin/m2.conf -Dmaven.home=/opt/maven -Dlibrary.jansi.path=/opt/maven/lib/jansi-native -Dmaven.multiModuleProjectDirectory=/home/florian/misc/workspace/deeplearning4j org.codehaus.plexus.classworlds.launcher.Launcher clean install -Dmaven.test.skip
+           │     ├─29586 file.so [kdeinit5] file local:/run/user/1000/klauncherBiNSDr.1.slave-socket local:/run/user/1000/dolphinCtIjsM.66.slave-socket
+           │     ├─29636 /usr/bin/okular /home/florian/misc/workspace/dl4j-examples/tutorials/README.md
+           │     ├─29790 /usr/lib/chromium/chromium --ppapi-flash-version=31.0.0.108 --ppapi-flash-path=/usr/lib/PepperFlash/libpepflashplayer.so
+           │     ├─29792 /usr/lib/chromium/chrome-sandbox /usr/lib/chromium/chromium --type=zygote --ppapi-flash-path=/usr/lib/PepperFlash/libpepflashplayer.so --ppapi-flash-version=31.0.0.108
+           │     ├─29793 /usr/lib/chromium/chromium --type=zygote --ppapi-flash-path=/usr/lib/PepperFlash/libpepflashplayer.so --ppapi-flash-version=31.0.0.108
+           │     ├─29795 /usr/lib/chromium/chromium --type=zygote --ppapi-flash-path=/usr/lib/PepperFlash/libpepflashplayer.so --ppapi-flash-version=31.0.0.108
+           │     ├─29819 /usr/lib/chromium/chromium --type=gpu-process --field-trial-handle=17365689420458254840,14297918258712448304,131072 --gpu-preferences=KAAAAAAAAACAAABAAQAAAAAAAAAAAGAAAAAAAAAAAAAIAAAAAAAAAAgAAAAAAAAA --service-request-channel-token=11565866831741403685
+           │     ├─30009 /usr/lib/chromium/chromium --type=renderer --field-trial-handle=17365689420458254840,14297918258712448304,131072 --service-pipe-token=13144512047103877476 --lang=en-US --enable-offline-auto-reload --enable-offline-auto-reload-visible-only --ppapi-flash-path=/usr/lib/PepperFlash/libpepflashplayer.so --ppapi-flash-version=31.0.0.108 --num-raster-threads=2 --enable-main-frame-before-activation --service-request-channel-token=13144512047103877476 --renderer-client-id=6 --shared-files=v8_context_snapshot_data:100,v8_natives_data:101
+           │     ├─31827 systemctl status
+           │     └─31828 less
+           ├─init.scope
+           │ └─1 /sbin/init
+           └─system.slice
+             ├─systemd-udevd.service
+             │ └─235 /usr/lib/systemd/systemd-udevd
+             ├─docker.service
+             │ ├─31597 /usr/bin/dockerd -H fd://
+             │ └─31605 docker-containerd --config /var/run/docker/containerd/containerd.toml
+             ├─polkit.service
+             │ └─378 /usr/lib/polkit-1/polkitd --no-debug
+             ├─wpa_supplicant.service
+             │ └─380 /usr/bin/wpa_supplicant -u
+             ├─systemd-journald.service
+             │ └─224 /usr/lib/systemd/systemd-journald
+             ├─NetworkManager.service
+             │ └─326 /usr/bin/NetworkManager --no-daemon
+             ├─lvm2-lvmetad.service
+             │ └─227 /usr/bin/lvmetad -f
+             ├─upower.service
+             │ └─553 /usr/lib/upowerd
+             ├─udisks2.service
+             │ └─532 /usr/lib/udisks2/udisksd
+             ├─dbus.service
+             │ └─325 /usr/bin/dbus-daemon --system --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
+             └─systemd-logind.service
+               └─327 /usr/lib/systemd/systemd-logind

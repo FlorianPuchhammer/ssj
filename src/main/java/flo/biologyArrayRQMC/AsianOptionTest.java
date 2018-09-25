@@ -29,19 +29,18 @@ public class AsianOptionTest extends ArrayOfComparableChains<AsianOptionComparab
 		int s;   // Index of point set.
 //		int[] N = { 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536,
 //				131072, 262144, 524288, 1048576 }; // logn from 8 to 20.
-		int[] N = { 256, 512, 1024, 2048, 4096, 8192, 16384, 32768}; // logn from 8 to 15.
+		int[] N = { 256, 512, 1024}; // logn from 8 to 10.
 		int[] a = { 55, 115, 851, 1553, 2839, 6685, 9945, 12421, 38295, 114789,
 				177473, 286857, 271251 };
 		PointSet[] pointSets = new PointSet[numSets];
-		RandomStream noise = new MRG32k3a();
-		PointSetRandomization randShift = new RandomShift(noise);
-		PointSetRandomization randDigital = new LMScrambleShift(noise);
-		PointSetRandomization randNUS = new NestedUniformScrambling (noise, 31);  // Scramble all 31 bits.
+		PointSetRandomization randShift = new RandomShift(new MRG32k3a());
+		PointSetRandomization randDigital = new LMScrambleShift(new MRG32k3a());
+		PointSetRandomization randNUS = new NestedUniformScrambling (new MRG32k3a(), 31);  // Scramble all 31 bits.
 		// Monte Carlo experiments with nMC independent runs.
 		int nMC = 1000 * 1000;   // n to estimate MC variance.
 		Tally statMC = new Tally();
 		statMC.init();
-		asian.simulRunsWithSubstreams(nMC, asian.d, noise, statMC);
+		asian.simulRunsWithSubstreams(nMC, asian.d, new MRG32k3a(), statMC);
 		double varMC = statMC.variance();
 		System.out.println("\n\n --------------------------");
 		System.out.println("MC average  = " + statMC.average());
@@ -159,7 +158,7 @@ public class AsianOptionTest extends ArrayOfComparableChains<AsianOptionComparab
 		// double sigma = 0.2;
 		// int numSteps = d;
 
-		int m = 100; // Number of replications.
+		int m = 2; // Number of replications.
 	//	int numSets = 10; // Number of point sets to try.
 		int numSets =2; // Number of point sets to try.
 		//int numSets = 2; // Number of point sets to try.

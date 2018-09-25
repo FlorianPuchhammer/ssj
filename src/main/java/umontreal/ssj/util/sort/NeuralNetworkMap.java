@@ -32,8 +32,7 @@
   * Copyright (c) 1991, University of Michigan
   */
 package umontreal.ssj.util.sort;
-  import java.util.Comparator;
-import java.util.Random;
+  import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
