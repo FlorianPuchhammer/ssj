@@ -1042,194 +1042,200 @@ else
 
 
 public double simulArrayRQMC (PointSet p, PointSetRandomization rand,  MultiDimSort sort,
-	       int sortCoordPts, double numSteps) {
+	      int sortCoordPts, double numSteps) {
 	//String [] file =TrainTestFile(filename);
-	
 	//sort = new  NeuralNetworkSort(chains[0].stateDim);
 
 	//NeuralNetworkSort sort = new  NeuralNetworkSort(chains[0].stateDim, file[0], file[1],chains[0].stateDim, 1,   10, seed, learningRate, nEpochs );
-	 int stateDim= chains[0].stateDim;
-	  object = new double[n][chains[0].stateDim+1];
-	   states = new double[n][];
-	   char SEPARATOR = ',';
-	   int step  ;
-    int numNotStopped = n; 
-    
-    if(sort.toString() == "NeuralNetwork"){
-    initialStates();   
-     step = 0;
- 
-    ArrayOfFilePerformance = new String[(int) numSteps];
-while (step < numSteps && numNotStopped > 0) {
+	int stateDim= chains[0].stateDim;
+	 object = new double[n][chains[0].stateDim+1];
+	  states = new double[n][];
+	  char SEPARATOR = ',';
+	  int step  ;
+	    int numNotStopped = n; 
+	    
+	    if(sort.toString() == "NeuralNetwork"){
+	    initialStates();   
+	     step = 0;
+	 
+	    ArrayOfFilePerformance = new String[(int) numSteps];
+	while (step < numSteps && numNotStopped > 0) {
 	PerformanceFile = "Excelperformance"+label+"_"+step+".csv";
 	FileWriter writer = null;
 	try {
-		writer = new FileWriter(PerformanceFile);
+	writer = new FileWriter(PerformanceFile);
 	} catch (IOException e) {
-		
-		e.printStackTrace();
+	e.printStackTrace();
 	}
-   	 PointSetIterator stream = p.iterator ();
-        stream.resetCurPointIndex ();             // Go to first point.
-        int i = 0;
-        for (T mc : chains) { // Assume the chains are sorted
-       	 //object = new double[n][mc.getState().length+1];
-           if (mc.hasStopped()) {
-              numNotStopped--;
-           } else {
-	       stream.setCurCoordIndex (sortCoordPts); // Skip first sortCoordPts coord.
-              mc.nextStep (stream);                // simulate next step of the chain.
-              stream.resetNextSubstream ();        // Go to next point.
-              if (mc.hasStopped())
-                 numNotStopped--;
-           }
-           performances[i] = mc.getPerformance();
-           states[i] = mc.getState();
-          // object [i][0] =  performances[i];
-        
-           for ( int j=0;j<states[i].length;j++)
-           object[i][j] = states[i][j];
-         
-         // System.out.println("lenght"+ object[0].length);
-           
-           object [i][states[i].length] =  performances[i];
-          // if (step== numSteps)
-           
-           try {
-           	
-               
-               
-               writeLine(writer, object[i], SEPARATOR);
-                
-              
-           } catch (Exception ignored) {}
-           	
-           	
-           ++i;
-           
-        }
-        try {
-			writer.flush();
-			writer.close();
-		} catch (IOException e) {
-			
-			e.printStackTrace();
-		}
-        ArrayOfFilePerformance[step] = PerformanceFile;
-      
-        ++step;
-}   
+	    PointSetIterator stream = p.iterator ();
+	        stream.resetCurPointIndex ();             // Go to first point.
+	        int i = 0;
+	        for (T mc : chains) { // Assume the chains are sorted
+	        //object = new double[n][mc.getState().length+1];
+	           if (mc.hasStopped()) {
+	              numNotStopped--;
+	           } else {
+	      stream.setCurCoordIndex (sortCoordPts); // Skip first sortCoordPts coord.
+	              mc.nextStep (stream);                // simulate next step of the chain.
+	              stream.resetNextSubstream ();        // Go to next point.
+	              if (mc.hasStopped())
+	                 numNotStopped--;
+	           }
+	           performances[i] = mc.getPerformance();
+	           states[i] = mc.getState();
+	          // object [i][0] =  performances[i];
+	        
+	           for ( int j=0;j<states[i].length;j++)
+	           object[i][j] = states[i][j];
+	         
+	         // System.out.println("lenght"+ object[0].length);
+	           
+	           object [i][states[i].length] =  performances[i];
+	          // if (step== numSteps)
+	           
+	           try {
+	            
+	               
+	               
+	               writeLine(writer, object[i], SEPARATOR);
+	                
+	              
+	           } catch (Exception ignored) {}
+	            
+	            
+	           ++i;
+	           
+	        }
+	        try {
+	writer.flush();
+	writer.close();
+	} catch (IOException e) {
+	e.printStackTrace();
+	}
+	        ArrayOfFilePerformance[step] = PerformanceFile;
+	      
+	        ++step;
+	}   
 
-int[] idx = new int[stateDim+1]; 
-int id=stateDim;
-for (int i=0;i<idx.length; i++){
-	 idx [i] = id;
-	 id =id+1;
-}
-/*for (int i=0; i<idx.length;i++)
+	int[] idx = new int[stateDim+1]; 
+	int id=stateDim;
+	for (int i=0;i<idx.length; i++){
+	idx [i] = id;
+	id =id+1;
+	}
+	/*for (int i=0; i<idx.length;i++)
 	System.out.println("index"+idx[i]);*/
-String  file = null;
-String filena = null;
-try {
+	String  file = null;
+	String filena = null;
+	/*try {
 	filena =combinestep(1, (int)numSteps-1);
-	 file = removecolumns( filena,idx);
-	  System.out.println("filename"+filena);
-} catch (Exception ignored) {}
-System.out.println("file"+file);
-String [] nameTrainTest = TrainTestFile(file);
-String filenameTrain = nameTrainTest[0];
-	 String filenameTest  = nameTrainTest[1];
+	file = removecolumns( filena,idx);
+	 System.out.println("filename"+filena);
+	} catch (Exception ignored) {}
+	System.out.println("file"+file);
+	String [] nameTrainTest = TrainTestFile(file);
+	String filenameTrain = nameTrainTest[0];
+	String filenameTest  = nameTrainTest[1];
 	 
-	 sort = new  NeuralNetworkSort(chains[0].stateDim, filenameTrain, filenameTest,chains[0].stateDim, 1,   numHidden, seed, learningRate, nEpochs );
-/* File inputfile1= new File(ArrayOfFilePerformance[step]);
+	sort = new  NeuralNetworkSort2(chains[0].stateDim, filenameTrain, filenameTest,chains[0].stateDim, 1,   numHidden, seed, learningRate, nEpochs );*/
+	/* File inputfile1= new File(ArrayOfFilePerformance[step]);
 	File inputfile2= new File(ArrayOfFilePerformance[(int) (numSteps-1)]);
 	File output= new File("FileF.csv");
 	try{
 	mergeFiles( output, inputfile1,  inputfile2, ',') ;
 	}
 	catch (Exception ignored) {}*/
-		
-    
-	 System.out.println("on est la");
-    
-    
-    initialStates();
-    step = 0;
-    while (step < numSteps && numNotStopped > 0) {
-   	
-       if (numNotStopped == n) sort.sort( chains, 0, n);
-				 else sortNotStoppedChains (sort); // Sort the numNotStopped first chains.          
-       p.randomize(rand);           // Randomize the point set.
-       if (sortCoordPts > 0) { 
-           if (!(p instanceof CachedPointSet))
-              throw new IllegalArgumentException("p is not a CachedPointSet.");
-				 if (sortCoordPts > 1)
-              ((CachedPointSet) p).sort(sort);   // Sort points using first sortCoordPts coordinates. 
-           else
-              ((CachedPointSet) p).sortByCoordinate (0);  // Sort by first coordinate.
-       }
-       PointSetIterator   stream = p.iterator ();
-       stream.resetCurPointIndex ();             // Go to first point.
-       int  i = 0;
-       for (T mc : chains) { // Assume the chains are sorted
-          if (mc.hasStopped()) {
-             numNotStopped--;
-          } else {
-	       stream.setCurCoordIndex (sortCoordPts); // Skip first sortCoordPts coord.
-             mc.nextStep (stream);                // simulate next step of the chain.
-             stream.resetNextSubstream ();        // Go to next point.
-             if (mc.hasStopped())
-                numNotStopped--;
-          }
-          performances[i] = mc.getPerformance();
-          ++i;
-       }
-       ++step;
-    }
-    return calcMeanPerf();
-    }
-    else{
-    	
-    	 initialStates();
-    	    step = 0;
-    	    while (step < numSteps && numNotStopped > 0) {
-    	   	
-    	       if (numNotStopped == n) sort.sort( chains, 0, n);
-    					 else sortNotStoppedChains (sort); // Sort the numNotStopped first chains.          
-    	       p.randomize(rand);           // Randomize the point set.
-    	       if (sortCoordPts > 0) { 
-    	           if (!(p instanceof CachedPointSet))
-    	              throw new IllegalArgumentException("p is not a CachedPointSet.");
-    					 if (sortCoordPts > 1)
-    	              ((CachedPointSet) p).sort(sort);   // Sort points using first sortCoordPts coordinates. 
-    	           else
-    	              ((CachedPointSet) p).sortByCoordinate (0);  // Sort by first coordinate.
-    	       }
-    	       PointSetIterator   stream = p.iterator ();
-    	       stream.resetCurPointIndex ();             // Go to first point.
-    	       int  i = 0;
-    	       for (T mc : chains) { // Assume the chains are sorted
-    	          if (mc.hasStopped()) {
-    	             numNotStopped--;
-    	          } else {
-    		       stream.setCurCoordIndex (sortCoordPts); // Skip first sortCoordPts coord.
-    	             mc.nextStep (stream);                // simulate next step of the chain.
-    	             stream.resetNextSubstream ();        // Go to next point.
-    	             if (mc.hasStopped())
-    	                numNotStopped--;
-    	          }
-    	          performances[i] = mc.getPerformance();
-    	          ++i;
-    	       }
-    	       ++step;
-    	    }
-    	   // System.out.println("calcMeanPerf"+calcMeanPerf());
-    	    return calcMeanPerf();
-    	
-    }
-    	
-}
-
+	    
+	System.out.println("on est la");
+	    
+	    
+	    initialStates();
+	    step = 0;
+	    while (step < numSteps && numNotStopped > 0) {
+	    try {
+	    filena =combinestep(step, (int)numSteps-1);
+	    file = removecolumns( filena,idx);
+	     System.out.println("filename"+filena);
+	    } catch (Exception ignored) {}
+	    System.out.println("file"+file);
+	    String [] nameTrainTest = TrainTestFile(file);
+	    String filenameTrain = nameTrainTest[0];
+	    String filenameTest  = nameTrainTest[1];
+	     
+	    sort = new  NeuralNetworkSort(chains[0].stateDim, filenameTrain, filenameTest,chains[0].stateDim, 1,   numHidden, seed, learningRate, nEpochs );
+	    
+	       if (numNotStopped == n) sort.sort( chains, 0, n);
+	else sortNotStoppedChains (sort); // Sort the numNotStopped first chains.          
+	       p.randomize(rand);           // Randomize the point set.
+	       if (sortCoordPts > 0) { 
+	           if (!(p instanceof CachedPointSet))
+	              throw new IllegalArgumentException("p is not a CachedPointSet.");
+	if (sortCoordPts > 1)
+	              ((CachedPointSet) p).sort(sort);   // Sort points using first sortCoordPts coordinates. 
+	           else
+	              ((CachedPointSet) p).sortByCoordinate (0);  // Sort by first coordinate.
+	       }
+	       PointSetIterator   stream = p.iterator ();
+	       stream.resetCurPointIndex ();             // Go to first point.
+	       int  i = 0;
+	       for (T mc : chains) { // Assume the chains are sorted
+	          if (mc.hasStopped()) {
+	             numNotStopped--;
+	          } else {
+	      stream.setCurCoordIndex (sortCoordPts); // Skip first sortCoordPts coord.
+	             mc.nextStep (stream);                // simulate next step of the chain.
+	             stream.resetNextSubstream ();        // Go to next point.
+	             if (mc.hasStopped())
+	                numNotStopped--;
+	          }
+	          performances[i] = mc.getPerformance();
+	          ++i;
+	       }
+	       ++step;
+	    }
+	    return calcMeanPerf();
+	    }
+	    else{
+	   
+	    initialStates();
+	       step = 0;
+	       while (step < numSteps && numNotStopped > 0) {
+	     
+	          if (numNotStopped == n) sort.sort( chains, 0, n);
+	    else sortNotStoppedChains (sort); // Sort the numNotStopped first chains.          
+	          p.randomize(rand);           // Randomize the point set.
+	          if (sortCoordPts > 0) { 
+	              if (!(p instanceof CachedPointSet))
+	                 throw new IllegalArgumentException("p is not a CachedPointSet.");
+	    if (sortCoordPts > 1)
+	                 ((CachedPointSet) p).sort(sort);   // Sort points using first sortCoordPts coordinates. 
+	              else
+	                 ((CachedPointSet) p).sortByCoordinate (0);  // Sort by first coordinate.
+	          }
+	          PointSetIterator   stream = p.iterator ();
+	          stream.resetCurPointIndex ();             // Go to first point.
+	          int  i = 0;
+	          for (T mc : chains) { // Assume the chains are sorted
+	             if (mc.hasStopped()) {
+	                numNotStopped--;
+	             } else {
+	          stream.setCurCoordIndex (sortCoordPts); // Skip first sortCoordPts coord.
+	                mc.nextStep (stream);                // simulate next step of the chain.
+	                stream.resetNextSubstream ();        // Go to next point.
+	                if (mc.hasStopped())
+	                   numNotStopped--;
+	             }
+	             performances[i] = mc.getPerformance();
+	             ++i;
+	          }
+	          ++step;
+	       }
+	      // System.out.println("calcMeanPerf"+calcMeanPerf());
+	       return calcMeanPerf();
+	   
+	    }
+	   
+	}
    /**
     * This version assumes that `sortCoordPts = 0`, so that there is no
     * need to sort the points at each step.

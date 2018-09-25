@@ -106,6 +106,8 @@ class AsianOptionComparable2 extends MarkovChainComparable
         S = Math.exp(logS);
         sumS += S;
     }
+    
+   
 
     // Returns the net payoff (valid after the last step, at time T).
     public double getPerformance() {
@@ -172,6 +174,9 @@ class AsianOptionComparable2 extends MarkovChainComparable
 		double[] state ={S,sumS};
 		return state;
 	}
+    
+
+    
 
     public String toString() {
         StringBuffer sb = new StringBuffer("----------------------------------------------\n");

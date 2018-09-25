@@ -160,7 +160,7 @@ public class AsianOptionTest extends ArrayOfComparableChains<AsianOptionComparab
 
 		int m = 2; // Number of replications.
 	//	int numSets = 10; // Number of point sets to try.
-		int numSets =2; // Number of point sets to try.
+		int numSets =3; // Number of point sets to try.
 		//int numSets = 2; // Number of point sets to try.
 
 		AsianOptionComparable2 asian = new AsianOptionComparable2 (r, d, t1, T, K,

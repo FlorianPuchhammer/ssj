@@ -1,4 +1,5 @@
 package umontreal.ssj.markovchainrqmc;
+import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.util.sort.MultiDimComparable;
 
 /**
@@ -35,6 +36,6 @@ public abstract class MarkovChainComparable extends MarkovChain
    public int getStateDimension() {
      return stateDim;
   }
-  // public abstract double[] getState();
+  
 
 }

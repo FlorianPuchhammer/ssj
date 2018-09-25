@@ -315,6 +315,60 @@ public abstract class MarkovChain implements Cloneable {
         sb.append (stat.formatCIStudent (0.9, 7));
         return sb.toString ();
     }
+   
+   //BY FLO
+   /**
+    * Same as #nextStep(RandomStream) but writes the state after the simulation step to \a states. The array
+    * \a state has to be initialized with the correct length!
+    * @param stream the random stream used for simulation.
+    * @param state the array to which the state is written.
+    */
+   public void nextStep(RandomStream stream, double[] state) {
+   	nextStep(stream);
+   	double [] tmp = getState();
+//   	state = new double[tmp.length];
+   	for(int d = 0; d < tmp.length; d++)
+   		state[d] = tmp[d];
+   }
+   
+   /**
+    * Starts a new simulation of the Markov chain with \a numSteps steps using the random stream \a stream.
+    * The states are written to the 2-dimensional array \a states, where the first index refers to the step and the 
+    * second index refers to the coordinate of the state vector. Note that \a states has to be initialized with the
+    * right number of steps \a numSteps.
+    * @param numSteps the number of steps
+    * @param stream the random stream used for simulation.
+    * @param state the 2-dimensional array to which the state of each step is written.
+    */
+   public void simulSteps(int numSteps, RandomStream stream, double[][] states) {
+	   initialState ();
+       this.numSteps = numSteps;
+       int step = 0;
+       while (step < numSteps && !hasStopped()){
+    	   states[step] = new double[getState().length];
+           nextStep (stream,states[step]);
+           ++step;
+       }
+   }
+   
+   /**
+    * Simulates \a numSteps steps for \a n chains using the random stream \a stream. The performance of each chain
+    * is stored in the array \a performance. All the states occurring in this simulation are stored in the tensor
+    * \a states with dimensions \a n \f$\times\f$ \a numSteps
+    * @param n
+    * @param numSteps
+    * @param stream
+    * @param states
+    * @param performance
+    */
+   public void simulRuns(int n, int numSteps, RandomStream stream, double[][][] states, double[] performance) {
+       for (int i = 0; i < n; i++) {
+    	   states[i] = new double[numSteps][];
+           simulSteps (numSteps, stream,states[i]);
+           performance[i] = getPerformance();
+       }
+   }
+
 
 }
 
