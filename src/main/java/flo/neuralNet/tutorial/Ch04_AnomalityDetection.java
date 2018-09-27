@@ -18,6 +18,10 @@ import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.learning.config.AdaGrad;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
+
+import umontreal.ssj.rng.MRG32k3a;
+import umontreal.ssj.rng.RandomStream;
+
 import java.util.*;
 
 import javax.imageio.ImageIO;
@@ -83,6 +87,7 @@ public class Ch04_AnomalityDetection {
 		 ArrayList<INDArray> labelsTest = new ArrayList<INDArray>();
 		 
 		 Random rand = new Random(seed);
+//		 RandomStream rand = new MRG32k3a();
 		 
 		 while(iter.hasNext()) {
 			 DataSet data = iter.next();

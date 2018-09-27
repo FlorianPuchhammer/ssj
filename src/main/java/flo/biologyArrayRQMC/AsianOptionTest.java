@@ -27,10 +27,13 @@ public class AsianOptionTest extends ArrayOfComparableChains<AsianOptionComparab
 	public void testMethods (AsianOptionComparable2 asian, 
 	        MultiDimSort sort, int sortCoordPts, int numSteps, int m, int numSets) {
 		int s;   // Index of point set.
-//		int[] N = { 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536,
-//				131072, 262144, 524288, 1048576 }; // logn from 8 to 20.
-		int[] N = { 256, 512, 1024}; // logn from 8 to 10.
+		/*int[] N = { 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536,
+				131072, 262144, 524288, 1048576 }; // logn from 8 to 20.
 		int[] a = { 55, 115, 851, 1553, 2839, 6685, 9945, 12421, 38295, 114789,
+				177473, 286857, 271251 };*/
+		int[] N = {  512, 1024, 2048, 4096, 8192, 16384, 32768, 65536,
+				131072, 262144, 524288, 1048576 }; // logn from 8 to 20.
+		int[] a = {  115, 851, 1553, 2839, 6685, 9945, 12421, 38295, 114789,
 				177473, 286857, 271251 };
 		PointSet[] pointSets = new PointSet[numSets];
 		PointSetRandomization randShift = new RandomShift(new MRG32k3a());
@@ -63,7 +66,7 @@ public class AsianOptionTest extends ArrayOfComparableChains<AsianOptionComparab
 		// Stratification
 		int k;   
 	    for (s = 0; s < numSets; ++s) {
-			k = (int) Math.round(Math.pow(Num.TWOEXP[s + 8],
+			k = (int) Math.round(Math.pow(Num.TWOEXP[s + 9],
 				 1.0 / (double) (sortCoordPts + 1)));
 			pointSets[s] = new StratifiedUnitCube (k, sortCoordPts + 1);
 			// Here the points must be sorted at each step, always.
@@ -77,10 +80,10 @@ public class AsianOptionTest extends ArrayOfComparableChains<AsianOptionComparab
 		// Sobol
 		for (s = 0; s < numSets; ++s) {
 			if (sortCoordPts == 1)
-				pointSets[s] = new SobolSequence(s + 8, 31, 1+1);
+				pointSets[s] = new SobolSequence(s + 9, 31, 1+1);
 			else
 				// The points are sorted here, but only once.
-			    pointSets[s] = new SortedAndCutPointSet (new SobolSequence(s + 8, 31, sortCoordPts+1), sort);
+			    pointSets[s] = new SortedAndCutPointSet (new SobolSequence(s + 9, 31, sortCoordPts+1), sort);
 		}
 		// When the point set is sorted only one, it must be sorted before calling this function.
 		System.out.println (testVarianceRateFormat (pointSets, randDigital, sort, 0, 
@@ -147,7 +150,7 @@ public class AsianOptionTest extends ArrayOfComparableChains<AsianOptionComparab
 	public static void main(String[] args) {
 		double r = Math.log(1.09);
 		//int d = 12;
-		int d = 4;
+		int d = 12;
 		// double t1 = (240.0 - d + 1) / 365.0;
 		// double T = 240.0 / 365.0;
 		double t1 = 1.0 / d;
@@ -158,9 +161,9 @@ public class AsianOptionTest extends ArrayOfComparableChains<AsianOptionComparab
 		// double sigma = 0.2;
 		// int numSteps = d;
 
-		int m = 2; // Number of replications.
+		int m = 50; // Number of replications.
 	//	int numSets = 10; // Number of point sets to try.
-		int numSets =3; // Number of point sets to try.
+		int numSets = 8; // Number of point sets to try.
 		//int numSets = 2; // Number of point sets to try.
 
 		AsianOptionComparable2 asian = new AsianOptionComparable2 (r, d, t1, T, K,

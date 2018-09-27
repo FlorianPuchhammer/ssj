@@ -1,3 +1,36 @@
+/*
+ * Class:        HilbertCurveSort
+ * Description:  Sorts d-dimensional points in [0,1)^d based on Hilbert curve.
+ * Environment:  Java
+ * Software:     SSJ 
+ * Copyright (C) 2014  Pierre L'Ecuyer and Universite de Montreal
+ * Organization: DIRO, Universite de Montreal
+ * @author       
+ * @since
+
+ * SSJ is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License (GPL) as published by the
+ * Free Software Foundation, either version 3 of the License, or
+ * any later version.
+
+ * SSJ is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+
+ * A copy of the GNU General Public License is available at
+   <a href="http://www.gnu.org/licenses">GPL licence site</a>.
+ */
+
+  /* IMPORTANT NOTE:
+* Much of this code has been taken (with adaptations) from  
+  *     the hilbert.c  code  
+  * Author: Spencer W. Thomas
+  * EECS Dept.
+  * University of Michigan
+  * Date: Thu Feb  7 1991
+  * Copyright (c) 1991, University of Michigan
+  */
 package umontreal.ssj.util.sort;
   import java.util.Comparator;
 
@@ -89,7 +122,7 @@ static double[] w;
     double[] PerformanceForSort;  
     NeuralNetworkMap NNMap;
     double [][] indexForSort;
-    public static   int  batchSize = 100;
+    //public static   int  batchSize = 100;
  
    /* public static   String fileTrain;
     public static   String  fileTest;
@@ -107,6 +140,7 @@ static double[] w;
     public  int seed;
     public  double learningRate;
     public int nEpochs;
+    int batchSize;
    /**
     * Constructs a HilbertCurveSort object that will use the first
     * @f$m@f$ bits of each of the first `d` coordinates to sort the
@@ -121,9 +155,10 @@ static double[] w;
      // NNMap = new NeuralNetworkMap(fileTrain,fileTest, numInputs, numOutputs, numHiddenNodes ,seed, learningRate,  nEpochs)
     
    }
-   public NeuralNetworkSort(int d ,String fileTrain, String fileTest,  int numInputs, int numOutputs,  int numHiddenNodes , int seed, double  learningRate, int nEpochs ) {      
+   public NeuralNetworkSort (int d ,String fileTrain, String fileTest,  int numInputs, int numOutputs,  int numHiddenNodes , int seed, double  learningRate, int nEpochs, int batchSize ) {      
      dimension = d;
-    this. NNMap = new NeuralNetworkMap(fileTrain,fileTest, numInputs, numOutputs, numHiddenNodes ,seed, learningRate,  nEpochs);
+     this.batchSize = batchSize;
+    this. NNMap = new NeuralNetworkMap(fileTrain,fileTest, numInputs, numOutputs, numHiddenNodes ,seed, learningRate,  nEpochs, batchSize);
    
   }
 
@@ -155,7 +190,6 @@ static double[] w;
      try {
 NNMap .trainingTesting(batchSize);
 } catch (IOException | InterruptedException e) {
- 
 e.printStackTrace();
 }        
        PerformanceForSort = new double[iMax];
@@ -164,11 +198,9 @@ e.printStackTrace();
       try {
 PerformanceForSort [i] =NNMap.prediction(a[i].getState());
 } catch (FileNotFoundException e) {
- 
 e.printStackTrace();
 }
        }
- 
        sort (PerformanceForSort, iMin, iMax);
        // Now use indexForSort to sort a.
        // We do not want to clone all the objects in a, 
@@ -181,7 +213,6 @@ e.printStackTrace();
   /* try {
 NNMap .trainingTesting(batchSize);
 } catch (IOException | InterruptedException e) {
- 
 e.printStackTrace();
 }        
   PerformanceForSort = new double[iMax];
@@ -190,7 +221,6 @@ e.printStackTrace();
     try {
 PerformanceForSort [i] =NNMap.prediction(a[i].getState());
 } catch (FileNotFoundException e) {
- 
 e.printStackTrace();
 }
     }*/
@@ -276,7 +306,6 @@ public void sort (double[][] a, int iMin, int iMax) {
 NNMap .trainingTesting(batchSize);
 System.out.println("Hello1");
 } catch (IOException | InterruptedException e) {
- 
 e.printStackTrace();
 }
     
@@ -288,7 +317,6 @@ e.printStackTrace();
              System.out.println("Sort "+indexForSort[i][1]);
             // System.out.println("Hello2");
 } catch (FileNotFoundException e) {
- 
 e.printStackTrace();
 }
     }
