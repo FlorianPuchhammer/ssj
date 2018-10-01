@@ -6,23 +6,31 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
 import org.datavec.api.split.FileSplit;
 import org.deeplearning4j.api.loader.DataSetLoader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
+import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
+import org.deeplearning4j.earlystopping.scorecalc.DataSetLossCalculator;
+import org.deeplearning4j.earlystopping.termination.MaxEpochsTerminationCondition;
+import org.deeplearning4j.earlystopping.termination.MaxTimeIterationTerminationCondition;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.eval.RegressionEvaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration.Builder;
 import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
+import org.deeplearning4j.nn.conf.layers.Layer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.deeplearning4j.optimize.solvers.StochasticGradientDescent;
 import org.jfree.data.xml.DatasetReader;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -46,8 +54,9 @@ import umontreal.ssj.util.sort.MultiDimSortN;
 
 public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionComparable2> {
 
-	public static String filepath = "./data/arrayRQMC_ML/asian/";
-//	public static String filepath = "/u/puchhamf/misc/workspace/ssj/data/arrayRQMC_ML/asian/";
+	public static String filepath = "./data/asian/";
+	// public static String filepath =
+	// "/u/puchhamf/misc/workspace/ssj/data/arrayRQMC_ML/asian/";
 	public static MultiLayerNetwork network;
 
 	public AsianOptionTestFlo(AsianOptionComparable2 baseChain) {
@@ -79,17 +88,71 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 			System.out.println(sb.toString());
 		}
 	}
+	
+	
 
 	public MultiLayerNetwork genNetwork(int step, double lRate) {
-		MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder().seed(123)
-				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).weightInit(WeightInit.XAVIER)
-				.updater(new Adam(lRate)).list()
-				.layer(0,
-						new DenseLayer.Builder().nIn(baseChain.getStateDimension()).nOut(1).activation(Activation.CUBE)
-								.build())
-				.layer(1, new OutputLayer.Builder().nIn(1).nOut(1).activation(Activation.IDENTITY)
-						.lossFunction(LossFunction.MSE).build())
-				.pretrain(false).backprop(true).build();
+		MultiLayerConfiguration conf;
+		int seed = 123;
+		WeightInit weightInit = WeightInit.XAVIER;
+		Activation activation1 = Activation.IDENTITY;
+		Activation activation2 = Activation.RRELU;
+		LossFunction lossFunction = LossFunction.MSE;
+		AdaGrad updater = new AdaGrad(lRate);
+		int stateDim = baseChain.getStateDimension();
+
+		OptimizationAlgorithm optAlgo = OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT;
+
+		switch (step) {
+		case 3:
+			conf = new NeuralNetConfiguration.Builder().seed(seed).optimizationAlgo(optAlgo).weightInit(weightInit)
+					.updater(updater).list()
+					.layer(0, new DenseLayer.Builder().nIn(stateDim).nOut(1).activation(activation2).build())
+					.layer(1, new OutputLayer.Builder().nIn(1).nOut(1).activation(Activation.IDENTITY)
+							.lossFunction(lossFunction).build())
+					.pretrain(false).backprop(true).build();
+			break;
+
+		case 2:
+			conf = new NeuralNetConfiguration.Builder().seed(seed).optimizationAlgo(optAlgo).weightInit(weightInit)
+					.updater(updater).list()
+					.layer(0, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build())
+					.layer(1, new DenseLayer.Builder().nIn(stateDim).nOut(1).activation(activation2).build())
+					.layer(2, new OutputLayer.Builder().nIn(1).nOut(1).activation(Activation.IDENTITY)
+							.lossFunction(lossFunction).build())
+					.pretrain(false).backprop(true).build();
+			break;
+		case 1:
+			conf = new NeuralNetConfiguration.Builder().seed(seed).optimizationAlgo(optAlgo).weightInit(weightInit)
+					.updater(updater).list()
+					.layer(0, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build())
+					.layer(1, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build())
+					.layer(2, new DenseLayer.Builder().nIn(stateDim).nOut(1).activation(activation2).build())
+					.layer(3, new OutputLayer.Builder().nIn(1).nOut(1).activation(Activation.IDENTITY)
+							.lossFunction(lossFunction).build())
+					.pretrain(false).backprop(true).build();
+			break;
+		case 0:
+			conf = new NeuralNetConfiguration.Builder().seed(seed).optimizationAlgo(optAlgo).weightInit(weightInit)
+					.updater(updater).list()
+					.layer(0, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build())
+					.layer(1, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build())
+					.layer(2, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build())
+					.layer(3, new DenseLayer.Builder().nIn(stateDim).nOut(1).activation(activation2).build())
+					.layer(4, new OutputLayer.Builder().nIn(1).nOut(1).activation(Activation.IDENTITY)
+							.lossFunction(lossFunction).build())
+					.pretrain(false).backprop(true).build();
+			break;
+		default:
+			conf = new NeuralNetConfiguration.Builder().seed(seed).optimizationAlgo(optAlgo).weightInit(weightInit)
+					.updater(updater).list()
+					.layer(0, new DenseLayer.Builder().nIn(stateDim).nOut(1).activation(activation2).build())
+					.layer(1, new OutputLayer.Builder().nIn(1).nOut(1).activation(Activation.IDENTITY)
+							.lossFunction(lossFunction).build())
+					.pretrain(false).backprop(true).build();
+			break;
+		}
+
 		return new MultiLayerNetwork(conf);
 	}
 
@@ -113,22 +176,65 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 	public ArrayList<MultiLayerNetwork> genNetworkList() {
 		int index = 0;
 		double lRate = 0.5;
-		int lRateVals = 10;
-		Activation[] activations = Activation.values();
-		WeightInit[] weightInits = { WeightInit.ZERO, WeightInit.ONES, WeightInit.SIGMOID_UNIFORM, WeightInit.NORMAL,
-				WeightInit.LECUN_NORMAL, WeightInit.UNIFORM, WeightInit.XAVIER, WeightInit.XAVIER_UNIFORM,
-				WeightInit.XAVIER_FAN_IN, WeightInit.XAVIER_LEGACY, WeightInit.RELU, WeightInit.RELU_UNIFORM,
-//				WeightInit.IDENTITY, 
-				WeightInit.LECUN_UNIFORM, WeightInit.VAR_SCALING_NORMAL_FAN_IN,
-				WeightInit.VAR_SCALING_NORMAL_FAN_OUT, WeightInit.VAR_SCALING_NORMAL_FAN_AVG,
-				WeightInit.VAR_SCALING_UNIFORM_FAN_IN, WeightInit.VAR_SCALING_UNIFORM_FAN_OUT,
-				WeightInit.VAR_SCALING_UNIFORM_FAN_AVG };
-		LossFunction[] lossFuncts = { LossFunction.MSE, LossFunction.L1, LossFunction.XENT, LossFunction.MCXENT,
-				LossFunction.SQUARED_LOSS, LossFunction.RECONSTRUCTION_CROSSENTROPY, LossFunction.NEGATIVELOGLIKELIHOOD,
-				LossFunction.COSINE_PROXIMITY, LossFunction.HINGE, LossFunction.SQUARED_HINGE,
-				LossFunction.KL_DIVERGENCE, LossFunction.MEAN_ABSOLUTE_ERROR, LossFunction.L2,
-				LossFunction.MEAN_ABSOLUTE_PERCENTAGE_ERROR, LossFunction.MEAN_SQUARED_LOGARITHMIC_ERROR,
-				LossFunction.POISSON };
+		int lRateVals = 5;
+		Activation[] activations = {
+				// Activation.CUBE,
+				// Activation.ELU,
+				// Activation.HARDSIGMOID,
+				// Activation.HARDTANH,
+				Activation.IDENTITY,
+				// Activation.LEAKYRELU,
+				// Activation.RATIONALTANH,
+				Activation.RELU,
+				// Activation.RELU6,
+				Activation.RRELU, Activation.SIGMOID,
+				// Activation.SOFTMAX,
+				Activation.SOFTPLUS,
+				// Activation.SOFTSIGN,
+				Activation.TANH
+				// Activation.RECTIFIEDTANH,
+				// Activation.SELU,
+				// Activation.SWISH,
+				// Activation.THRESHOLDEDRELU
+		};
+		WeightInit[] weightInits = {
+				// WeightInit.ZERO,
+				// WeightInit.ONES,
+				// WeightInit.SIGMOID_UNIFORM,
+				// WeightInit.NORMAL,
+				// WeightInit.LECUN_NORMAL,
+				WeightInit.UNIFORM, WeightInit.XAVIER,
+				// WeightInit.XAVIER_UNIFORM,
+				// WeightInit.XAVIER_FAN_IN,
+				// WeightInit.XAVIER_LEGACY,
+				WeightInit.RELU
+				// WeightInit.RELU_UNIFORM,
+				// WeightInit.IDENTITY,
+				// WeightInit.LECUN_UNIFORM,
+				// WeightInit.VAR_SCALING_NORMAL_FAN_IN,
+				// WeightInit.VAR_SCALING_NORMAL_FAN_OUT,
+				// WeightInit.VAR_SCALING_NORMAL_FAN_AVG,
+				// WeightInit.VAR_SCALING_UNIFORM_FAN_IN,
+				// WeightInit.VAR_SCALING_UNIFORM_FAN_OUT,
+				// WeightInit.VAR_SCALING_UNIFORM_FAN_AVG
+		};
+		LossFunction[] lossFuncts = { LossFunction.MSE,
+				// LossFunction.L1,
+				// LossFunction.XENT,
+				// LossFunction.MCXENT,
+				// LossFunction.SQUARED_LOSS,
+				// LossFunction.RECONSTRUCTION_CROSSENTROPY,
+				// LossFunction.NEGATIVELOGLIKELIHOOD,
+				// LossFunction.COSINE_PROXIMITY,
+				// LossFunction.HINGE,
+				// LossFunction.SQUARED_HINGE,
+				// LossFunction.KL_DIVERGENCE,
+				// LossFunction.MEAN_ABSOLUTE_ERROR,
+				// LossFunction.L2,
+				// LossFunction.MEAN_ABSOLUTE_PERCENTAGE_ERROR,
+				// LossFunction.MEAN_SQUARED_LOGARITHMIC_ERROR,
+				// LossFunction.POISSON
+		};
 		System.out.println("TOTAL:\t" + activations.length * weightInits.length * lossFuncts.length * lRateVals);
 		MultiLayerConfiguration conf;
 		ArrayList<MultiLayerNetwork> netList = new ArrayList<MultiLayerNetwork>();
@@ -140,14 +246,17 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 						conf = new NeuralNetConfiguration.Builder().seed(123)
 								.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).weightInit(w)
 								.updater(new AdaGrad(lRate)).list()
-								.layer(0,
+								.layer(0, new DenseLayer.Builder().nIn(baseChain.getStateDimension())
+										.nOut(baseChain.getStateDimension()).activation(Activation.IDENTITY).build())
+								.layer(1,
 										new DenseLayer.Builder().nIn(baseChain.getStateDimension()).nOut(1)
 												.activation(a).build())
-								.layer(1, new OutputLayer.Builder().nIn(1).nOut(1).activation(Activation.IDENTITY)
+								.layer(2, new OutputLayer.Builder().nIn(1).nOut(1).activation(Activation.IDENTITY)
 										.lossFunction(loss).build())
 								.pretrain(false).backprop(true).build();
 						netList.add(new MultiLayerNetwork(conf));
-						if (index % 1000 == 0)
+
+						if (index % 10 == 0)
 							System.out.println("Built index " + index);
 						index++;
 					}
@@ -168,13 +277,13 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		double s0 = 100.0;
 		double sigma = 0.5;
 
-		int numChains = 65536;
+		int numChains = 524288;
 		boolean genData = false;
 
 		int batchSize = 128;
 		int numEpochs = 32;
 
-		int currentStep = d - 1;
+		int currentStep = d - 2;
 
 		Chrono timer = new Chrono();
 		RandomStream stream = new MRG32k3a();
@@ -192,11 +301,12 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		char delimiter = ',';
 
 		CSVRecordReader rr = new CSVRecordReader(linesToSkip, delimiter);
-		rr.initialize(new FileSplit(new File(filepath + "MCData_Step_3.csv")));
+		rr.initialize(new FileSplit(new File(filepath + "MCData_Step_" + currentStep + ".csv")));
 
 		DataSetIterator iterAll = new RecordReaderDataSetIterator.Builder(rr, numChains).regression(2).build();
-//		DataSetIterator iterAll = new RecordReaderDataSetIterator( rr,  batchSize, 2, 2,
-//                true);
+		// DataSetIterator iterAll = new RecordReaderDataSetIterator( rr, batchSize, 2,
+		// 2,
+		// true);
 		DataNormalization normalizer = new NormalizerStandardize();
 
 		DataSet dataAll = iterAll.next();
@@ -211,12 +321,14 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		int maxItsTrain = trainingData.numExamples() / batchSize;
 		int maxItsTest = testData.numExamples() / batchSize;
 
-		double lRate = 5E-3;
-		ArrayList<MultiLayerNetwork> networkList = test.genNetworkList();
-		int index = 0;
-//		Activation[] activations = Activation.values();
-
-		FileWriter fw = new FileWriter("./data/comparison.txt");
+		// ArrayList<MultiLayerNetwork> networkList = test.genNetworkList();
+		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
+		double lRate = 18.2;
+//		for (int i = 0; i < 4; i++) {
+			lRate += 0.2;
+			networkList.add(test.genNetwork(0,lRate));
+//		}
+		FileWriter fw = new FileWriter("./data/comparison_id+act.txt");
 		StringBuffer sb = new StringBuffer("");
 		String str;
 		ArrayList<Double> mseList = new ArrayList<Double>();
@@ -224,9 +336,11 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		Iterator<MultiLayerNetwork> networkIt = networkList.iterator();
 		while (networkIt.hasNext()) {
 
-//		network = test.genNetwork(d - 1, lRate);
+			// network = test.genNetwork(d - 1, lRate);
 
-			ScoreIterationListener listener = new ScoreIterationListener(maxItsTrain);
+//			ScoreIterationListener listener = new ScoreIterationListener(maxItsTrain);
+			ScoreIterationListener listener = new ScoreIterationListener(1000);
+
 			network = networkIt.next();
 			network.init();
 			network.setListeners(listener);
@@ -247,9 +361,14 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 				its = 0;
 				while (listDataTrain.iterator().hasNext() && its++ < maxItsTrain)
 					network.fit(listDataTrain.iterator().next());
-//			System.out.println(listDataTrain.iterator().next().toString());
+				// System.out.println(listDataTrain.iterator().next().toString());
 			}
-
+			str = "*******************************************\n";
+			str += " CONFIGURATION AFTER TRAINING: \n" + network.conf().toString() + "\n";
+			str += "*******************************************\n";
+			sb.append(str);
+			System.out.println(str);
+			
 			List<DataSet> listDataTest = testData.batchBy(batchSize);
 			RegressionEvaluation eval = new RegressionEvaluation(1);
 			its = 0;
@@ -264,14 +383,15 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 			System.out.println(str);
 
 			network.clear();
-//			network.conf().clearVariables();
+			// network.conf().clearVariables();
 		}
 		fw.write(sb.toString());
 		fw.close();
 		fw = new FileWriter("./data/comparison_mse.txt");
 		fw.write(mseList.toString());
 		fw.close();
+		
 	}
-	
+
 
 }
