@@ -1,5 +1,7 @@
 package umontreal.ssj.mcqmctools.examples;
 
+import java.util.List;
+
 import umontreal.ssj.mcqmctools.MonteCarloModelDoubleArray;
 import umontreal.ssj.rng.RandomStream;
 
@@ -97,6 +99,34 @@ public class creditMetrics implements MonteCarloModelDoubleArray {
 		double num = Math.pow(1.0 + fwdInterest0[rating][k+l] * 0.01 , (double) (k+l+1)*invL);
 		double denom =Math.pow( 1.0 + fwdInterest0[rating][k] * 0.01 , (double) (k+1)*invL);
 		return num/denom -1.0;
+	}
+	
+	public static double A0(Credit K) {
+		double a0 = K.getAmount()/(Math.pow(1.0 + fwdInterest0[K.getRating()][K.getDuration()-1]*0.01, (double)K.getDuration()));
+		for(int i = 1; i <= K.getDuration(); i++) {
+			a0 += K.getCoupon()*0.01 * K.getAmount()/ Math.pow(1.0 + fwdInterest0[K.getRating()][i-1], (double) i);
+		}
+		return a0;
+	}
+	
+	public static double GesA0(List<Credit> listK) {
+		double gesA0 = 0.0;
+		for(Credit K : listK)
+			gesA0 += A0(K);
+		return gesA0;
+	}
+	
+	public double A1(Credit K, int rating) {
+		double a1 = 0.0;
+		if(rating != 7) {
+			a1 = K.getAmount()/Math.pow(1.0 + fwdInterest1[rating][K.getDuration() -1]*0.01, (double)K.getDuration() - 1.0);
+			for(int i = 1; i < K.getDuration(); i++)
+				a1 += K.getCoupon() * 0.01 * K.getAmount() / Math.pow(1.0 + fwdInterest1[rating][i-1]*0.01, (double) i);
+		}
+		else 
+			a1 = 0.01 * securityClassesRecoveryRates[K.getSecurityClass()][0] * K.getAmount();
+		
+		return a1;
 	}
 	@Override
 	public void simulate(RandomStream stream) {
