@@ -13,6 +13,9 @@ import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
 import org.datavec.api.split.FileSplit;
 import org.deeplearning4j.api.loader.DataSetLoader;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
+import org.deeplearning4j.datasets.datavec.RecordReaderMultiDataSetIterator;
+import org.deeplearning4j.datasets.iterator.DataSetIteratorSplitter;
+import org.deeplearning4j.datasets.iterator.MultiDataSetIteratorSplitter;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.scorecalc.DataSetLossCalculator;
 import org.deeplearning4j.earlystopping.termination.MaxEpochsTerminationCondition;
@@ -39,9 +42,15 @@ import org.nd4j.linalg.dataset.SplitTestAndTrain;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.MultiDataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
+import org.nd4j.linalg.dataset.api.preprocessor.NormalizerMinMaxScaler;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
+import org.nd4j.linalg.learning.config.AdaDelta;
 import org.nd4j.linalg.learning.config.AdaGrad;
+import org.nd4j.linalg.learning.config.AdaMax;
 import org.nd4j.linalg.learning.config.Adam;
+import org.nd4j.linalg.learning.config.IUpdater;
+import org.nd4j.linalg.learning.config.Nadam;
+import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import umontreal.ssj.markovchainrqmc.ArrayOfComparableChains;
@@ -63,17 +72,15 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		super(baseChain);
 	}
 
-	public void genData(int n, int numSteps, RandomStream stream) throws IOException {
+	public void genData(String dataLabel, int n, int numSteps, RandomStream stream) throws IOException {
 		double[][][] states = new double[n][][];
 		double[] performance = new double[n];
 		baseChain.simulRuns(n, numSteps, stream, states, performance);
-		String fileName;
 		StringBuffer sb;
 		FileWriter file;
 		for (int step = 0; step < numSteps; step++) {
-			fileName = "MCData_Step_" + step + ".csv";
 			sb = new StringBuffer("");
-			file = new FileWriter(filepath + fileName);
+			file = new FileWriter(filepath + dataLabel + "_Step_" + step + ".csv");
 
 			for (int i = 0; i < n; i++) {
 				for (int j = 0; j < baseChain.getStateDimension(); j++)
@@ -88,17 +95,17 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 			System.out.println(sb.toString());
 		}
 	}
-	
-	
 
 	public MultiLayerNetwork genNetwork(int step, double lRate) {
 		MultiLayerConfiguration conf;
 		int seed = 123;
-		WeightInit weightInit = WeightInit.XAVIER;
+		WeightInit weightInit = WeightInit.RELU;
 		Activation activation1 = Activation.IDENTITY;
-		Activation activation2 = Activation.RRELU;
+		Activation activation2 = Activation.HARDSIGMOID;
 		LossFunction lossFunction = LossFunction.MSE;
-		AdaGrad updater = new AdaGrad(lRate);
+		// AdaGrad updater = new AdaGrad(lRate);
+		IUpdater updater = new AdaGrad(lRate);
+
 		int stateDim = baseChain.getStateDimension();
 
 		OptimizationAlgorithm optAlgo = OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT;
@@ -156,24 +163,23 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		return new MultiLayerNetwork(conf);
 	}
 
-	public ArrayList<MultiLayerNetwork> genNetworkList(double lRate) {
+	public  ArrayList<MultiLayerNetwork> genNetworkList(double lRate) {
 		ArrayList<MultiLayerNetwork> netList = new ArrayList<MultiLayerNetwork>();
-		Activation[] act = Activation.values();
-		MultiLayerConfiguration conf;
-		for (Activation a : act) {
-			conf = new NeuralNetConfiguration.Builder().seed(123)
-					.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT).weightInit(WeightInit.XAVIER)
-					.updater(new AdaGrad(lRate)).list()
-					.layer(0, new DenseLayer.Builder().nIn(baseChain.getStateDimension()).nOut(1).activation(a).build())
-					.layer(1, new OutputLayer.Builder().nIn(1).nOut(1).activation(Activation.IDENTITY)
-							.lossFunction(LossFunction.MSE).build())
-					.pretrain(false).backprop(true).build();
-			netList.add(new MultiLayerNetwork(conf));
+		for (int step = 0; step < baseChain.d; step++) {
+			netList.add(genNetwork(step, lRate));
 		}
 		return netList;
 	}
 
-	public ArrayList<MultiLayerNetwork> genNetworkList() {
+	public ArrayList<MultiLayerNetwork> genNetworkList(double[] lRateArray) {
+		ArrayList<MultiLayerNetwork> netList = new ArrayList<MultiLayerNetwork>();
+		for (int step = 0; step < baseChain.d; step++) {
+			netList.add(genNetwork(step, lRateArray[step]));
+		}
+		return netList;
+	}
+
+	public ArrayList<MultiLayerNetwork> genNetworkListGridSearch() {
 		int index = 0;
 		double lRate = 0.5;
 		int lRateVals = 5;
@@ -265,8 +271,58 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		return netList;
 
 	}
+	
+	public static DataSet getData(String dataLabel, int step, int numData) throws IOException, InterruptedException {
+		int linesToSkip = 0;
+		char delimiter = ',';
+
+		CSVRecordReader rr = new CSVRecordReader(linesToSkip, delimiter);
+		rr.initialize(new FileSplit(new File(filepath + dataLabel + "_Step_" + step + ".csv")));
+
+		DataSetIterator iterAll = new RecordReaderDataSetIterator.Builder(rr, numData).regression(2).build();
+		return iterAll.next();
+	}
+	
+	public static void trainNetwork(MultiLayerNetwork network, DataSet trainingData, int numEpochs, int batchSize, int printIterations) {
+		network.init();
+		ScoreIterationListener listener = new ScoreIterationListener(printIterations);
+		network.setListeners(listener);
+		
+		int maxItsTrain = trainingData.numExamples() / batchSize;
+		
+		int its;
+		for (int e = 0; e < numEpochs; e++) {
+
+			trainingData.shuffle();
+			List<DataSet> listDataTrain = trainingData.batchBy(batchSize); //TODO: very inefficient!
+			its = 0;
+			while (listDataTrain.iterator().hasNext() && its++ < maxItsTrain)
+				network.fit(listDataTrain.iterator().next());
+		}
+	}
+	
+	public static String testNetwork(MultiLayerNetwork network, DataSet testData, int batchSize) {
+		List<DataSet> listDataTest = testData.batchBy(batchSize); //TODO: inefficient!
+		RegressionEvaluation eval = new RegressionEvaluation(1);
+		int maxItsTest = testData.numExamples() / batchSize;
+		int its = 0;
+		while (its++ < maxItsTest && listDataTest.iterator().hasNext()) {
+			DataSet current = listDataTest.iterator().next();
+			INDArray output = network.output(current.getFeatures());
+			eval.eval(current.getLabels(), output);
+		}
+		String str = eval.stats();
+//		System.out.println(str);
+		return str;
+	}
 
 	public static void main(String[] args) throws IOException, InterruptedException {
+		/*
+		 ***********************************************************************
+		 ************* INITIALIZE THE MODEL*************************************
+		 ***********************************************************************
+		 */
+
 		double r = Math.log(1.09);
 		int d = 4; // numSteps
 		// double t1 = (240.0 - d + 1) / 365.0;
@@ -276,122 +332,118 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		double K = 100.0;
 		double s0 = 100.0;
 		double sigma = 0.5;
-
 		int numChains = 524288;
-		boolean genData = false;
-
-		int batchSize = 128;
-		int numEpochs = 32;
-
-		int currentStep = d - 2;
 
 		Chrono timer = new Chrono();
 		RandomStream stream = new MRG32k3a();
 
 		AsianOptionComparable2 asian = new AsianOptionComparable2(r, d, t1, T, K, s0, sigma);
+
+		System.out.println(asian.toString());
+
 		AsianOptionTestFlo test = new AsianOptionTestFlo(asian); // This is the array of comparable chains.
+
+		/*
+		 ***********************************************************************
+		 ************* BUILD DATA***********************************************
+		 ***********************************************************************
+		 */
+		boolean genData = false;
+
+		String dataLabel = "MCData";
 
 		if (genData) {
 			timer.init();
-			test.genData(numChains, d, stream);
+			test.genData(dataLabel, numChains, d, stream);
 			System.out.println("\n\nTiming:\t" + timer.format());
 		}
+		/*
+		 ***********************************************************************
+		 ************* NEURAL NETWORK*******************************************
+		 ***********************************************************************
+		 */
 
-		int linesToSkip = 0;
-		char delimiter = ',';
+		int currentStep = 0;
 
-		CSVRecordReader rr = new CSVRecordReader(linesToSkip, delimiter);
-		rr.initialize(new FileSplit(new File(filepath + "MCData_Step_" + currentStep + ".csv")));
+		int batchSize = 128;
+		int numEpochs = 32;
 
-		DataSetIterator iterAll = new RecordReaderDataSetIterator.Builder(rr, numChains).regression(2).build();
-		// DataSetIterator iterAll = new RecordReaderDataSetIterator( rr, batchSize, 2,
-		// 2,
-		// true);
-		DataNormalization normalizer = new NormalizerStandardize();
+		/*
+		 * READ DATA
+		 */
 
-		DataSet dataAll = iterAll.next();
-		normalizer.fit(dataAll);
-		normalizer.transform(dataAll);
 
-		SplitTestAndTrain testAndTrain = dataAll.splitTestAndTrain(0.8);
+		DataSet dataAll = getData(dataLabel, currentStep,numChains);
+		
+		
+
+		/*
+		 * SPLIT DATA, DEFINE ITERATORS, AND NORMALIZE
+		 */
+
+		
+
+		double ratioTrainingData = 0.8;
+		SplitTestAndTrain testAndTrain = dataAll.splitTestAndTrain(ratioTrainingData);
 
 		DataSet trainingData = testAndTrain.getTrain();
 		DataSet testData = testAndTrain.getTest();
 
-		int maxItsTrain = trainingData.numExamples() / batchSize;
-		int maxItsTest = testData.numExamples() / batchSize;
+		DataNormalization normalizer = new NormalizerStandardize();
+		// DataNormalization normalizer = new NormalizerMinMaxScaler();
 
+		normalizer.fit(trainingData);
+		normalizer.transform(trainingData);
+		normalizer.transform(testData);
+
+	
+
+		
+		double lRate = 18.2;
+		lRate = 1.0 / 1024.0;
 		// ArrayList<MultiLayerNetwork> networkList = test.genNetworkList();
 		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
-		double lRate = 18.2;
-//		for (int i = 0; i < 4; i++) {
-			lRate += 0.2;
-			networkList.add(test.genNetwork(0,lRate));
-//		}
+		for (int i = 0; i < 15; i++) {
+			lRate *= 2;
+
+			networkList.add(test.genNetwork(currentStep, lRate));
+		}
 		FileWriter fw = new FileWriter("./data/comparison_id+act.txt");
 		StringBuffer sb = new StringBuffer("");
 		String str;
-		ArrayList<Double> mseList = new ArrayList<Double>();
+
+
 
 		Iterator<MultiLayerNetwork> networkIt = networkList.iterator();
+		MultiLayerNetwork network;
 		while (networkIt.hasNext()) {
 
-			// network = test.genNetwork(d - 1, lRate);
-
-//			ScoreIterationListener listener = new ScoreIterationListener(maxItsTrain);
-			ScoreIterationListener listener = new ScoreIterationListener(1000);
-
 			network = networkIt.next();
-			network.init();
-			network.setListeners(listener);
-
+			
 			str = "*******************************************\n";
 			str += " CONFIGURATION: \n" + network.conf().toString() + "\n";
 			str += "*******************************************\n";
 			sb.append(str);
 			System.out.println(str);
-
-			int its;
-			for (int e = 0; e < numEpochs; e++) {
-
-				trainingData.shuffle();
-
-				List<DataSet> listDataTrain = trainingData.batchBy(batchSize);
-
-				its = 0;
-				while (listDataTrain.iterator().hasNext() && its++ < maxItsTrain)
-					network.fit(listDataTrain.iterator().next());
-				// System.out.println(listDataTrain.iterator().next().toString());
-			}
-			str = "*******************************************\n";
-			str += " CONFIGURATION AFTER TRAINING: \n" + network.conf().toString() + "\n";
-			str += "*******************************************\n";
+			
+			
+			
+			trainNetwork(network,trainingData,numEpochs, batchSize, 1000);
+			
+			str = testNetwork(network,testData,batchSize);
 			sb.append(str);
 			System.out.println(str);
 			
-			List<DataSet> listDataTest = testData.batchBy(batchSize);
-			RegressionEvaluation eval = new RegressionEvaluation(1);
-			its = 0;
-			while (its++ < maxItsTest && listDataTest.iterator().hasNext()) {
-				DataSet current = listDataTest.iterator().next();
-				INDArray output = network.output(current.getFeatures());
-				eval.eval(current.getLabels(), output);
-			}
-			mseList.add(eval.meanSquaredError(0));
-			str = eval.stats() + "\n\n";
-			sb.append(str);
-			System.out.println(str);
+					
+			
 
-			network.clear();
-			// network.conf().clearVariables();
+
 		}
-		fw.write(sb.toString());
-		fw.close();
-		fw = new FileWriter("./data/comparison_mse.txt");
-		fw.write(mseList.toString());
-		fw.close();
-		
-	}
 
+		fw.write(sb.toString());
+		fw.flush();
+		fw.close();
+
+	}
 
 }
