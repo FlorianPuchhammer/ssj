@@ -103,8 +103,8 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		Activation activation1 = Activation.IDENTITY;
 		Activation activation2 = Activation.HARDSIGMOID;
 		LossFunction lossFunction = LossFunction.MSE;
-		// AdaGrad updater = new AdaGrad(lRate);
-		IUpdater updater = new AdaGrad(lRate);
+		 AdaGrad updater = new AdaGrad(lRate);
+//		IUpdater updater = new AdaMax(lRate);
 
 		int stateDim = baseChain.getStateDimension();
 
@@ -399,15 +399,15 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 	
 
 		
-		double lRate = 18.2;
-		lRate = 1.0 / 1024.0;
+		double lRate = 4;
+		lRate = 8.0;
 		// ArrayList<MultiLayerNetwork> networkList = test.genNetworkList();
 		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
-		for (int i = 0; i < 15; i++) {
-			lRate *= 2;
-
+//		for (int i = 0; i < 10; i++) {
+//			lRate += 1.2;
+//
 			networkList.add(test.genNetwork(currentStep, lRate));
-		}
+//		}
 		FileWriter fw = new FileWriter("./data/comparison_id+act.txt");
 		StringBuffer sb = new StringBuffer("");
 		String str;

@@ -163,5 +163,12 @@ public class creditMetrics implements MonteCarloModelDoubleArray {
 		sb.append("}");
 		System.out.println(sb.toString());
 	}
+	
+	private double getBetaVariate(Credit K, double p, double q, int maxIts,RandomStream stream) {
+		double pTemp, qTemp;
+		for(int i = 0; i < maxIts; i++) {
+			
+		}
+	}
 
 }
