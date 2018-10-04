@@ -366,6 +366,7 @@ public abstract class MarkovChain implements Cloneable {
     	   states[i] = new double[numSteps][];
            simulSteps (numSteps, stream,states[i]);
            performance[i] = getPerformance();
+           stream.resetNextSubstream();
        }
    }
 

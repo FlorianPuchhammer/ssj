@@ -433,7 +433,7 @@ public class NeuralNet {
 		boolean genData = true;
 
 		String dataLabel = "SobolData";
-		PointSet sobol = new  SobolSequence( 20, 31, 1 + 1);
+		PointSet sobol = new  SobolSequence( 20, 31, 4);
 		PointSetRandomization rand = new LMScrambleShift(new MRG32k3a());
 		RQMCPointSet p = new RQMCPointSet(sobol,rand);
 
