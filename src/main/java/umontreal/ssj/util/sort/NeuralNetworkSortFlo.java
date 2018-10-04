@@ -6,6 +6,7 @@ import java.util.Comparator;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.factory.Nd4j;
 
@@ -39,6 +40,7 @@ public class NeuralNetworkSortFlo implements MultiDimSortN<MultiDim> {
 	private MultiLayerNetwork network; 
 	private DataNormalization normalizer;
 	private int dimension;
+	private double[][] indexForSort;
 	
 	public NeuralNetworkSortFlo(String fileNameWithPath, int dim) throws IOException {
 		File file = new File(fileNameWithPath);
@@ -59,7 +61,9 @@ public class NeuralNetworkSortFlo implements MultiDimSortN<MultiDim> {
 		
 		INDArray input = Nd4j.create(state);
 		normalizer.transform(input);
-		 return network.output(input).getDouble(0);
+		INDArray output = network.output(input,false);
+//		normalizer.revertLabels(output);
+		 return output.getDouble(0);
 
 		
 	}
@@ -78,7 +82,7 @@ public class NeuralNetworkSortFlo implements MultiDimSortN<MultiDim> {
 		// but only the array of pointers.
 		MultiDim[] aclone = a.clone(); // new Object[iMax];
 		for (int i = iMin; i < iMax; ++i)
-			a[i] = aclone[(int) b[i][0]];
+			a[i] = aclone[(int) indexForSort[i][0]];
 	}
 
 	/**
@@ -131,21 +135,21 @@ public class NeuralNetworkSortFlo implements MultiDimSortN<MultiDim> {
 	public void sort(double[][] a, int iMin, int iMax) {
 		if(iMin+1 == iMax)
 			return;
-		double b[][] = new double[iMax][2];
+		indexForSort= new double[iMax][2];
 		
 		for (int i = iMin; i < iMax; ++i) {
-			b[i][0] = i;
-			b[i][1] = evalNetwork(a[i]);
+			indexForSort[i][0] = i;
+			indexForSort[i][1] = evalNetwork(a[i]);
 		}
-		Arrays.sort(b, iMin, iMax, new DoubleIndexComparator2());
+		Arrays.sort(indexForSort, iMin, iMax, new DoubleIndexComparator2());
 		
 		// Now use indexForSort to sort a.
 		// We do not want to clone all the objects in a,
 		// but only the array of pointers.
 		double[][] aclone = a.clone(); // new Object[iMax];
-		for (int i = iMin; i < iMax; ++i)
-			a[i] = aclone[(int) b[i][0]];
-		
+		for (int i = iMin; i < iMax; ++i) {
+			a[i] = aclone[(int) indexForSort[i][0]];
+		}
 	}
 
 	@Override

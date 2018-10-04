@@ -22,7 +22,7 @@ import umontreal.ssj.util.PrintfFormat;
 import umontreal.ssj.probdist.NormalDist;
 import umontreal.ssj.stat.TallyStore;
 
-class AsianOptionComparable2 extends MarkovChainComparable
+public class AsianOptionComparable2 extends MarkovChainComparable
       implements MultiDim01, MultiDim  {
 
     int d;                         // Number of observation times.

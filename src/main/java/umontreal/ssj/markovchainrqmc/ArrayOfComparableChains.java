@@ -1060,7 +1060,7 @@ public class ArrayOfComparableChains<T extends MarkovChainComparable> {
 			// System.out.println("calcMeanPerf"+calcMeanPerf());
 			return calcMeanPerf();
 
-		}
+		}//goto
 
 	}
 
