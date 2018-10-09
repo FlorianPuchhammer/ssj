@@ -58,6 +58,11 @@ import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 import org.nd4j.linalg.schedule.ExponentialSchedule;
 import org.nd4j.linalg.schedule.ScheduleType;
 
+import umontreal.ssj.hups.LMScrambleShift;
+import umontreal.ssj.hups.PointSet;
+import umontreal.ssj.hups.PointSetRandomization;
+import umontreal.ssj.hups.RQMCPointSet;
+import umontreal.ssj.hups.SobolSequence;
 import umontreal.ssj.markovchainrqmc.ArrayOfComparableChains;
 import umontreal.ssj.rng.MRG32k3a;
 import umontreal.ssj.rng.RandomStream;
@@ -80,7 +85,7 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 	public void genData(String dataLabel, int n, int numSteps, RandomStream stream) throws IOException {
 		double[][][] states = new double[n][][];
 		double[] performance = new double[n];
-		baseChain.simulRuns(n, numSteps, stream, states, performance);
+		baseChain.simulRunsWithSubstreams(n, numSteps, stream, states, performance);
 		StringBuffer sb;
 		FileWriter file;
 		for (int step = 0; step < numSteps; step++) {
@@ -105,7 +110,7 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		MultiLayerConfiguration conf = null;
 		int seed = 123;
 		WeightInit weightInit = WeightInit.NORMAL;
-		Activation activation1 = Activation.IDENTITY;
+		Activation activation1 = Activation.RELU;
 		Activation activation2 = Activation.RELU;
 		LossFunction lossFunction = LossFunction.MSE;
 //		AdaMax updater = new AdaMax(lRate);
@@ -423,7 +428,8 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		double K = 100.0;
 		double s0 = 100.0;
 		double sigma = 0.5;
-		int numChains = 524288;
+		int numChains = 524288 * 2;
+		int logNumChains = 20;
 
 		Chrono timer = new Chrono();
 		RandomStream stream = new MRG32k3a();
@@ -441,11 +447,14 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		 */
 		boolean genData = false;
 
-		String dataLabel = "MCData";
+		String dataLabel = "SobolData";
+		PointSet sobol = new  SobolSequence( logNumChains, 31, d * 2);
+		PointSetRandomization rand = new LMScrambleShift(stream);
+		RQMCPointSet p = new RQMCPointSet(sobol,rand);
 
 		if (genData) {
 			timer.init();
-			test.genData(dataLabel, numChains, d, stream);
+			test.genData(dataLabel, numChains, d, p.iterator());
 			System.out.println("\n\nTiming:\t" + timer.format());
 		}
 		/*
@@ -459,34 +468,7 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		int batchSize = 128;
 		int numEpochs = 32;
 
-		/*
-		 * READ DATA
-		 */
-
-
-		DataSet dataAll = getData(dataLabel, currentStep,numChains);
 		
-		
-
-		/*
-		 * SPLIT DATA, DEFINE ITERATORS, AND NORMALIZE
-		 */
-
-		
-
-		double ratioTrainingData = 0.8;
-		SplitTestAndTrain testAndTrain = dataAll.splitTestAndTrain(ratioTrainingData);
-
-		DataSet trainingData = testAndTrain.getTrain();
-		DataSet testData = testAndTrain.getTest();
-
-		DataNormalization normalizer = new NormalizerStandardize();
-		// DataNormalization normalizer = new NormalizerMinMaxScaler();
-
-		normalizer.fit(trainingData);
-		normalizer.transform(trainingData);
-		normalizer.transform(testData);
-
 	
 
 		
@@ -494,11 +476,11 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		lRate = 15.0;
 	
 		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
-//		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++) {
 //			lRate += 1.0;
 //
-			networkList.add(test.genNetwork(currentStep+1, lRate));
-//		}
+			networkList.add(test.genNetwork(2, lRate));
+		}
 		FileWriter fw = new FileWriter("./data/comparison_id+act.txt");
 		StringBuffer sb = new StringBuffer("");
 		String str;
@@ -509,6 +491,35 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		MultiLayerNetwork network;
 		int i = 0;
 		while (networkIt.hasNext()) {
+			
+			/*
+			 * READ DATA
+			 */
+
+
+			DataSet dataAll = getData(dataLabel, i,numChains);
+			
+			
+
+			/*
+			 * SPLIT DATA, DEFINE ITERATORS, AND NORMALIZE
+			 */
+
+			
+
+			double ratioTrainingData = 0.8;
+			SplitTestAndTrain testAndTrain = dataAll.splitTestAndTrain(ratioTrainingData);
+
+			DataSet trainingData = testAndTrain.getTrain();
+			DataSet testData = testAndTrain.getTest();
+
+			DataNormalization normalizer = new NormalizerStandardize();
+			// DataNormalization normalizer = new NormalizerMinMaxScaler();
+
+			normalizer.fit(trainingData);
+			normalizer.transform(trainingData);
+			normalizer.transform(testData);
+
 
 			network = networkIt.next();
 			
@@ -520,7 +531,7 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 			
 			
 			
-			trainNetwork(network,trainingData,numEpochs, batchSize, (numChains / batchSize) * 2, 1000);
+			trainNetwork(network,trainingData,numEpochs, batchSize, (numChains / batchSize) * 1, 1000);
 			
 			str = testNetwork(network,testData,batchSize);
 			sb.append(str);

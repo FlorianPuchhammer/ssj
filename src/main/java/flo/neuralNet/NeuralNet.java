@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -42,11 +43,12 @@ import umontreal.ssj.hups.SobolSequence;
 import umontreal.ssj.markovchainrqmc.MarkovChainComparable;
 import umontreal.ssj.rng.MRG32k3a;
 import umontreal.ssj.rng.RandomStream;
+import umontreal.ssj.stat.density.DEHistogram;
 import umontreal.ssj.util.Chrono;
 
 public class NeuralNet {
 
-	public static String filepath = "data/asian/";
+	public  String filepath = "data/asian/";
 	public MarkovChainComparable model;
 
 	public NeuralNet(MarkovChainComparable model) {
@@ -59,10 +61,72 @@ public class NeuralNet {
 
 	}
 
-	public void genData(String dataLabel, int n, int numSteps, RandomStream stream) throws IOException {
+	public void genData(String dataLabel, int n, int numSteps, RandomStream stream, int numDraws) throws IOException {
 		double[][][] states = new double[n][][];
 		double[] performance = new double[n];
-		model.simulRuns(n, numSteps, stream, states, performance);
+		model.simulRunsWithSubstreams(n, numSteps, stream, states, performance);
+		StringBuffer sb;
+		FileWriter file;
+		
+		//gen performance dist
+		int numBins = (int) Math.floor(Math.sqrt((double)n));
+		double h = 1.0/(double) numBins;
+		double [] data = performance.clone();
+		Arrays.sort(data);
+		DEHistogram histo = new DEHistogram(data, data[0],data[n-1],numBins);
+//		draw numDraws values from performance dist
+//		double[] pdf = histo.evalDensity();
+//		double[] cdf = pdf.clone();
+//		for(int i = 1; i < numBins; i++) {
+//			cdf[i] = cdf[i-1] + pdf[i];
+//		}
+		
+		double[] u = new double[numDraws];
+		double[] draws = new double[numDraws];
+		stream.nextArrayOfDouble(u, 0, numDraws);
+		Arrays.sort(u);
+		double pos = histo.getA() + h*0.5;
+		double cdf = histo.evalDensity(pos);
+		double cdfTemp, posTemp;
+		for(int l = 0; l < numDraws; l++) {
+			while(cdf < u[l]) {
+				posTemp = pos + h;
+				 cdfTemp = histo.evalDensity(posTemp);
+				if(cdfTemp <= u[l]) {//if next step still not too large
+					pos = posTemp;
+					cdf = cdfTemp;
+				}
+				else { //if next step would be too large
+					draws[l] = cdf;
+					break;
+				}
+					
+					
+			} //goto
+		}//end for l
+		
+		for (int step = 0; step < numSteps; step++) {
+			sb = new StringBuffer("");
+			file = new FileWriter(filepath + dataLabel + "_Step_" + step + ".csv");
+
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < model.getStateDimension(); j++)
+					sb.append(states[i][step][j] + ",");
+				sb.append(performance[i] + "\n");
+			}
+			file.write(sb.toString());
+			file.close();
+			System.out.println("*******************************************");
+			System.out.println(" STEP " + step);
+			System.out.println("*******************************************");
+			System.out.println(sb.toString());
+		}
+	}
+	
+	public void genDataWithSubstreams(String dataLabel, int n, int numSteps, RandomStream stream) throws IOException {
+		double[][][] states = new double[n][][];
+		double[] performance = new double[n];
+		model.simulRunsWithSubstreams(n, numSteps, stream, states, performance);
 		StringBuffer sb;
 		FileWriter file;
 		for (int step = 0; step < numSteps; step++) {
@@ -83,11 +147,11 @@ public class NeuralNet {
 		}
 	}
 
-	public MultiLayerNetwork genNetwork(int step, double lRate) {
+	private MultiLayerNetwork genNetwork(int step, double lRate) {
 		MultiLayerConfiguration conf = null;
 		int seed = 123;
 		WeightInit weightInit = WeightInit.NORMAL;
-		Activation activation1 = Activation.IDENTITY;
+		Activation activation1 = Activation.RELU;
 		Activation activation2 = Activation.RELU;
 		LossFunction lossFunction = LossFunction.MSE;
 		// AdaMax updater = new AdaMax(lRate);
@@ -159,7 +223,7 @@ public class NeuralNet {
 		int seed = 123;
 		WeightInit weightInit = WeightInit.NORMAL;
 		Activation activation1 = Activation.IDENTITY;
-		Activation activation2 = Activation.HARDSIGMOID;
+		Activation activation2 = Activation.RELU;
 		LossFunction lossFunction = LossFunction.MSE;
 		// AdaGrad updater = new AdaGrad(lRate);
 		IUpdater updater = new AdaDelta();
@@ -330,7 +394,7 @@ public class NeuralNet {
 
 	}
 
-	public static DataSet getData(String dataLabel, int step, int numData) throws IOException, InterruptedException {
+	public  DataSet getData(String dataLabel, int step, int numData) throws IOException, InterruptedException {
 		int linesToSkip = 0;
 		char delimiter = ',';
 
@@ -378,7 +442,7 @@ public class NeuralNet {
 		return str;
 	}
 
-	public static void saveNetwork(MultiLayerNetwork net, String networkLabel, DataNormalization norma)
+	public  void saveNetwork(MultiLayerNetwork net, String networkLabel, DataNormalization norma)
 			throws IOException {
 		File locationToSave = new File(filepath + networkLabel + ".zip"); // Where to save the network. Note: the file
 																			// is in .zip format - can be opened
@@ -389,11 +453,11 @@ public class NeuralNet {
 
 	}
 
-	public static MultiLayerNetwork loadNetwork(String networkLabel) throws IOException {
+	public MultiLayerNetwork loadNetwork(String networkLabel) throws IOException {
 		return ModelSerializer.restoreMultiLayerNetwork(filepath + networkLabel + ".zip");
 	}
 
-	public static DataNormalization loadNormalizer(String networkLabel) {
+	public  DataNormalization loadNormalizer(String networkLabel) {
 		return ModelSerializer.restoreNormalizerFromFile(new File(filepath + networkLabel + ".zip"));
 	}
 
@@ -414,7 +478,7 @@ public class NeuralNet {
 		double s0 = 100.0;
 		double sigma = 0.5;
 		int numChains = 524288 * 2;
-		int logNumChains = 19 +1;
+		int logNumChains = 19 + 1;
 
 		Chrono timer = new Chrono();
 		RandomStream stream = new MRG32k3a();
@@ -430,11 +494,11 @@ public class NeuralNet {
 		 ************* BUILD DATA***********************************************
 		 ***********************************************************************
 		 */
-		boolean genData = true;
+		boolean genData = false;
 
 		String dataLabel = "SobolData";
-		PointSet sobol = new  SobolSequence( 20, 31, 4);
-		PointSetRandomization rand = new LMScrambleShift(new MRG32k3a());
+		PointSet sobol = new  SobolSequence( logNumChains, 31, d * 2);
+		PointSetRandomization rand = new LMScrambleShift(stream);
 		RQMCPointSet p = new RQMCPointSet(sobol,rand);
 
 		if (genData) {
@@ -448,7 +512,7 @@ public class NeuralNet {
 		 ***********************************************************************
 		 */
 
-		int currentStep = 3;
+		int currentStep = 1;
 
 		int batchSize = 128;
 		int numEpochs = 32;
@@ -457,7 +521,7 @@ public class NeuralNet {
 		 * READ DATA
 		 */
 
-		DataSet dataAll = getData(dataLabel, currentStep, numChains);
+		DataSet dataAll = test.getData(dataLabel, currentStep, numChains);
 
 		/*
 		 * SPLIT DATA, DEFINE ITERATORS, AND NORMALIZE
@@ -480,11 +544,11 @@ public class NeuralNet {
 		lRate = 15.0;
 
 		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
-		 for (int i = 0; i < 4; i++) {
+		 for (int i = 0; i < d; i++) {
 		 lRate += 1.0;		
-		networkList.add(test.genNetwork(i , lRate));
+		networkList.add(test.genNetwork(2, lRate));
 		 }
-		FileWriter fw = new FileWriter("./data/comparison_id+act.txt");
+		FileWriter fw = new FileWriter("./data/comparison.txt");
 		StringBuffer sb = new StringBuffer("");
 		String str;
 
@@ -501,14 +565,14 @@ public class NeuralNet {
 			sb.append(str);
 			System.out.println(str);
 
-			trainNetwork(network, trainingData, numEpochs, batchSize, (numChains / batchSize) * 2, 1000);
+			trainNetwork(network, trainingData, numEpochs, batchSize, (numChains / batchSize) * 1, 1000);
 
 			str = testNetwork(network, testData, batchSize);
 			sb.append(str);
 			System.out.println(str);
 
 			// saveNetwork(network,"Asian_Step" + currentStep, normalizer);
-//			saveNetwork(network, "Asian_Step" + i, normalizer);
+			test.saveNetwork(network, "Asian_Step" + i, normalizer);
 //			i++;
 			// network.clear();
 			// network = loadNetwork("Asian_Step" + currentStep);

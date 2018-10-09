@@ -81,7 +81,7 @@ public class AsianOptionTest extends ArrayOfComparableChainsNN<AsianOptionCompar
 		// Sobol
 		for (s = 0; s < numSets; ++s) {
 			if (sortCoordPts == 1)
-				pointSets[s] = new SobolSequence(s + 2, 31, 1 + 1);
+				pointSets[s] = new SobolSequence(s + 9, 31, 1 + 1);
 			else
 				// The points are sorted here, but only once.
 				pointSets[s] = new SortedAndCutPointSet(new SobolSequence(s + 9, 31, sortCoordPts + 1), sort);
@@ -241,8 +241,8 @@ public class AsianOptionTest extends ArrayOfComparableChainsNN<AsianOptionCompar
 		// int numSteps = d;
 
 		int m = 50; // Number of replications.
-		// int numSets = 10; // Number of point sets to try.
-		int numSets = 10; // Number of point sets to try.
+		 int numSets = 9; // Number of point sets to try.
+//		int numSets = 8; // Number of point sets to try.
 		// int numSets = 2; // Number of point sets to try.
 
 		AsianOptionComparable2 asian = new AsianOptionComparable2(r, d, t1, T, K, s0, sigma);
@@ -262,25 +262,25 @@ public class AsianOptionTest extends ArrayOfComparableChainsNN<AsianOptionCompar
 
 		System.out.println(asian.toString());
 
-		/*
-		 * System.out.println("\n *************  SPLIT SORT  *************** \n"); sort
-		 * = new SplitSort (2); // test = new AsianOptionTest (asian, rand, sort);
-		 * test.testMethods (asian, sort, 2, d,m, numSets);
-		 * 
-		 * System.out.println("\n *************  BATCH SORT  *************** \n"); sort
-		 * = new BatchSort<AsianOptionComparable2>(batchExp); // Sort in 2 dim.
-		 * test.testMethods(asian, sort, 2, d, m, numSets);
-		 * 
-		 * System.out.println("\n **********  HILBERT BATCH SORT  ***********\n"); sort
-		 * = new HilbertCurveBatchSort<AsianOptionComparable2>(batchExp, 20);
-		 * test.testMethods(asian, sort, 1, d, m, numSets);
-		 */
+		
+//		  System.out.println("\n *************  SPLIT SORT  *************** \n"); sort
+//		  = new SplitSort (2); // test = new AsianOptionTest (asian, rand, sort);
+//		  test.testMethods (asian, sort, 2, d,m, numSets);
+		  
+//		  System.out.println("\n *************  BATCH SORT  *************** \n"); sort
+//		  = new BatchSort<AsianOptionComparable2>(batchExp); // Sort in 2 dim.
+//		  test.testMethods(asian, sort, 2, d, m, numSets);
+		  
+//		  System.out.println("\n **********  HILBERT BATCH SORT  ***********\n"); sort
+//		  = new HilbertCurveBatchSort<AsianOptionComparable2>(batchExp, 20);
+//		  test.testMethods(asian, sort, 1, d, m, numSets);
+		 
 //		System.out.println("\n *************  HILBERT SORT  *************** \n");
 //		sort01 = new HilbertCurveSort(2, 12);
 //		test.testMethods(asian, sort01, 1, d, m, numSets);
 
 		System.out.println("\n *************  NeuralNetwork  SORT  *************** \n");
-		sort02 = new NeuralNetworkSort(2);
+//		sort02 = new NeuralNetworkSort(2);
 		// test.testMethods (biology, sort02, 1, T, m, numSets, "NeuralNetworkSort");
 		// sort02 = new NeuralNetworkSort(2);
 		test.testMethods(asian, 1, d, m, numSets);

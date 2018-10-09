@@ -318,17 +318,18 @@ public abstract class MarkovChain implements Cloneable {
    
    //BY FLO
    /**
-    * Same as #nextStep(RandomStream) but writes the state after the simulation step to \a states. The array
+    * Same as #nextStep(RandomStream) but writes the state before the simulation step to \a states. The array
     * \a state has to be initialized with the correct length!
     * @param stream the random stream used for simulation.
     * @param state the array to which the state is written.
     */
    public void nextStep(RandomStream stream, double[] state) {
-   	nextStep(stream);
    	double [] tmp = getState();
+   	
 //   	state = new double[tmp.length];
    	for(int d = 0; d < tmp.length; d++)
    		state[d] = tmp[d];
+   	nextStep(stream);
    }
    
    /**
@@ -351,6 +352,8 @@ public abstract class MarkovChain implements Cloneable {
        }
    }
    
+   
+   
    /**
     * Simulates \a numSteps steps for \a n chains using the random stream \a stream. The performance of each chain
     * is stored in the array \a performance. All the states occurring in this simulation are stored in the tensor
@@ -366,7 +369,16 @@ public abstract class MarkovChain implements Cloneable {
     	   states[i] = new double[numSteps][];
            simulSteps (numSteps, stream,states[i]);
            performance[i] = getPerformance();
-           stream.resetNextSubstream();
+       }
+   }
+   
+   public void simulRunsWithSubstreams(int n, int numSteps, RandomStream stream, double[][][] states, double[] performance) {
+       stream.resetStartStream ();
+       for (int i = 0; i < n; i++) {
+    	   states[i] = new double[numSteps][];
+           simulSteps (numSteps, stream,states[i]);
+           performance[i] = getPerformance();
+           stream.resetNextSubstream ();
        }
    }
 
