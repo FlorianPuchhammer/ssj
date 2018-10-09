@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -66,6 +67,7 @@ import umontreal.ssj.hups.SobolSequence;
 import umontreal.ssj.markovchainrqmc.ArrayOfComparableChains;
 import umontreal.ssj.rng.MRG32k3a;
 import umontreal.ssj.rng.RandomStream;
+import umontreal.ssj.stat.density.DEHistogram;
 import umontreal.ssj.util.Chrono;
 import umontreal.ssj.util.sort.MultiDimSort;
 import umontreal.ssj.util.sort.MultiDimSort01;
@@ -110,7 +112,7 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		MultiLayerConfiguration conf = null;
 		int seed = 123;
 		WeightInit weightInit = WeightInit.NORMAL;
-		Activation activation1 = Activation.RELU;
+		Activation activation1 = Activation.IDENTITY;
 		Activation activation2 = Activation.RELU;
 		LossFunction lossFunction = LossFunction.MSE;
 //		AdaMax updater = new AdaMax(lRate);
@@ -123,7 +125,7 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 
 		int stateDim = baseChain.getStateDimension();
 
-		OptimizationAlgorithm optAlgo = OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT;
+		OptimizationAlgorithm optAlgo = OptimizationAlgorithm.LBFGS;
 
 		switch (step) {
 		case 3:
@@ -445,16 +447,18 @@ public class AsianOptionTestFlo extends ArrayOfComparableChains<AsianOptionCompa
 		 ************* BUILD DATA***********************************************
 		 ***********************************************************************
 		 */
-		boolean genData = false;
+		boolean genData = true;
 
-		String dataLabel = "SobolData";
-		PointSet sobol = new  SobolSequence( logNumChains, 31, d * 2);
-		PointSetRandomization rand = new LMScrambleShift(stream);
-		RQMCPointSet p = new RQMCPointSet(sobol,rand);
+		String dataLabel = "MCData";
+//		PointSet sobol = new  SobolSequence( logNumChains, 31, d * 2);
+//		PointSetRandomization rand = new LMScrambleShift(stream);
+//		RQMCPointSet p = new RQMCPointSet(sobol,rand);
+		
 
 		if (genData) {
 			timer.init();
-			test.genData(dataLabel, numChains, d, p.iterator());
+//			test.genData(dataLabel, numChains, d, p.iterator());
+			test.genData(dataLabel, numChains, d, stream);
 			System.out.println("\n\nTiming:\t" + timer.format());
 		}
 		/*

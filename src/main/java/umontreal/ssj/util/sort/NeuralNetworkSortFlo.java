@@ -18,30 +18,42 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 
+/**
+ * Class that implements a sorting algorithm for possibly higher dimensional
+ * objects based on neural networks. The sorting algorithm uses a neural network
+ * as a sort of <tt>importance function</tt> to assign a one-dimensional value
+ * to the object w.r.t. which the objects are sorted.
+ * 
+ * @author puchhamf
+ *
+ */
 
+public class NeuralNetworkSortFlo implements MultiDimSort<MultiDim> {
 
-public class NeuralNetworkSortFlo implements MultiDimSortN<MultiDim> {
-//	static double[] w;
-//	int dimension; // Dimension d of the points used for the sort.
-//	double[] PerformanceForSort;
-//	NeuralNetworkMap NNMap;
-//	double[][] indexForSort;
-
-//	public String fileTrain;
-//	public String fileTest;
-//	public int numInputs;
-//	public int numOutputs;
-//	public int numHiddenNodes;
-//	public int seed;
-//	public double learningRate;
-//	public int nEpochs;
-//	int batchSize;
-
-	private MultiLayerNetwork network; 
+	/**
+	 * The NN that acts as importance function.
+	 */
+	private MultiLayerNetwork network;
+	/**
+	 * The normalizer associated to the net (i.e., the normalizer with which the training data had been normalized).
+	 */
 	private DataNormalization normalizer;
+	/**
+	 * The dimension of the object to be sorted.
+	 */
 	private int dimension;
+	/**
+	 * Just a utility for sorting.
+	 * TODO: get rid of this and make sorting more efficient!
+	 */
 	private double[][] indexForSort;
-	
+
+	/**
+	 * Constructor that loads a NN and its associated normalizer from the file \a fileNameWithPath.
+	 * @param fileNameWithPath the filename including the path.
+	 * @param dim the dimension of the object to be sorted.
+	 * @throws IOException
+	 */
 	public NeuralNetworkSortFlo(String fileNameWithPath, int dim) throws IOException {
 		File file = new File(fileNameWithPath);
 		network = ModelSerializer.restoreMultiLayerNetwork(file);
@@ -49,34 +61,44 @@ public class NeuralNetworkSortFlo implements MultiDimSortN<MultiDim> {
 		dimension = dim;
 
 	}
-
-	public NeuralNetworkSortFlo(MultiLayerNetwork network,	DataNormalization normalizer,int dim) {
+/**
+ * Constructs an instance of this class for a given NN \a network with associated normalizer \a normalizer to sort
+ * objects of dimension \a dim.
+ * @param network the NN used for sorting.
+ * @param normalizer the normalizer associated to the NN.
+ * @param dim the dimension of the objects to be sorted.
+ */
+	public NeuralNetworkSortFlo(MultiLayerNetwork network, DataNormalization normalizer, int dim) {
 		this.network = network;
 		this.normalizer = normalizer;
 		dimension = dim;
 	}
 
+	/**
+	 * Evaluates the network at the array \a state.
+	 * @param state the input.
+	 * @return the network evaluated at \a state.
+	 */
+	public double evalNetwork(double[] state) {
 
-	public double evalNetwork(double [] state) {
-		
 		INDArray input = Nd4j.create(state);
 		normalizer.transform(input);
-		INDArray output = network.output(input,false);
-//		normalizer.revertLabels(output);
-		 return output.getDouble(0);
+		INDArray output = network.output(input, false);
+		// normalizer.revertLabels(output);
+		return output.getDouble(0);
 
-		
 	}
-	
+
+
 	public void sort(MultiDim[] a, int iMin, int iMax) {
-		if(iMin == iMax)
+		if (iMin == iMax)
 			return;
 		double b[][] = new double[iMax][dimension];
 		for (int i = iMin; i < iMax; ++i) {
 			b[i] = a[i].getState();
 		}
-		sort(b,iMin,iMax);
-		
+		sort(b, iMin, iMax);
+
 		// Now use indexForSort to sort a.
 		// We do not want to clone all the objects in a,
 		// but only the array of pointers.
@@ -93,23 +115,16 @@ public class NeuralNetworkSortFlo implements MultiDimSortN<MultiDim> {
 		sort(a, 0, a.length);
 	}
 
-
-
 	/**
-	 * Returns the dimension of the unit hypercube.
+	 * Returns the dimension of the objects to be sorted.
 	 */
 	public int dimension() {
 		return dimension;
 	}
 
 	public String toString() {
-		return "NeuralNetwork";
+		return "NeuralNetworkSort";
 	}
-
-
-
-	
-	
 
 	public static class DoubleIndexComparator2 implements Comparator<double[]> {
 
@@ -127,22 +142,21 @@ public class NeuralNetworkSortFlo implements MultiDimSortN<MultiDim> {
 	 * Sorts the `index` table by its second coordinate.
 	 */
 	public static void sortIndexOfDouble2(double[][] index, int iMin, int iMax) {
-		// if (iMin==(iMax-1)) return;
 		Arrays.sort(index, iMin, iMax, new DoubleIndexComparator2());
 	}
 
 	@Override
 	public void sort(double[][] a, int iMin, int iMax) {
-		if(iMin+1 == iMax)
+		if (iMin + 1 == iMax)
 			return;
-		indexForSort= new double[iMax][2];
-		
+		indexForSort = new double[iMax][2];
+
 		for (int i = iMin; i < iMax; ++i) {
 			indexForSort[i][0] = i;
 			indexForSort[i][1] = evalNetwork(a[i]);
 		}
 		Arrays.sort(indexForSort, iMin, iMax, new DoubleIndexComparator2());
-		
+
 		// Now use indexForSort to sort a.
 		// We do not want to clone all the objects in a,
 		// but only the array of pointers.
@@ -154,12 +168,9 @@ public class NeuralNetworkSortFlo implements MultiDimSortN<MultiDim> {
 
 	@Override
 	public void sort(double[][] a) {
-		sort(a,0,a.length);
-		
+		sort(a, 0, a.length);
+
 	}
 
-//	public void sort(double[][] a) {
-//		sort(a, 0, a.length);
-//	}
 
 }

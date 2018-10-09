@@ -35,32 +35,130 @@ import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import flo.biologyArrayRQMC.AsianOptionComparable2;
 import flo.biologyArrayRQMC.AsianOptionTestFlo;
+import flo.biologyArrayRQMC.examples.ReversibleIsomerizationComparable;
 import umontreal.ssj.hups.LMScrambleShift;
 import umontreal.ssj.hups.PointSet;
 import umontreal.ssj.hups.PointSetRandomization;
 import umontreal.ssj.hups.RQMCPointSet;
 import umontreal.ssj.hups.SobolSequence;
+import umontreal.ssj.markovchainrqmc.MarkovChain;
 import umontreal.ssj.markovchainrqmc.MarkovChainComparable;
 import umontreal.ssj.rng.MRG32k3a;
 import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.stat.density.DEHistogram;
 import umontreal.ssj.util.Chrono;
 
+/**
+ * Class to handle neural networks via DL4J. More precisely, it uses a
+ * MarkovChainComparable as a basis to generate training- and test data, it
+ * provides the possibility to generate neural networks, train and test them, as
+ * well as to save and load them.
+ * 
+ * @author puchhamf
+ *
+ */
 public class NeuralNet {
 
-	public  String filepath = "data/asian/";
+	/**
+	 * Default location, to which neural networks, data, and normalizers are stored.
+	 */
+	public String filepath = "data/asian/";
 	public MarkovChainComparable model;
 
+	/**
+	 * Constructor for a specific \a model using the default location for saving.
+	 * 
+	 * @param model
+	 *            the underlying model
+	 */
 	public NeuralNet(MarkovChainComparable model) {
 		this(model, "data/asian/");
 	}
 
+	/**
+	 * Constructor for specific \a model and \a filepath.
+	 * 
+	 * @param model
+	 *            the underlying model
+	 * @param filepath
+	 *            path to where networks, data, and normalizers are saved.
+	 */
 	public NeuralNet(MarkovChainComparable model, String filepath) {
 		this.filepath = filepath;
 		this.model = model;
 
 	}
 
+	/**
+	 * Generates data (for training and testing) with the continuous stream (e.g.
+	 * MC) \a stream. The chains are simulated for \a numSteps steps. The resulting
+	 * files are Saved in <tt>.csv</tt> format. The string \a dataLabel is used as
+	 * part of the file names. For each step one file is generated. Each line
+	 * corresponds to one chain and the first columns contain the current state
+	 * (before simulation) and the final performance in the last column.
+	 * 
+	 * @param dataLabel
+	 *            String used for naming the data files.
+	 * @param n
+	 *            the number of chains
+	 * @param numSteps
+	 *            the number of steps
+	 * @param stream
+	 *            the random stream used
+	 * @throws IOException
+	 */
+	public void genData(String dataLabel, int n, int numSteps, RandomStream stream) throws IOException {
+		double[][][] states = new double[n][][];
+		double[] performance = new double[n];
+		model.simulRunsWithSubstreams(n, numSteps, stream, states, performance);
+		StringBuffer sb;
+		FileWriter file;
+		for (int step = 0; step < numSteps; step++) {
+			sb = new StringBuffer("");
+			file = new FileWriter(filepath + dataLabel + "_Step_" + step + ".csv");
+
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < model.getStateDimension(); j++)
+					sb.append(states[i][step][j] + ",");
+				sb.append(performance[i] + "\n");
+			}
+			file.write(sb.toString());
+			file.close();
+			System.out.println("*******************************************");
+			System.out.println(" STEP " + step);
+			System.out.println("*******************************************");
+			System.out.println(sb.toString());
+		}
+	}
+
+	public static void genData(MarkovChainComparable model, String filePath, String dataLabel, int n, int numSteps, RandomStream stream) throws IOException {
+		double[][][] states = new double[n][][];
+		double[] performance = new double[n];
+		model.simulRunsWithSubstreams(n, numSteps, stream, states, performance);
+		StringBuffer sb;
+		FileWriter fw;
+		File file;
+		for (int step = 0; step < numSteps; step++) {
+			sb = new StringBuffer("");
+			file = new File(filePath + dataLabel + "_Step_" + step + ".csv");
+			file.getParentFile().mkdirs();
+			fw = new FileWriter(file);
+//			fw = new FileWriter(filePath + dataLabel + "_Step_" + step + ".csv");
+			
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < model.getStateDimension(); j++)
+					sb.append(states[i][step][j] + ",");
+				sb.append(performance[i] + "\n");
+			}
+			fw.write(sb.toString());
+			fw.close();
+			System.out.println("*******************************************");
+			System.out.println(" STEP " + step);
+			System.out.println("*******************************************");
+			System.out.println(sb.toString());
+		}
+	}
+	
 	public void genData(String dataLabel, int n, int numSteps, RandomStream stream, int numDraws) throws IOException {
 		double[][][] states = new double[n][][];
 		double[] performance = new double[n];
@@ -122,7 +220,20 @@ public class NeuralNet {
 			System.out.println(sb.toString());
 		}
 	}
-	
+	/**
+	 * Same as #genData, but for a RandomStream \a stream which relies on substreams
+	 * (i.e., QMC- or RQMC point sets).
+	 * 
+	 * @param dataLabel
+	 *            String used for naming the data files.
+	 * @param n
+	 *            the number of chains
+	 * @param numSteps
+	 *            the number of steps
+	 * @param stream
+	 *            the random stream used
+	 * @throws IOException
+	 */
 	public void genDataWithSubstreams(String dataLabel, int n, int numSteps, RandomStream stream) throws IOException {
 		double[][][] states = new double[n][][];
 		double[] performance = new double[n];
@@ -147,12 +258,22 @@ public class NeuralNet {
 		}
 	}
 
+	/**
+	 * Generates a neural network for the step \a step of the chain with learning
+	 * rate \a lRate.
+	 * 
+	 * @param step
+	 *            step of the chain
+	 * @param lRate
+	 *            learning rate
+	 * @return a neural network
+	 */
 	private MultiLayerNetwork genNetwork(int step, double lRate) {
 		MultiLayerConfiguration conf = null;
 		int seed = 123;
 		WeightInit weightInit = WeightInit.NORMAL;
-		Activation activation1 = Activation.RELU;
-		Activation activation2 = Activation.RELU;
+		Activation activation1 = Activation.IDENTITY;
+		Activation activation2 = Activation.IDENTITY;
 		LossFunction lossFunction = LossFunction.MSE;
 		// AdaMax updater = new AdaMax(lRate);
 		// AdaGrad updater = new AdaGrad(lRate);
@@ -166,6 +287,7 @@ public class NeuralNet {
 		int stateDim = model.getStateDimension();
 
 		OptimizationAlgorithm optAlgo = OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT;
+//		OptimizationAlgorithm optAlgo = OptimizationAlgorithm.LBFGS;
 
 		switch (step) {
 		case 3:
@@ -218,6 +340,13 @@ public class NeuralNet {
 		return new MultiLayerNetwork(conf);
 	}
 
+	/**
+	 * Another way to generate a NN...
+	 * 
+	 * @param step
+	 * @param lRate
+	 * @return
+	 */
 	public MultiLayerNetwork genNetwork2(int step, double lRate) {
 		MultiLayerConfiguration conf;
 		int seed = 123;
@@ -285,6 +414,16 @@ public class NeuralNet {
 		return new MultiLayerNetwork(conf);
 	}
 
+	/**
+	 * Generates a list of networks using the learning rate \a lRate by calling
+	 * #genNetwork for each step of the chain from 0 to \a numSteps.
+	 * 
+	 * @param lRate
+	 *            the learning rate
+	 * @param numSteps
+	 *            the total number of steps of the chain.
+	 * @return list of NNs
+	 */
 	public ArrayList<MultiLayerNetwork> genNetworkList(double lRate, int numSteps) {
 		ArrayList<MultiLayerNetwork> netList = new ArrayList<MultiLayerNetwork>();
 		for (int step = 0; step < numSteps; step++) {
@@ -293,14 +432,29 @@ public class NeuralNet {
 		return netList;
 	}
 
-	public ArrayList<MultiLayerNetwork> genNetworkList(double[] lRateArray, int numSteps) {
+	/**
+	 * Same as #genNetworkList but with an individualized learning rate for each
+	 * step.
+	 * 
+	 * @param lRateList
+	 *            list containing the individual learning rates
+	 * @param numSteps
+	 *            the total number of steps of the chain
+	 * @return list of NNs
+	 */
+	public ArrayList<MultiLayerNetwork> genNetworkList(ArrayList<Double> lRateList, int numSteps) {
 		ArrayList<MultiLayerNetwork> netList = new ArrayList<MultiLayerNetwork>();
 		for (int step = 0; step < numSteps; step++) {
-			netList.add(genNetwork(step, lRateArray[step]));
+			netList.add(genNetwork(step, lRateList.get(step)));
 		}
 		return netList;
 	}
 
+	/**
+	 * Generates several NNs by varying certain parameters.
+	 * 
+	 * @return
+	 */
 	public ArrayList<MultiLayerNetwork> genNetworkListGridSearch() {
 		int index = 0;
 		double lRate = 0.5;
@@ -394,7 +548,22 @@ public class NeuralNet {
 
 	}
 
-	public  DataSet getData(String dataLabel, int step, int numData) throws IOException, InterruptedException {
+	/**
+	 * Reads data from the files generated with #genData and makes them readable by
+	 * the NNs
+	 * 
+	 * @param dataLabel
+	 *            identifier for the file. Should be the same as the one with which
+	 *            #genData was called.
+	 * @param step
+	 *            the current step of the chain.
+	 * @param numData
+	 *            the number of data considered (i.e. the number of chains).
+	 * @return a data set.
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	public DataSet getData(String dataLabel, int step, int numData) throws IOException, InterruptedException {
 		int linesToSkip = 0;
 		char delimiter = ',';
 
@@ -405,6 +574,26 @@ public class NeuralNet {
 		return iterAll.next();
 	}
 
+	/**
+	 * Trains the NN \a network using the taining data \a trainingData over \a
+	 * numEpochs epochs. At the beginning of each epoch the data is shuffled and,
+	 * subsequently, \a maxItsTrain batches of size \a batchSize are drawn and used
+	 * for training. The score of the training progress is displayed every \a
+	 * printIterations iterations.
+	 * 
+	 * @param network
+	 *            the NN to be trained.
+	 * @param trainingData
+	 *            data used for training.
+	 * @param numEpochs
+	 *            number of epochs.
+	 * @param batchSize
+	 *            the size of each batch.
+	 * @param maxItsTrain
+	 *            the maximum batches used per epoch.
+	 * @param printIterations
+	 *            how often the score of the training progress is displayed.
+	 */
 	public static void trainNetwork(MultiLayerNetwork network, DataSet trainingData, int numEpochs, int batchSize,
 			int maxItsTrain, int printIterations) {
 		network.init();
@@ -427,6 +616,16 @@ public class NeuralNet {
 		}
 	}
 
+	/**
+	 * Tests the NN \a network with the data \a testData using batches of size \a
+	 * batchSize. Here, the entire data is partitioned into batches once and each of
+	 * these batches is used for testing.
+	 * 
+	 * @param network
+	 * @param testData
+	 * @param batchSize
+	 * @return
+	 */
 	public static String testNetwork(MultiLayerNetwork network, DataSet testData, int batchSize) {
 		List<DataSet> listDataTest = testData.batchBy(batchSize); // TODO: inefficient!
 		RegressionEvaluation eval = new RegressionEvaluation(1);
@@ -442,8 +641,16 @@ public class NeuralNet {
 		return str;
 	}
 
-	public  void saveNetwork(MultiLayerNetwork net, String networkLabel, DataNormalization norma)
-			throws IOException {
+	/**
+	 * Saves the NN \a net and the corresponding normalizer \a norma to a file
+	 * composed as #filepath + \a networkLabel + <tt>.zip</tt>.
+	 * 
+	 * @param net the NN to be saved.
+	 * @param networkLabel label identifying the network
+	 * @param norma the normalizer to be saved.
+	 * @throws IOException
+	 */
+	public void saveNetwork(MultiLayerNetwork net, String networkLabel, DataNormalization norma) throws IOException {
 		File locationToSave = new File(filepath + networkLabel + ".zip"); // Where to save the network. Note: the file
 																			// is in .zip format - can be opened
 																			// externally
@@ -453,11 +660,22 @@ public class NeuralNet {
 
 	}
 
+	/**
+	 * Loads the network saved at #filepath + \a networkLabel + <tt>.zip</tt>.
+	 * @param networkLabel label identifying the network.
+	 * @return the loaded network.
+	 * @throws IOException
+	 */
 	public MultiLayerNetwork loadNetwork(String networkLabel) throws IOException {
 		return ModelSerializer.restoreMultiLayerNetwork(filepath + networkLabel + ".zip");
 	}
 
-	public  DataNormalization loadNormalizer(String networkLabel) {
+	/**
+	 * Loads the normalizer saved at #filepath + \a networkLabel + <tt>.zip</tt>.
+	 * @param networkLabel label identifying the file where the normalizer is saved.
+	 * @return the loaded normalizer
+	 */
+	public DataNormalization loadNormalizer(String networkLabel) {
 		return ModelSerializer.restoreNormalizerFromFile(new File(filepath + networkLabel + ".zip"));
 	}
 
@@ -468,42 +686,57 @@ public class NeuralNet {
 		 ***********************************************************************
 		 */
 
-		double r = Math.log(1.09);
-		int d = 4; // numSteps
-		// double t1 = (240.0 - d + 1) / 365.0;
-		// double T = 240.0 / 365.0;
-		double t1 = 1.0 / d;
-		double T = 1.0;
-		double K = 100.0;
-		double s0 = 100.0;
-		double sigma = 0.5;
-		int numChains = 524288 * 2;
+//		double r = Math.log(1.09);
+//		int d = 4; // numSteps
+//		double t1 = 1.0 / d;
+//		double T = 1.0;
+//		double K = 100.0;
+//		double s0 = 100.0;
+//		double sigma = 0.5;
+//		AsianOptionComparable2 model = new AsianOptionComparable2(r, d, t1, T, K, s0, sigma);
+
+		double epsInv = 1E2;
+		double alpha = 1E-4;
+		double[]c = {1.0,alpha};
+		double[] x0 = {epsInv,epsInv/alpha};
+		double T = 1.6;
+		double tau = 0.2;
+		int d = 8;
+		
+		
+		ReversibleIsomerizationComparable model = new ReversibleIsomerizationComparable(c,x0,tau,T);
+		model.init();
+		NeuralNet test = new NeuralNet(model,"data/ReversibleIsometrization/"); // This is the array of comparable chains.
+		
+		System.out.println(model.toString());
+
+		
+		
+		int numChains = 524288 *2;
 		int logNumChains = 19 + 1;
 
+		
 		Chrono timer = new Chrono();
-		RandomStream stream = new MRG32k3a();
-
-		AsianOptionComparable2 asian = new AsianOptionComparable2(r, d, t1, T, K, s0, sigma);
-
-		System.out.println(asian.toString());
-
-		NeuralNet test = new NeuralNet(asian); // This is the array of comparable chains.
+		RandomStream stream = new MRG32k3a(); 
+		
+		
 
 		/*
 		 ***********************************************************************
 		 ************* BUILD DATA***********************************************
 		 ***********************************************************************
 		 */
-		boolean genData = false;
+		boolean genData = true;
 
-		String dataLabel = "SobolData";
-		PointSet sobol = new  SobolSequence( logNumChains, 31, d * 2);
-		PointSetRandomization rand = new LMScrambleShift(stream);
-		RQMCPointSet p = new RQMCPointSet(sobol,rand);
+		String dataLabel = "MCData";
+//		PointSet sobol = new SobolSequence(logNumChains, 31, d * 2);
+//		PointSetRandomization rand = new LMScrambleShift(stream);
+//		RQMCPointSet p = new RQMCPointSet(sobol, rand);
 
 		if (genData) {
 			timer.init();
-			test.genData(dataLabel, numChains, d, p.iterator());
+//			test.genData(dataLabel, numChains, d, p.iterator());
+			test.genData(dataLabel, numChains, d, stream);
 			System.out.println("\n\nTiming:\t" + timer.format());
 		}
 		/*
@@ -512,8 +745,6 @@ public class NeuralNet {
 		 ***********************************************************************
 		 */
 
-		int currentStep = 1;
-
 		int batchSize = 128;
 		int numEpochs = 32;
 
@@ -521,59 +752,70 @@ public class NeuralNet {
 		 * READ DATA
 		 */
 
-		DataSet dataAll = test.getData(dataLabel, currentStep, numChains);
-
+		ArrayList<DataSet> dataAllList = new ArrayList<DataSet>();
+		for(int s = 0; s < d; s++) {
+			dataAllList.add(test.getData(dataLabel,s,numChains));
+		}
+		
+		
 		/*
-		 * SPLIT DATA, DEFINE ITERATORS, AND NORMALIZE
+		 * GENERATE NETWORKS
 		 */
-
-		double ratioTrainingData = 0.8;
-		SplitTestAndTrain testAndTrain = dataAll.splitTestAndTrain(ratioTrainingData);
-
-		DataSet trainingData = testAndTrain.getTrain();
-		DataSet testData = testAndTrain.getTest();
-
-		DataNormalization normalizer = new NormalizerStandardize();
-		// DataNormalization normalizer = new NormalizerMinMaxScaler();
-
-		normalizer.fit(trainingData);
-		normalizer.transform(trainingData);
-		normalizer.transform(testData);
-
-		double lRate = 64;
-		lRate = 15.0;
-
+		double lRate = 0.1;
 		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
-		 for (int i = 0; i < d; i++) {
-		 lRate += 1.0;		
-		networkList.add(test.genNetwork(2, lRate));
-		 }
+		for (int i = 0; i < d; i++) {
+//			lRate += 1.0;
+			networkList.add(test.genNetwork(2, lRate));
+		}
+		
+		/*
+		 * TRAIN NETWORK
+		 */
 		FileWriter fw = new FileWriter("./data/comparison.txt");
 		StringBuffer sb = new StringBuffer("");
 		String str;
 
-		Iterator<MultiLayerNetwork> networkIt = networkList.iterator();
+		DataSet dataAll, trainingData, testData;
+		double ratioTrainingData = 0.8;
+		DataNormalization normalizer;
 		MultiLayerNetwork network;
-		int i = 0;
-		while (networkIt.hasNext()) {
+		SplitTestAndTrain testAndTrain;
+		
+		for(int i = 1; i < d; i ++) {
+			
+			// GET DATA SET, SPLIT DATA, NORMALIZE
+			dataAll = dataAllList.get(i);
+			
+			 testAndTrain = dataAll.splitTestAndTrain(ratioTrainingData);
 
-			network = networkIt.next();
-
+			 trainingData = testAndTrain.getTrain();
+			 testData = testAndTrain.getTest();
+			
+			normalizer = new NormalizerStandardize();
+			normalizer.fit(trainingData);
+			normalizer.transform(trainingData);
+			normalizer.transform(testData);
+			
+			// GET AND TRAIN THE NETWORK
+			network = networkList.get(i);
+			
 			str = "*******************************************\n";
 			str += " CONFIGURATION: \n" + network.conf().toString() + "\n";
 			str += "*******************************************\n";
 			sb.append(str);
 			System.out.println(str);
 
-			trainNetwork(network, trainingData, numEpochs, batchSize, (numChains / batchSize) * 1, 1000);
-
-			str = testNetwork(network, testData, batchSize);
+			NeuralNet.trainNetwork(network, trainingData, numEpochs, batchSize, (numChains / batchSize) * 1, 1000);
+			
+			// TEST NETWORK
+			str = NeuralNet.testNetwork(network, testData, batchSize);
 			sb.append(str);
 			System.out.println(str);
 
+
 			// saveNetwork(network,"Asian_Step" + currentStep, normalizer);
-			test.saveNetwork(network, "Asian_Step" + i, normalizer);
-//			i++;
+			test.saveNetwork(network, "Step" + i, normalizer);
+			// i++;
 			// network.clear();
 			// network = loadNetwork("Asian_Step" + currentStep);
 			//

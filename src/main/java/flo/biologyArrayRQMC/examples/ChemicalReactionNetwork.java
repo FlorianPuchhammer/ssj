@@ -30,6 +30,7 @@ public abstract class ChemicalReactionNetwork extends MarkovChainComparable impl
 		X = new double[N];
 		a = new double[K];
 		numSteps = (int) Math.ceil(T/tau);
+		stateDim = N;
 	}
 	
 	private static double [] multMv( double [] [] M, double[] v){
