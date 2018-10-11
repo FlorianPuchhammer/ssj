@@ -155,7 +155,7 @@ public class ReversibleIsomerizationComparable extends ChemicalReactionNetwork {
 		ArrayList<DataSet> dataAllList = new ArrayList<DataSet>();
 		for(int s = 0; s < model.numSteps; s++) {
 //			dataAllList.add(net.getData(dataLabel,s,numChains));
-			dataAllList.add(net.getData(dataLabel,1,numChains));
+			dataAllList.add(net.getData(dataLabel,3,numChains));
 
 		}
 		
@@ -183,7 +183,7 @@ public class ReversibleIsomerizationComparable extends ChemicalReactionNetwork {
 		MultiLayerNetwork network;
 		SplitTestAndTrain testAndTrain;
 		
-		for(int i = 1; i < model.numSteps; i ++) {
+		for(int i = 0; i < networkList.size(); i ++) {
 			
 			// GET DATA SET, SPLIT DATA, NORMALIZE
 			dataAll = dataAllList.get(i);

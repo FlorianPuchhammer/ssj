@@ -278,8 +278,8 @@ public class NeuralNet {
 		MultiLayerConfiguration conf = null;
 		int seed = 123;
 		WeightInit weightInit = WeightInit.NORMAL;
-		Activation activation1 = Activation.IDENTITY;
-		Activation activation2 = Activation.IDENTITY;
+		Activation activation1 = Activation.RELU;
+		Activation activation2 = Activation.RELU;
 		LossFunction lossFunction = LossFunction.MSE;
 		// AdaMax updater = new AdaMax(lRate);
 		// AdaGrad updater = new AdaGrad(lRate);
