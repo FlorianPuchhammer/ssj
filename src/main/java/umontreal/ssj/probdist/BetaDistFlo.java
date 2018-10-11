@@ -24,9 +24,10 @@
  */
 package  umontreal.ssj.probdist;
 import umontreal.ssj.util.*;
-import optimization.*;
+//import optimization.*;
 
 /**
+ * @remark <bb>Florian:</bb> removed optimization input and MLE-related functions.
  * Extends the class  @ref ContinuousDistribution for the *beta* distribution
  * @cite tJOH95b&thinsp; (page 210) with shape parameters @f$\alpha> 0@f$
  * and @f$\beta> 0@f$, over the interval @f$[a,b]@f$, where @f$a < b@f$.
@@ -51,7 +52,7 @@ import optimization.*;
  *
  * @ingroup probdist_continuous
  */
-public class BetaDist extends ContinuousDistribution {
+public class BetaDistFlo extends ContinuousDistribution {
    protected double alpha;         // First parameter
    protected double beta;          // Second parameter
    protected double a, b;          // Interval x in [a, b]
@@ -60,54 +61,13 @@ public class BetaDist extends ContinuousDistribution {
    protected double Beta;          // Function Beta(alpha, beta)
    protected double logBeta;       // Ln(Beta(alpha, beta))
 
-   private static class Optim //implements Lmder_fcn
-   {
-      private double a;
-      private double b;
-
-      public Optim (double a, double b)
-      {
-         this.a = a;
-         this.b = b;
-      }
-
-      public void fcn (int m, int n, double[] x, double[] fvec, double[][] fjac, int iflag[])
-      {
-         if (x[1] <= 0.0 || x[2] <= 0.0) {
-             final double BIG = 1.0e100;
-             fvec[1] = BIG;
-             fvec[2] = BIG;
-             fjac[1][1] = BIG;
-             fjac[1][2] = 0.0;
-             fjac[2][1] = 0.0;
-             fjac[2][2] = BIG;
-             return;
-         }
-
-         double trig;
-         if (iflag[1] == 1)
-         {
-            trig = Num.digamma (x[1] + x[2]);
-            fvec[1] = Num.digamma(x[1]) - trig - a;
-            fvec[2] = Num.digamma(x[2]) - trig - b;
-         }
-         else if (iflag[1] == 2)
-         {
-            trig = Num.trigamma (x[1] + x[2]);
-
-            fjac[1][1] = Num.trigamma (x[1]) - trig;
-            fjac[1][2] = - trig;
-            fjac[2][1] = - trig;
-            fjac[2][2] = Num.trigamma (x[2]) - trig;
-         }
-      }
-   }
+  
 
    /**
     * Constructs a `BetaDist` object with parameters @f$\alpha=@f$
     * `alpha`, @f$\beta=@f$ `beta` and default domain @f$[0,1]@f$.
     */
-   public BetaDist (double alpha, double beta) {
+   public BetaDistFlo (double alpha, double beta) {
       setParams (alpha, beta, 0.0, 1.0);
    }
 
@@ -116,18 +76,10 @@ public class BetaDist extends ContinuousDistribution {
     * `alpha`, @f$\beta=@f$ `beta` and domain
     * @f$[@f$<tt>a</tt>@f$,@f$&nbsp;<tt>b</tt>@f$]@f$.
     */
-   public BetaDist (double alpha, double beta, double a, double b) {
+   public BetaDistFlo (double alpha, double beta, double a, double b) {
       setParams (alpha, beta, a, b);
    }
-   @Deprecated
-   public BetaDist (double alpha, double beta, int d) {
-      setParams (alpha, beta, 0.0, 1.0, d);
-   }
 
-   @Deprecated
-   public BetaDist (double alpha, double beta, double a, double b, int d) {
-      setParams (alpha, beta, a, b, d);
-   }
 
 
    @Override
@@ -714,94 +666,9 @@ public static double inverseF (double alpha, double beta,
       return a + (b - a)*inverseF (alpha, beta, u);
    }
 
-   /**
-    * Estimates the parameters @f$(\alpha,\beta)@f$ of the beta
-    * distribution over the interval @f$[0,1]@f$ using the maximum
-    * likelihood method, from the @f$n@f$ observations @f$x[i]@f$, @f$i =
-    * 0, 1,…, n-1@f$. The estimates are returned in a two-element array,
-    * in regular order: [@f$\alpha@f$, @f$\beta@f$].  The maximum
-    * likelihood estimators are the values @f$(\hat{\alpha},
-    * \hat{\beta})@f$ that satisfy the equations:
-    * @f{align*}{
-    *    \psi(\alpha) - \psi(\alpha+ \beta) 
-    *    & 
-    *    = 
-    *    \frac{1}{n} \sum_{i=1}^n \ln(x_i)
-    *    \\ 
-    *   \psi(\beta) - \psi(\alpha+ \beta) 
-    *    & 
-    *    = 
-    *    \frac{1}{n} \sum_{i=1}^n \ln(1 - x_i)
-    * @f}
-    * where @f$\bar{x}_n@f$ is the average of @f$x[0],…,x[n-1]@f$, and
-    * @f$\psi@f$ is the logarithmic derivative of the Gamma function
-    * @f$\psi(x) = \Gamma’(x) / \Gamma(x)@f$.
-    *  @param x            the list of observations to use to evaluate
-    *                      parameters
-    *  @param n            the number of observations to use to evaluate
-    *                      parameters
-    *  @return returns the parameters [@f$\hat{\alpha}@f$,
-    * @f$\hat{\beta}@f$]
-    */
-   public static double[] getMLE (double[] x, int n) {
-      if (n <= 0)
-         throw new IllegalArgumentException ("n <= 0");
+  
 
-      double sum = 0.0;
-      double a = 0.0;
-      double b = 0.0;
-      for (int i = 0; i < n; i++)
-      {
-         sum += x[i];
-         if (x[i] > 0.0)
-            a += Math.log (x[i]);
-         else
-            a -= 709.0;
-         if (x[i] < 1.0)
-            b += Math.log1p (-x[i]);
-         else
-            b -= 709.0;
-      }
-      double mean = sum / n;
-
-      sum = 0.0;
-      for (int i = 0; i < n; i++)
-         sum += (x[i] - mean) * (x[i] - mean);
-      double var = sum / (n - 1);
-
-      Optim system = new Optim (a, b);
-
-      double[] param = new double[3];
-      param[1] = mean * ((mean * (1.0 - mean) / var) - 1.0);
-      param[2] = (1.0 - mean) * ((mean * (1.0 - mean) / var) - 1.0);
-      double[] fvec = new double [3];
-      double[][] fjac = new double[3][3];
-      int[] info = new int[2];
-      int[] ipvt = new int[3];
-
-      Minpack_f77.lmder1_f77 (system, 2, 2, param, fvec, fjac, 1e-5, info, ipvt);
-
-      double parameters[] = new double[2];
-      parameters[0] = param[1];
-      parameters[1] = param[2];
-
-      return parameters;
-   }
-
-   /**
-    * Creates a new instance of a beta distribution with parameters
-    * @f$\alpha@f$ and @f$\beta@f$ over the interval @f$[0,1]@f$
-    * estimated using the maximum likelihood method based on the @f$n@f$
-    * observations @f$x[i]@f$, @f$i = 0, 1, …, n-1@f$.
-    *  @param x            the list of observations to use to evaluate
-    *                      parameters
-    *  @param n            the number of observations to use to evaluate
-    *                      parameters
-    */
-   public static BetaDist getInstanceFromMLE (double[] x, int n) {
-      double parameters[] = getMLE (x, n);
-      return new BetaDist (parameters[0], parameters[1]);
-   }
+  
 
    /**
     * Computes and returns the mean @f$E[X] = \alpha/ (\alpha+

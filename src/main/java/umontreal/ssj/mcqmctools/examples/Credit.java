@@ -16,6 +16,8 @@ public class Credit {
 		this.setSecurityClass(securityClass);
 		this.setSector(sector);
 	}
+	
+
 
 	/**
 	 * @return the amount

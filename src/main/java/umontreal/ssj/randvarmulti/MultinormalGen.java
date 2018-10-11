@@ -145,7 +145,7 @@ public class MultinormalGen extends RandomMultivariateGen {
     *  @exception IllegalArgumentException if the length of the mean
     * vector is incompatible with the dimensions of the covariance matrix.
     */
-   protected MultinormalGen (NormalGen gen1, double[] mu,
+   public MultinormalGen (NormalGen gen1, double[] mu,
                              DoubleMatrix2D sigma) {
       initMN (gen1, mu, -1);
       this.sigma = sigma.copy();
