@@ -249,7 +249,7 @@ public class AsianOptionTest extends ArrayOfComparableChainsNN<AsianOptionCompar
 		String [] fileNames = new String[d];
 		String base = "./data/asian/";
 		for(int i = 0; i < d; i++) {
-			fileNames[i] = base + "Asian_Step" + i + ".zip";
+			fileNames[i] = base + "Step" + i + ".zip";
 		}
 		AsianOptionTest test = new AsianOptionTest(asian,fileNames); // This is the array of comparable chains.
 		// PointSetRandomization rand = new RandomShift(new MRG32k3a());

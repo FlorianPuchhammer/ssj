@@ -15,6 +15,8 @@ import org.deeplearning4j.eval.RegressionEvaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration.Builder;
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration.ListBuilder;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
@@ -112,18 +114,21 @@ public class NeuralNet {
 		double[] performance = new double[n];
 		model.simulRunsWithSubstreams(n, numSteps, stream, states, performance);
 		StringBuffer sb;
-		FileWriter file;
+		FileWriter fw;
+		File file;
 		for (int step = 0; step < numSteps; step++) {
 			sb = new StringBuffer("");
-			file = new FileWriter(filepath + dataLabel + "_Step_" + step + ".csv");
+			file = new File(filepath + dataLabel + "_Step_" + step + ".csv");
+			file.getParentFile().mkdirs();
+			fw = new FileWriter(file);
 
 			for (int i = 0; i < n; i++) {
 				for (int j = 0; j < model.getStateDimension(); j++)
 					sb.append(states[i][step][j] + ",");
 				sb.append(performance[i] + "\n");
 			}
-			file.write(sb.toString());
-			file.close();
+			fw.write(sb.toString());
+			fw.close();
 			System.out.println("*******************************************");
 			System.out.println(" STEP " + step);
 			System.out.println("*******************************************");
@@ -268,12 +273,45 @@ public class NeuralNet {
 	 *            learning rate
 	 * @return a neural network
 	 */
-	private MultiLayerNetwork genNetwork(int step, double lRate) {
+	
+	public MultiLayerNetwork genNetwork(int step, int numSteps, double lRate) {
 		MultiLayerConfiguration conf = null;
 		int seed = 123;
 		WeightInit weightInit = WeightInit.NORMAL;
 		Activation activation1 = Activation.IDENTITY;
 		Activation activation2 = Activation.IDENTITY;
+		LossFunction lossFunction = LossFunction.MSE;
+		// AdaMax updater = new AdaMax(lRate);
+		// AdaGrad updater = new AdaGrad(lRate);
+		// Nesterovs updater = new Nesterovs(lRate);
+		// RmsProp updater = new RmsProp(lRate);
+		// updater.setLearningRateSchedule(new ExponentialSchedule(ScheduleType.EPOCH,
+		// lRate, 0.9 ));
+
+		IUpdater updater = new AdaDelta();
+
+		int stateDim = model.getStateDimension();
+
+		OptimizationAlgorithm optAlgo = OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT;
+//		OptimizationAlgorithm optAlgo = OptimizationAlgorithm.LBFGS;
+
+		ListBuilder interim = new NeuralNetConfiguration.Builder().seed(seed).optimizationAlgo(optAlgo).weightInit(weightInit)
+				.updater(updater).list();
+		int numLayers = numSteps - step;
+		int layerIndex;
+		for(layerIndex = 0; layerIndex < numLayers-1; layerIndex++)
+			interim.layer(layerIndex, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build());
+		interim.layer(layerIndex,new OutputLayer.Builder().nIn(stateDim).nOut(1).activation(activation2)
+				.lossFunction(lossFunction).build());
+		conf = interim.pretrain(false).backprop(true).build();
+		return new MultiLayerNetwork(conf);
+	}
+	/*private MultiLayerNetwork genNetwork(int step, double lRate) {
+		MultiLayerConfiguration conf = null;
+		int seed = 123;
+		WeightInit weightInit = WeightInit.NORMAL;
+		Activation activation1 = Activation.RELU;
+		Activation activation2 = Activation.RELU;
 		LossFunction lossFunction = LossFunction.MSE;
 		// AdaMax updater = new AdaMax(lRate);
 		// AdaGrad updater = new AdaGrad(lRate);
@@ -295,6 +333,7 @@ public class NeuralNet {
 					.updater(updater).list().layer(0, new OutputLayer.Builder().nIn(stateDim).nOut(1)
 							.activation(activation2).lossFunction(lossFunction).build())
 					.pretrain(false).backprop(true).build();
+		
 			break;
 
 		case 2:
@@ -338,7 +377,7 @@ public class NeuralNet {
 		}
 
 		return new MultiLayerNetwork(conf);
-	}
+	}*/
 
 	/**
 	 * Another way to generate a NN...
@@ -347,70 +386,36 @@ public class NeuralNet {
 	 * @param lRate
 	 * @return
 	 */
-	public MultiLayerNetwork genNetwork2(int step, double lRate) {
-		MultiLayerConfiguration conf;
+	public MultiLayerNetwork genNetwork2(int step, int numSteps, double lRate) {
+		MultiLayerConfiguration conf = null;
 		int seed = 123;
 		WeightInit weightInit = WeightInit.NORMAL;
-		Activation activation1 = Activation.IDENTITY;
+		Activation activation1 = Activation.RELU;
 		Activation activation2 = Activation.RELU;
 		LossFunction lossFunction = LossFunction.MSE;
+		// AdaMax updater = new AdaMax(lRate);
 		// AdaGrad updater = new AdaGrad(lRate);
+		// Nesterovs updater = new Nesterovs(lRate);
+		// RmsProp updater = new RmsProp(lRate);
+		// updater.setLearningRateSchedule(new ExponentialSchedule(ScheduleType.EPOCH,
+		// lRate, 0.9 ));
+
 		IUpdater updater = new AdaDelta();
 
 		int stateDim = model.getStateDimension();
 
 		OptimizationAlgorithm optAlgo = OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT;
+//		OptimizationAlgorithm optAlgo = OptimizationAlgorithm.LBFGS;
 
-		switch (step) {
-		case 3:
-			conf = new NeuralNetConfiguration.Builder().seed(seed).optimizationAlgo(optAlgo).weightInit(weightInit)
-					.updater(updater).list()
-					.layer(0, new DenseLayer.Builder().nIn(stateDim).nOut(1).activation(activation2).build())
-					.layer(1, new OutputLayer.Builder().nIn(1).nOut(1).activation(Activation.IDENTITY)
-							.lossFunction(lossFunction).build())
-					.pretrain(false).backprop(true).build();
-			break;
-
-		case 2:
-			conf = new NeuralNetConfiguration.Builder().seed(seed).optimizationAlgo(optAlgo).weightInit(weightInit)
-					.updater(updater).list()
-					.layer(0, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build())
-					.layer(1, new DenseLayer.Builder().nIn(stateDim).nOut(1).activation(activation2).build())
-					.layer(2, new OutputLayer.Builder().nIn(1).nOut(1).activation(Activation.IDENTITY)
-							.lossFunction(lossFunction).build())
-					.pretrain(false).backprop(true).build();
-			break;
-		case 1:
-			conf = new NeuralNetConfiguration.Builder().seed(seed).optimizationAlgo(optAlgo).weightInit(weightInit)
-					.updater(updater).list()
-					.layer(0, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build())
-					.layer(1, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build())
-					.layer(2, new DenseLayer.Builder().nIn(stateDim).nOut(1).activation(activation2).build())
-					.layer(3, new OutputLayer.Builder().nIn(1).nOut(1).activation(Activation.IDENTITY)
-							.lossFunction(lossFunction).build())
-					.pretrain(false).backprop(true).build();
-			break;
-		case 0:
-			conf = new NeuralNetConfiguration.Builder().seed(seed).optimizationAlgo(optAlgo).weightInit(weightInit)
-					.updater(updater).list()
-					.layer(0, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build())
-					.layer(1, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build())
-					.layer(2, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build())
-					.layer(3, new DenseLayer.Builder().nIn(stateDim).nOut(1).activation(activation2).build())
-					.layer(4, new OutputLayer.Builder().nIn(1).nOut(1).activation(Activation.IDENTITY)
-							.lossFunction(lossFunction).build())
-					.pretrain(false).backprop(true).build();
-			break;
-		default:
-			conf = new NeuralNetConfiguration.Builder().seed(seed).optimizationAlgo(optAlgo).weightInit(weightInit)
-					.updater(updater).list()
-					.layer(0, new DenseLayer.Builder().nIn(stateDim).nOut(1).activation(activation2).build())
-					.layer(1, new OutputLayer.Builder().nIn(1).nOut(1).activation(Activation.IDENTITY)
-							.lossFunction(lossFunction).build())
-					.pretrain(false).backprop(true).build();
-			break;
-		}
-
+		ListBuilder interim = new NeuralNetConfiguration.Builder().seed(seed).optimizationAlgo(optAlgo).weightInit(weightInit)
+				.updater(updater).list();
+		int numLayers = numSteps - step + 1;
+		int layerIndex;
+		for(layerIndex = 0; layerIndex < numLayers-1; layerIndex++)
+			interim.layer(layerIndex, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build());
+		interim.layer(layerIndex,new OutputLayer.Builder().nIn(stateDim).nOut(1).activation(activation2)
+				.lossFunction(lossFunction).build());
+		conf = interim.pretrain(false).backprop(true).build();
 		return new MultiLayerNetwork(conf);
 	}
 
@@ -424,13 +429,13 @@ public class NeuralNet {
 	 *            the total number of steps of the chain.
 	 * @return list of NNs
 	 */
-	public ArrayList<MultiLayerNetwork> genNetworkList(double lRate, int numSteps) {
-		ArrayList<MultiLayerNetwork> netList = new ArrayList<MultiLayerNetwork>();
-		for (int step = 0; step < numSteps; step++) {
-			netList.add(genNetwork(step, lRate));
-		}
-		return netList;
-	}
+//	public ArrayList<MultiLayerNetwork> genNetworkList(double lRate, int numSteps) {
+//		ArrayList<MultiLayerNetwork> netList = new ArrayList<MultiLayerNetwork>();
+//		for (int step = 0; step < numSteps; step++) {
+//			netList.add(genNetwork(step, lRate));
+//		}
+//		return netList;
+//	}
 
 	/**
 	 * Same as #genNetworkList but with an individualized learning rate for each
@@ -442,13 +447,13 @@ public class NeuralNet {
 	 *            the total number of steps of the chain
 	 * @return list of NNs
 	 */
-	public ArrayList<MultiLayerNetwork> genNetworkList(ArrayList<Double> lRateList, int numSteps) {
-		ArrayList<MultiLayerNetwork> netList = new ArrayList<MultiLayerNetwork>();
-		for (int step = 0; step < numSteps; step++) {
-			netList.add(genNetwork(step, lRateList.get(step)));
-		}
-		return netList;
-	}
+//	public ArrayList<MultiLayerNetwork> genNetworkList(ArrayList<Double> lRateList, int numSteps) {
+//		ArrayList<MultiLayerNetwork> netList = new ArrayList<MultiLayerNetwork>();
+//		for (int step = 0; step < numSteps; step++) {
+//			netList.add(genNetwork(step, lRateList.get(step)));
+//		}
+//		return netList;
+//	}
 
 	/**
 	 * Generates several NNs by varying certain parameters.
@@ -570,7 +575,7 @@ public class NeuralNet {
 		CSVRecordReader rr = new CSVRecordReader(linesToSkip, delimiter);
 		rr.initialize(new FileSplit(new File(filepath + dataLabel + "_Step_" + step + ".csv")));
 
-		DataSetIterator iterAll = new RecordReaderDataSetIterator.Builder(rr, numData).regression(2).build();
+		DataSetIterator iterAll = new RecordReaderDataSetIterator.Builder(rr, numData).regression(model.getStateDimension()-1).build();
 		return iterAll.next();
 	}
 
@@ -694,6 +699,7 @@ public class NeuralNet {
 //		double s0 = 100.0;
 //		double sigma = 0.5;
 //		AsianOptionComparable2 model = new AsianOptionComparable2(r, d, t1, T, K, s0, sigma);
+//		String dataFolder = "data/asian/";
 
 		double epsInv = 1E2;
 		double alpha = 1E-4;
@@ -705,8 +711,10 @@ public class NeuralNet {
 		
 		
 		ReversibleIsomerizationComparable model = new ReversibleIsomerizationComparable(c,x0,tau,T);
+		String dataFolder = "data/ReversibleIsometrization/";
 		model.init();
-		NeuralNet test = new NeuralNet(model,"data/ReversibleIsometrization/"); // This is the array of comparable chains.
+		
+		NeuralNet test = new NeuralNet(model,dataFolder); // This is the array of comparable chains.
 		
 		System.out.println(model.toString());
 
@@ -765,7 +773,7 @@ public class NeuralNet {
 		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
 		for (int i = 0; i < d; i++) {
 //			lRate += 1.0;
-			networkList.add(test.genNetwork(2, lRate));
+			networkList.add(test.genNetwork(i,d, lRate));
 		}
 		
 		/*
@@ -781,7 +789,7 @@ public class NeuralNet {
 		MultiLayerNetwork network;
 		SplitTestAndTrain testAndTrain;
 		
-		for(int i = 1; i < d; i ++) {
+		for(int i = 0; i < d; i ++) {
 			
 			// GET DATA SET, SPLIT DATA, NORMALIZE
 			dataAll = dataAllList.get(i);

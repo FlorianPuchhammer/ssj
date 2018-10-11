@@ -36,15 +36,19 @@ public class testChemicalReactionNetworkNN {
 		double tau = 0.2;
 
 		ReversibleIsomerizationComparable model = new ReversibleIsomerizationComparable(c, x0, tau, T);
-		String modelDescription = "ReversibleIsomerization";
+		String modelDescription = "ReversibleIsometrization";
 
 		System.out.println(model.toString());
 
-		String[] fileNames = null;
+		String[] fileNames = new String[model.numSteps];
+		for(int s = 0; s < fileNames.length; s++)
+			fileNames[s] = "/u/puchhamf/misc/jars/biology/revIso/id-id/data/"+ modelDescription +"/Step" + s + ".zip";
 		ArrayOfComparableChainsNN chain = new ArrayOfComparableChainsNN(model, fileNames);
 
-		int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576 }; // n from 8
+//		int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576 }; // n from 8
 		// to 20.
+		int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144,}; // n from 8
+
 		int[] logN = { 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
 		int mink = 9;
 		int numSets = N.length;
@@ -69,32 +73,32 @@ public class testChemicalReactionNetworkNN {
 		ArrayList<RQMCPointSet[]> listP = new ArrayList<RQMCPointSet[]>();
 
 		// Independent points (Monte Carlo)
-		rqmcPts = new RQMCPointSet[numSets];
-		for (s = 0; s < numSets; ++s) {
-			pointSets[s] = new IndependentPointsCached(N[s], model.K + model.N);
-			rand = new RandomShift(stream);
-			prqmc = new RQMCPointSet(pointSets[s], rand);
-			rqmcPts[s] = prqmc;
-		}
-		rqmcPts[0].setLabel("Independent points");
-		listP.add(rqmcPts);
+//		rqmcPts = new RQMCPointSet[numSets];
+//		for (s = 0; s < numSets; ++s) {
+//			pointSets[s] = new IndependentPointsCached(N[s], model.K + model.N);
+//			rand = new RandomShift(stream);
+//			prqmc = new RQMCPointSet(pointSets[s], rand);
+//			rqmcPts[s] = prqmc;
+//		}
+//		rqmcPts[0].setLabel("Independent points");
+//		listP.add(rqmcPts);
 
 		// Stratification
-		rqmcPts = new RQMCPointSet[numSets];
-		int k;
-		for (s = 0; s < numSets; ++s) {
-			k = (int) Math.round(Math.pow(Num.TWOEXP[s + mink], 1.0 / (double) (sortCoordPts + model.K)));
-			pointSets[s] = new StratifiedUnitCube(k, sortCoordPts + model.K);
-			// Here the points must be sorted at each step, always.
-			// In the case of Hilbert map, the points should be 2d and sorted
-			// based on one coordinate,
-			// whereas the states are 2d and sorted by the Hilbert sort.
-			rand = new RandomShift(stream);
-			prqmc = new RQMCPointSet(pointSets[s], rand);
-			rqmcPts[s] = prqmc;
-		}
-		rqmcPts[0].setLabel("Stratification");
-		listP.add(rqmcPts);
+//		rqmcPts = new RQMCPointSet[numSets];
+//		int k;
+//		for (s = 0; s < numSets; ++s) {
+//			k = (int) Math.round(Math.pow(Num.TWOEXP[s + mink], 1.0 / (double) (sortCoordPts + model.K)));
+//			pointSets[s] = new StratifiedUnitCube(k, sortCoordPts + model.K);
+//			// Here the points must be sorted at each step, always.
+//			// In the case of Hilbert map, the points should be 2d and sorted
+//			// based on one coordinate,
+//			// whereas the states are 2d and sorted by the Hilbert sort.
+//			rand = new RandomShift(stream);
+//			prqmc = new RQMCPointSet(pointSets[s], rand);
+//			rqmcPts[s] = prqmc;
+//		}
+//		rqmcPts[0].setLabel("Stratification");
+//		listP.add(rqmcPts);
 
 		// Sobol + LMS
 		rqmcPts = new RQMCPointSet[numSets];
@@ -114,46 +118,46 @@ public class testChemicalReactionNetworkNN {
 		listP.add(rqmcPts);
 
 		// Sobol + LMS + Baker
-		rqmcPts = new RQMCPointSet[numSets];
-		for (s = 0; s < numSets; ++s) {
-			if (sortCoordPts == 1)
-				pointSets[s] = new BakerTransformedPointSet(new SobolSequence(s + mink, 31, 1 + model.K));
-			else
-				pointSets[s] = new SortedAndCutPointSet(
-						new BakerTransformedPointSet(new SobolSequence(s + mink, 31, sortCoordPts + model.K)),
-						sortPointSet);
-			// pointSets[s] = new SortedAndCutPointSet(new SobolSequence(s +
-			// mink, 31, sortCoordPts + baseChain.K), sort);
-			rand = new LMScrambleShift(stream);
-			prqmc = new RQMCPointSet(pointSets[s], rand);
-			rqmcPts[s] = prqmc;
-		}
-		rqmcPts[0].setLabel("Sobol+LMS+baker");
-		listP.add(rqmcPts);
+//		rqmcPts = new RQMCPointSet[numSets];
+//		for (s = 0; s < numSets; ++s) {
+//			if (sortCoordPts == 1)
+//				pointSets[s] = new BakerTransformedPointSet(new SobolSequence(s + mink, 31, 1 + model.K));
+//			else
+//				pointSets[s] = new SortedAndCutPointSet(
+//						new BakerTransformedPointSet(new SobolSequence(s + mink, 31, sortCoordPts + model.K)),
+//						sortPointSet);
+//			// pointSets[s] = new SortedAndCutPointSet(new SobolSequence(s +
+//			// mink, 31, sortCoordPts + baseChain.K), sort);
+//			rand = new LMScrambleShift(stream);
+//			prqmc = new RQMCPointSet(pointSets[s], rand);
+//			rqmcPts[s] = prqmc;
+//		}
+//		rqmcPts[0].setLabel("Sobol+LMS+baker");
+//		listP.add(rqmcPts);
 
 		// Sobol+NUS
-		rqmcPts = new RQMCPointSet[numSets];
-		for (s = 0; s < numSets; ++s) {
-			if (sortCoordPts == 1) {
-				CachedPointSet p = new CachedPointSet(new SobolSequence(s + mink, 31, 1 + model.K));
-				p.setRandomizeParent(false);
-				pointSets[s] = p;
-			} else {
-				CachedPointSet p = new CachedPointSet(new SobolSequence(s + mink, 31, sortCoordPts + model.K));
-				p.setRandomizeParent(false);
-				// The points are sorted here, but only once.
-				pointSets[s] = new SortedAndCutPointSet(p, sortPointSet);
-			}
-			rand = new NestedUniformScrambling(stream);
-			prqmc = new RQMCPointSet(pointSets[s], rand);
-			rqmcPts[s] = prqmc;
-		}
-		rqmcPts[0].setLabel("Sobol+NUS");
-		listP.add(rqmcPts);
+//		rqmcPts = new RQMCPointSet[numSets];
+//		for (s = 0; s < numSets; ++s) {
+//			if (sortCoordPts == 1) {
+//				CachedPointSet p = new CachedPointSet(new SobolSequence(s + mink, 31, 1 + model.K));
+//				p.setRandomizeParent(false);
+//				pointSets[s] = p;
+//			} else {
+//				CachedPointSet p = new CachedPointSet(new SobolSequence(s + mink, 31, sortCoordPts + model.K));
+//				p.setRandomizeParent(false);
+//				// The points are sorted here, but only once.
+//				pointSets[s] = new SortedAndCutPointSet(p, sortPointSet);
+//			}
+//			rand = new NestedUniformScrambling(stream);
+//			prqmc = new RQMCPointSet(pointSets[s], rand);
+//			rqmcPts[s] = prqmc;
+//		}
+//		rqmcPts[0].setLabel("Sobol+NUS");
+//		listP.add(rqmcPts);
 		
 		
 
-		int nMC = 1000 * 1000; // n to estimate MC variance.
+		int nMC = (int) 1E6; // n to estimate MC variance.
 		Tally statMC = new Tally();
 		statMC.init();
 		// model.simulRunsWithSubstreams(nMC, model.numSteps, stream, statMC);

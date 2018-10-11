@@ -134,12 +134,14 @@ public class ReversibleIsomerizationComparable extends ChemicalReactionNetwork {
 		System.out.println(model.toString());
 		String filepath = "data/ReversibleIsometrization/";
 		String dataLabel = "MCData";
-		int numChains = 1048576/512;
+		int numChains = 1048576/1;
 		RandomStream stream = new MRG32k3a();
 
 		
 		
 		NeuralNet net = new NeuralNet(model,filepath);
+		
+		net.genData(dataLabel, numChains, model.numSteps, stream);
 	
 //		net.genData(dataLabel, numChains, model.numSteps, stream);
 		
@@ -152,7 +154,9 @@ public class ReversibleIsomerizationComparable extends ChemicalReactionNetwork {
 
 		ArrayList<DataSet> dataAllList = new ArrayList<DataSet>();
 		for(int s = 0; s < model.numSteps; s++) {
-			dataAllList.add(net.getData(dataLabel,s,numChains));
+//			dataAllList.add(net.getData(dataLabel,s,numChains));
+			dataAllList.add(net.getData(dataLabel,1,numChains));
+
 		}
 		
 		
@@ -163,7 +167,7 @@ public class ReversibleIsomerizationComparable extends ChemicalReactionNetwork {
 		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
 		for (int i = 0; i < model.numSteps; i++) {
 //			lRate += 1.0;
-			networkList.add(model.genNetwork(2, lRate));
+			networkList.add(net.genNetwork(i,model.numSteps, lRate));
 		}
 		
 		/*
