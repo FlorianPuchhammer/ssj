@@ -1,0 +1,42 @@
+*******************************************
+ CONFIGURATION: 
+NeuralNetConfiguration(layer=DenseLayer(super=FeedForwardLayer(super=BaseLayer(activationFn=relu, weightInit=NORMAL, biasInit=0.0, dist=null, l1=0.0, l2=0.0, l1Bias=0.0, l2Bias=0.0, iUpdater=AdaDelta(rho=0.95, epsilon=1.0E-6), biasUpdater=null, weightNoise=null, gradientNormalization=None, gradientNormalizationThreshold=1.0), nIn=2, nOut=2), hasBias=true), miniBatch=true, maxNumLineSearchIterations=5, seed=123, optimizationAlgo=STOCHASTIC_GRADIENT_DESCENT, variables=[], stepFunction=null, minimize=true, pretrain=false, cacheMode=NONE, iterationCount=0, epochCount=0)
+*******************************************
+Column    MSE            MAE            RMSE           RSE            PC             R^2            
+col_0     1.00001e+12    1.00002e+06    1.00001e+06    -2.97710e+04   NaN            3.15524e+04    
+*******************************************
+ CONFIGURATION: 
+NeuralNetConfiguration(layer=DenseLayer(super=FeedForwardLayer(super=BaseLayer(activationFn=relu, weightInit=NORMAL, biasInit=0.0, dist=null, l1=0.0, l2=0.0, l1Bias=0.0, l2Bias=0.0, iUpdater=AdaDelta(rho=0.95, epsilon=1.0E-6), biasUpdater=null, weightNoise=null, gradientNormalization=None, gradientNormalizationThreshold=1.0), nIn=2, nOut=2), hasBias=true), miniBatch=true, maxNumLineSearchIterations=5, seed=123, optimizationAlgo=STOCHASTIC_GRADIENT_DESCENT, variables=[], stepFunction=null, minimize=true, pretrain=false, cacheMode=NONE, iterationCount=0, epochCount=0)
+*******************************************
+Column    MSE            MAE            RMSE           RSE            PC             R^2            
+col_0     2.17772e+10    1.47405e+05    1.47571e+05    -6.48928e+02   NaN            6.88094e+02    
+*******************************************
+ CONFIGURATION: 
+NeuralNetConfiguration(layer=DenseLayer(super=FeedForwardLayer(super=BaseLayer(activationFn=relu, weightInit=NORMAL, biasInit=0.0, dist=null, l1=0.0, l2=0.0, l1Bias=0.0, l2Bias=0.0, iUpdater=AdaDelta(rho=0.95, epsilon=1.0E-6), biasUpdater=null, weightNoise=null, gradientNormalization=None, gradientNormalizationThreshold=1.0), nIn=2, nOut=2), hasBias=true), miniBatch=true, maxNumLineSearchIterations=5, seed=123, optimizationAlgo=STOCHASTIC_GRADIENT_DESCENT, variables=[], stepFunction=null, minimize=true, pretrain=false, cacheMode=NONE, iterationCount=0, epochCount=0)
+*******************************************
+Column    MSE            MAE            RMSE           RSE            PC             R^2            
+col_0     1.00001e+12    1.00002e+06    1.00001e+06    -2.97710e+04   NaN            3.15524e+04    
+*******************************************
+ CONFIGURATION: 
+NeuralNetConfiguration(layer=DenseLayer(super=FeedForwardLayer(super=BaseLayer(activationFn=relu, weightInit=NORMAL, biasInit=0.0, dist=null, l1=0.0, l2=0.0, l1Bias=0.0, l2Bias=0.0, iUpdater=AdaDelta(rho=0.95, epsilon=1.0E-6), biasUpdater=null, weightNoise=null, gradientNormalization=None, gradientNormalizationThreshold=1.0), nIn=2, nOut=2), hasBias=true), miniBatch=true, maxNumLineSearchIterations=5, seed=123, optimizationAlgo=STOCHASTIC_GRADIENT_DESCENT, variables=[], stepFunction=null, minimize=true, pretrain=false, cacheMode=NONE, iterationCount=0, epochCount=0)
+*******************************************
+Column    MSE            MAE            RMSE           RSE            PC             R^2            
+col_0     1.12346e+08    8.58022e+03    1.05994e+04    -3.68594e+00   NaN            4.54464e+00    
+*******************************************
+ CONFIGURATION: 
+NeuralNetConfiguration(layer=DenseLayer(super=FeedForwardLayer(super=BaseLayer(activationFn=relu, weightInit=NORMAL, biasInit=0.0, dist=null, l1=0.0, l2=0.0, l1Bias=0.0, l2Bias=0.0, iUpdater=AdaDelta(rho=0.95, epsilon=1.0E-6), biasUpdater=null, weightNoise=null, gradientNormalization=None, gradientNormalizationThreshold=1.0), nIn=2, nOut=2), hasBias=true), miniBatch=true, maxNumLineSearchIterations=5, seed=123, optimizationAlgo=STOCHASTIC_GRADIENT_DESCENT, variables=[], stepFunction=null, minimize=true, pretrain=false, cacheMode=NONE, iterationCount=0, epochCount=0)
+*******************************************
+Column    MSE            MAE            RMSE           RSE            PC             R^2            
+col_0     1.00001e+12    1.00002e+06    1.00001e+06    -2.97710e+04   NaN            3.15524e+04    
+*******************************************
+ CONFIGURATION: 
+NeuralNetConfiguration(layer=DenseLayer(super=FeedForwardLayer(super=BaseLayer(activationFn=relu, weightInit=NORMAL, biasInit=0.0, dist=null, l1=0.0, l2=0.0, l1Bias=0.0, l2Bias=0.0, iUpdater=AdaDelta(rho=0.95, epsilon=1.0E-6), biasUpdater=null, weightNoise=null, gradientNormalization=None, gradientNormalizationThreshold=1.0), nIn=2, nOut=2), hasBias=true), miniBatch=true, maxNumLineSearchIterations=5, seed=123, optimizationAlgo=STOCHASTIC_GRADIENT_DESCENT, variables=[], stepFunction=null, minimize=true, pretrain=false, cacheMode=NONE, iterationCount=0, epochCount=0)
+*******************************************
+Column    MSE            MAE            RMSE           RSE            PC             R^2            
+col_0     1.11045e+08    8.45924e+03    1.05378e+04    -2.60284e+00   NaN            4.50358e+00    
+*******************************************
+ CONFIGURATION: 
+NeuralNetConfiguration(layer=OutputLayer(super=BaseOutputLayer(super=FeedForwardLayer(super=BaseLayer(activationFn=relu, weightInit=NORMAL, biasInit=0.0, dist=null, l1=0.0, l2=0.0, l1Bias=0.0, l2Bias=0.0, iUpdater=AdaDelta(rho=0.95, epsilon=1.0E-6), biasUpdater=null, weightNoise=null, gradientNormalization=None, gradientNormalizationThreshold=1.0), nIn=2, nOut=1), lossFn=LossMSE(), hasBias=true)), miniBatch=true, maxNumLineSearchIterations=5, seed=123, optimizationAlgo=STOCHASTIC_GRADIENT_DESCENT, variables=[], stepFunction=null, minimize=true, pretrain=false, cacheMode=NONE, iterationCount=0, epochCount=0)
+*******************************************
+Column    MSE            MAE            RMSE           RSE            PC             R^2            
+col_0     1.00001e+12    1.00002e+06    1.00001e+06    -2.97710e+04   NaN            3.15524e+04    

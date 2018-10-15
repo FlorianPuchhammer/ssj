@@ -20,7 +20,7 @@ public abstract class ChemicalReactionNetwork extends MarkovChainComparable impl
 	double T; // Final time
 	double [] X; //states, i.e., the number of molecules of each species
 	int N; //Number of molecular species 
-	int numSteps;
+	public int numSteps;
 	
 	
 	

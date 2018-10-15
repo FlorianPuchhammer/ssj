@@ -167,7 +167,7 @@ public class ReversibleIsomerizationComparable extends ChemicalReactionNetwork {
 		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
 		for (int i = 0; i < model.numSteps; i++) {
 //			lRate += 1.0;
-			networkList.add(net.genNetwork(i,model.numSteps, lRate));
+			networkList.add(net.genNetwork(model.numSteps-2,model.numSteps, lRate));
 		}
 		
 		/*

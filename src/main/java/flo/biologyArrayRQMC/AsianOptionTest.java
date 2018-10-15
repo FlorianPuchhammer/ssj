@@ -246,26 +246,37 @@ public class AsianOptionTest extends ArrayOfComparableChainsNN<AsianOptionCompar
 		// int numSets = 2; // Number of point sets to try.
 
 		AsianOptionComparable2 asian = new AsianOptionComparable2(r, d, t1, T, K, s0, sigma);
+		
+		
+		
 		String [] fileNames = new String[d];
 		String base = "./data/asian/";
 		for(int i = 0; i < d; i++) {
 			fileNames[i] = base + "Step" + i + ".zip";
 		}
 		AsianOptionTest test = new AsianOptionTest(asian,fileNames); // This is the array of comparable chains.
-		// PointSetRandomization rand = new RandomShift(new MRG32k3a());
+	
 
 		MultiDimSort<AsianOptionComparable2> sort;
+		
+		
+		
+		
+		
 		MultiDimSort01 sort01;
-		// MultiDimSortN<MultiDim> sort02;
+
+		
+		
 		MultiDimSortN sort02;
 		double[] batchExp = { 0.5, 0.5 };
 
 		System.out.println(asian.toString());
 
 		
-//		  System.out.println("\n *************  SPLIT SORT  *************** \n"); sort
-//		  = new SplitSort (2); // test = new AsianOptionTest (asian, rand, sort);
-//		  test.testMethods (asian, sort, 2, d,m, numSets);
+		  System.out.println("\n *************  SPLIT SORT  *************** \n"); 
+		  sort	  = new SplitSort (2); 
+		  // test = new AsianOptionTest (asian, rand, sort);
+		  test.testMethods (asian, sort, 2, d,m, numSets);
 		  
 //		  System.out.println("\n *************  BATCH SORT  *************** \n"); sort
 //		  = new BatchSort<AsianOptionComparable2>(batchExp); // Sort in 2 dim.

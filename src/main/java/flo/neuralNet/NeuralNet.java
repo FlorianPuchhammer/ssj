@@ -37,7 +37,9 @@ import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import flo.biologyArrayRQMC.AsianOptionComparable2;
 import flo.biologyArrayRQMC.AsianOptionTestFlo;
+import flo.biologyArrayRQMC.examples.ChemicalReactionNetwork;
 import flo.biologyArrayRQMC.examples.ReversibleIsomerizationComparable;
+import flo.biologyArrayRQMC.examples.SchloeglSystem;
 import umontreal.ssj.hups.LMScrambleShift;
 import umontreal.ssj.hups.PointSet;
 import umontreal.ssj.hups.PointSetRandomization;
@@ -164,6 +166,11 @@ public class NeuralNet {
 		}
 	}
 	
+	//initX.length batches; l chains each to get dist, r draws each to get data.
+	public void genDataWithDist(double[] initX, int l, int r, RandomStream stream) {
+		
+	}
+	
 	public void genData(String dataLabel, int n, int numSteps, RandomStream stream, int numDraws) throws IOException {
 		double[][][] states = new double[n][][];
 		double[] performance = new double[n];
@@ -278,7 +285,7 @@ public class NeuralNet {
 		MultiLayerConfiguration conf = null;
 		int seed = 123;
 		WeightInit weightInit = WeightInit.NORMAL;
-		Activation activation1 = Activation.RELU;
+		Activation activation1 = Activation.IDENTITY;
 		Activation activation2 = Activation.RELU;
 		LossFunction lossFunction = LossFunction.MSE;
 		// AdaMax updater = new AdaMax(lRate);
@@ -700,18 +707,33 @@ public class NeuralNet {
 //		double sigma = 0.5;
 //		AsianOptionComparable2 model = new AsianOptionComparable2(r, d, t1, T, K, s0, sigma);
 //		String dataFolder = "data/asian/";
+		
+		ChemicalReactionNetwork model;
 
-		double epsInv = 1E2;
-		double alpha = 1E-4;
-		double[]c = {1.0,alpha};
-		double[] x0 = {epsInv,epsInv/alpha};
-		double T = 1.6;
+
+//		double epsInv = 1E2;
+//		double alpha = 1E-4;
+//		double[]c = {1.0,alpha};
+//		double[] x0 = {epsInv,epsInv/alpha};
+//		double T = 1.6;
+//		double tau = 0.2;
+//
+//		
+//		
+//		 model = new ReversibleIsomerizationComparable(c,x0,tau,T);
+//		String dataFolder = "data/ReversibleIsometrization/";
+//		model.init();
+		
+		
+		double[]c = {3E-7, 1E-4, 1E-3,3.5};
+		double[] x0 = {250.0, 1E5, 2E5};
+		double T = 4;
 		double tau = 0.2;
-		int d = 8;
+
 		
 		
-		ReversibleIsomerizationComparable model = new ReversibleIsomerizationComparable(c,x0,tau,T);
-		String dataFolder = "data/ReversibleIsometrization/";
+		 model = new SchloeglSystem(c,x0,tau,T);
+		String dataFolder = "data/SchloeglSystem/";
 		model.init();
 		
 		NeuralNet test = new NeuralNet(model,dataFolder); // This is the array of comparable chains.
@@ -744,7 +766,7 @@ public class NeuralNet {
 		if (genData) {
 			timer.init();
 //			test.genData(dataLabel, numChains, d, p.iterator());
-			test.genData(dataLabel, numChains, d, stream);
+			test.genData(dataLabel, numChains, model.numSteps, stream);
 			System.out.println("\n\nTiming:\t" + timer.format());
 		}
 		/*
@@ -761,7 +783,7 @@ public class NeuralNet {
 		 */
 
 		ArrayList<DataSet> dataAllList = new ArrayList<DataSet>();
-		for(int s = 0; s < d; s++) {
+		for(int s = 0; s < model.numSteps; s++) {
 			dataAllList.add(test.getData(dataLabel,s,numChains));
 		}
 		
@@ -771,9 +793,9 @@ public class NeuralNet {
 		 */
 		double lRate = 0.1;
 		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
-		for (int i = 0; i < d; i++) {
+		for (int i = 0; i < model.numSteps; i++) {
 //			lRate += 1.0;
-			networkList.add(test.genNetwork(i,d, lRate));
+			networkList.add(test.genNetwork(model.numSteps-2,model.numSteps, lRate));
 		}
 		
 		/*
@@ -789,7 +811,7 @@ public class NeuralNet {
 		MultiLayerNetwork network;
 		SplitTestAndTrain testAndTrain;
 		
-		for(int i = 0; i < d; i ++) {
+		for(int i = 0; i < model.numSteps; i ++) {
 			
 			// GET DATA SET, SPLIT DATA, NORMALIZE
 			dataAll = dataAllList.get(i);
@@ -808,7 +830,7 @@ public class NeuralNet {
 			network = networkList.get(i);
 			
 			str = "*******************************************\n";
-			str += " CONFIGURATION: \n" + network.conf().toString() + "\n";
+			str += " CONFIGURATION: \n" + network.getLayerWiseConfigurations().toString() + "\n";
 			str += "*******************************************\n";
 			sb.append(str);
 			System.out.println(str);

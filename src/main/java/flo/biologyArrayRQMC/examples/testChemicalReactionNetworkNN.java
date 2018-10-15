@@ -28,21 +28,35 @@ public class testChemicalReactionNetworkNN {
 
 	public static void main(String[] args) throws IOException {
 
-		double epsInv = 1E2;
-		double alpha = 1E-4;
-		double[] c = { 1.0, alpha };
-		double[] x0 = { epsInv, epsInv / alpha };
-		double T = 1.6;
+		ChemicalReactionNetwork model;
+		
+//		double epsInv = 1E2;
+//		double alpha = 1E-4;
+//		double[] c = { 1.0, alpha };
+//		double[] x0 = { epsInv, epsInv / alpha };
+//		double T = 1.6;
+//		double tau = 0.2;
+//
+//		model = new ReversibleIsomerizationComparable(c, x0, tau, T);
+//		String modelDescription = "ReversibleIsometrization";
+//
+//		System.out.println(model.toString());
+		
+		double[]c = {3E-7, 1E-4, 1E-3,3.5};
+		double[] x0 = {250.0, 1E5, 2E5};
+		double T = 4;
 		double tau = 0.2;
 
-		ReversibleIsomerizationComparable model = new ReversibleIsomerizationComparable(c, x0, tau, T);
-		String modelDescription = "ReversibleIsometrization";
-
-		System.out.println(model.toString());
+		
+		
+		 model = new SchloeglSystem(c,x0,tau,T);
+		String modelDescription = "SchloeglSystem";
 
 		String[] fileNames = new String[model.numSteps];
-		for(int s = 0; s < fileNames.length; s++)
-			fileNames[s] = "/u/puchhamf/misc/jars/biology/revIso/id-id/data/"+ modelDescription +"/Step" + s + ".zip";
+		for(int s = 0; s < fileNames.length; s++) {
+			fileNames[s] = "/u/puchhamf/misc/jars/biology/schlogl/2Layer/";
+			fileNames[s] += "id-id/data/"+ modelDescription +"/Step" + s + ".zip";
+			}
 		ArrayOfComparableChainsNN chain = new ArrayOfComparableChainsNN(model, fileNames);
 
 //		int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576 }; // n from 8
