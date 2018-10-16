@@ -66,8 +66,8 @@ public class NeuralNet {
 	/**
 	 * Default location, to which neural networks, data, and normalizers are stored.
 	 */
-	public String filepath = "data/asian/";
-	public MarkovChainComparable model;
+	public String filepath = "";
+	public ChemicalReactionNetwork model;
 
 	/**
 	 * Constructor for a specific \a model using the default location for saving.
@@ -75,8 +75,8 @@ public class NeuralNet {
 	 * @param model
 	 *            the underlying model
 	 */
-	public NeuralNet(MarkovChainComparable model) {
-		this(model, "data/asian/");
+	public NeuralNet(ChemicalReactionNetwork model) {
+		this(model, "");
 	}
 
 	/**
@@ -87,7 +87,7 @@ public class NeuralNet {
 	 * @param filepath
 	 *            path to where networks, data, and normalizers are saved.
 	 */
-	public NeuralNet(MarkovChainComparable model, String filepath) {
+	public NeuralNet(ChemicalReactionNetwork model, String filepath) {
 		this.filepath = filepath;
 		this.model = model;
 
@@ -167,8 +167,34 @@ public class NeuralNet {
 	}
 	
 	//initX.length batches; l chains each to get dist, r draws each to get data.
-	public void genDataWithDist(double[] initX, int l, int r, RandomStream stream) {
+	public void genDataWithDist(double[][] initX, int l, int r, RandomStream stream) {
+		int stepsToEnd = model.numSteps;
+		int k = initX.length;
+//		double[] X0 = new double[k];
+		double[][][] states = new double[l][][];
+		double[] performance = new double[l];
+		double[] u = new double[r];
+		double[] draws = new double[r];
 		
+		DEHistogram histo;
+		int numBins = (int) Math.round(Math.sqrt(l));
+		for(int s = 0; s < model.numSteps; s++) {
+			for(int kk = 0; kk < k; k++) {
+//				Arrays.fill(X0,initX[kk]);
+				model.setInitialState(initX[kk]);
+//				model.setNumSteps(stepsToEnd);
+				model.init();
+				model.initialState();
+				model.simulRuns(l, stepsToEnd, stream, states, performance);
+				
+				//CAREFUL: performance does not match states after sort!!!!
+				Arrays.sort(performance);
+				histo = new DEHistogram(performance,performance[0],performance[l-1],numBins);
+				stream.nextArrayOfDouble(u, 0, r);
+				Arrays.sort(u);
+				histo.inverseF(u,draws);
+			}//end kk
+		}//end s
 	}
 	
 	public void genData(String dataLabel, int n, int numSteps, RandomStream stream, int numDraws) throws IOException {
@@ -285,8 +311,8 @@ public class NeuralNet {
 		MultiLayerConfiguration conf = null;
 		int seed = 123;
 		WeightInit weightInit = WeightInit.NORMAL;
-		Activation activation1 = Activation.IDENTITY;
-		Activation activation2 = Activation.RELU;
+		Activation activation1 = Activation.RELU;
+		Activation activation2 = Activation.IDENTITY;
 		LossFunction lossFunction = LossFunction.MSE;
 		// AdaMax updater = new AdaMax(lRate);
 		// AdaGrad updater = new AdaGrad(lRate);
@@ -711,30 +737,30 @@ public class NeuralNet {
 		ChemicalReactionNetwork model;
 
 
-//		double epsInv = 1E2;
-//		double alpha = 1E-4;
-//		double[]c = {1.0,alpha};
-//		double[] x0 = {epsInv,epsInv/alpha};
-//		double T = 1.6;
-//		double tau = 0.2;
-//
-//		
-//		
-//		 model = new ReversibleIsomerizationComparable(c,x0,tau,T);
-//		String dataFolder = "data/ReversibleIsometrization/";
-//		model.init();
-		
-		
-		double[]c = {3E-7, 1E-4, 1E-3,3.5};
-		double[] x0 = {250.0, 1E5, 2E5};
-		double T = 4;
+		double epsInv = 1E2;
+		double alpha = 1E-4;
+		double[]c = {1.0,alpha};
+		double[] x0 = {epsInv,epsInv/alpha};
+		double T = 1.6;
 		double tau = 0.2;
 
 		
 		
-		 model = new SchloeglSystem(c,x0,tau,T);
-		String dataFolder = "data/SchloeglSystem/";
+		 model = new ReversibleIsomerizationComparable(c,x0,tau,T);
+		String dataFolder = "data/ReversibleIsometrization/";
 		model.init();
+		
+		
+//		double[]c = {3E-7, 1E-4, 1E-3,3.5};
+//		double[] x0 = {250.0, 1E5, 2E5};
+//		double T = 4;
+//		double tau = 0.2;
+//
+//		
+//		
+//		 model = new SchloeglSystem(c,x0,tau,T);
+//		String dataFolder = "data/SchloeglSystem/";
+//		model.init();
 		
 		NeuralNet test = new NeuralNet(model,dataFolder); // This is the array of comparable chains.
 		
@@ -784,7 +810,7 @@ public class NeuralNet {
 
 		ArrayList<DataSet> dataAllList = new ArrayList<DataSet>();
 		for(int s = 0; s < model.numSteps; s++) {
-			dataAllList.add(test.getData(dataLabel,s,numChains));
+			dataAllList.add(test.getData(dataLabel,7,numChains));
 		}
 		
 		
@@ -795,7 +821,7 @@ public class NeuralNet {
 		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
 		for (int i = 0; i < model.numSteps; i++) {
 //			lRate += 1.0;
-			networkList.add(test.genNetwork(model.numSteps-2,model.numSteps, lRate));
+			networkList.add(test.genNetwork(i,model.numSteps, lRate));
 		}
 		
 		/*

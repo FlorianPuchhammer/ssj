@@ -1,5 +1,9 @@
 package umontreal.ssj.stat.density;
 
+import java.util.Arrays;
+
+import umontreal.ssj.rng.MRG32k3a;
+import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.stat.ScaledHistogram;
 import umontreal.ssj.stat.TallyHistogram;
 
@@ -224,6 +228,49 @@ public class DEHistogram extends DensityEstimator {
 	 */
 	public double[] evalDensity() {
 		return histDensity.getHeights();
+	}
+	
+	public double inverseF (double u) { 
+		double h = getH();
+		
+		int index = -1;
+		double [] pdf = evalDensity();
+		
+		double cdf = 0;
+		double term = 0;
+		double hFrac;
+		while(cdf < u) {
+			term = h * pdf[++index];
+			cdf += term;
+		}
+		cdf -= term;
+		hFrac = (u - cdf)/pdf[index];
+		
+		return  getA() + h * ((double) index) + hFrac;
+		
+	}
+	
+	public void inverseF(double[] u, double[] x) {
+double h = getH();
+		int r = u.length;
+		int index = -1;
+		double [] pdf = evalDensity();
+		
+		double cdf = 0;
+		double term = 0;
+		double hFrac;
+		
+		for(int j = 0; j < r; j++) {
+			
+			while(cdf < u[j]) {
+				term = h * pdf[++index];
+				cdf += term;
+			}
+			cdf -= term;
+			hFrac = (u[j] - cdf)/pdf[index];
+			x[j] = getA() + h * ((double) index) + hFrac;
+			index--;
+		}
 	}
 
 	// STATIC METHODS
@@ -554,4 +601,13 @@ public class DEHistogram extends DensityEstimator {
 		return density;
 	}
 
+	
+	public static final void main(String[] args) {
+		int n = (int) 1E6;
+		int numBins = (int) 1E3;
+		RandomStream stream = new MRG32k3a();
+		double[] z = new double[n];
+		stream.nextArrayOfDouble(z, 0, n);
+		Arrays.sort(z);
+	}
 }

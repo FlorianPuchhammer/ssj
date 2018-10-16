@@ -55,7 +55,7 @@ public class testChemicalReactionNetworkNN {
 		String[] fileNames = new String[model.numSteps];
 		for(int s = 0; s < fileNames.length; s++) {
 			fileNames[s] = "/u/puchhamf/misc/jars/biology/schlogl/2Layer/";
-			fileNames[s] += "id-id/data/"+ modelDescription +"/Step" + s + ".zip";
+			fileNames[s] += "relu-relu/data/"+ modelDescription +"/Step" + s + ".zip";
 			}
 		ArrayOfComparableChainsNN chain = new ArrayOfComparableChainsNN(model, fileNames);
 
