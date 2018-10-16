@@ -121,12 +121,23 @@ public class creditMetrics implements MonteCarloModelDoubleArray {
 	public int[] ratings;
 	
 	/**
+	 * random stream for generating evaluation points, beta-variates, etc.
+	 */
+	private RandomStream utilStream;
+	/**
+	 * empirical mean
+	 */
+	private double empMean;
+	
+	/**
+	 * empirical variance
+	 */
+	private double empVar;
+	/**
 	 * 
 	 * @param listK
 	 * @param sigma
 	 */
-	private RandomStream utilStream;
-	
 	public creditMetrics(List<Credit> listK, double[][] sigma, RandomStream utilStream) {
 		this.listK = listK;
 		this.sigma = MultinormalPCAGen.decompPCA(sigma);
