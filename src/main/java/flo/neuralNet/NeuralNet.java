@@ -34,6 +34,8 @@ import org.nd4j.linalg.learning.config.AdaDelta;
 import org.nd4j.linalg.learning.config.AdaGrad;
 import org.nd4j.linalg.learning.config.IUpdater;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
+import org.nd4j.linalg.schedule.ExponentialSchedule;
+import org.nd4j.linalg.schedule.ScheduleType;
 
 import flo.biologyArrayRQMC.AsianOptionComparable2;
 import flo.biologyArrayRQMC.AsianOptionTestFlo;
@@ -129,6 +131,36 @@ public class NeuralNet {
 					sb.append(states[i][step][j] + ",");
 				sb.append(performance[i] + "\n");
 			}
+			fw.write(sb.toString());
+			fw.close();
+			System.out.println("*******************************************");
+			System.out.println(" STEP " + step);
+			System.out.println("*******************************************");
+			System.out.println(sb.toString());
+		}
+	}
+	
+	public void genDataMMA(String dataLabel, int n, int numSteps, RandomStream stream) throws IOException {
+		double[][][] states = new double[n][][];
+		double[] performance = new double[n];
+		model.simulRunsWithSubstreams(n, numSteps, stream, states, performance);
+		StringBuffer sb;
+		FileWriter fw;
+		File file;
+		for (int step = 0; step < numSteps; step++) {
+			sb = new StringBuffer("{");
+			file = new File(filepath + dataLabel + "_Step_" + step + "MMA.txt");
+			file.getParentFile().mkdirs();
+			fw = new FileWriter(file);
+
+			for (int i = 0; i < n; i++) {
+				sb.append("{");
+				for (int j = 0; j < model.getStateDimension(); j++)
+					sb.append(states[i][step][j] + ",");
+				sb.append(performance[i] + "},\n");
+			}
+			sb.deleteCharAt(sb.lastIndexOf(","));
+			sb.append("}");
 			fw.write(sb.toString());
 			fw.close();
 			System.out.println("*******************************************");
@@ -311,15 +343,15 @@ public class NeuralNet {
 		MultiLayerConfiguration conf = null;
 		int seed = 123;
 		WeightInit weightInit = WeightInit.NORMAL;
-		Activation activation1 = Activation.RELU;
+		Activation activation1 = Activation.IDENTITY;
 		Activation activation2 = Activation.IDENTITY;
 		LossFunction lossFunction = LossFunction.MSE;
-		// AdaMax updater = new AdaMax(lRate);
-		// AdaGrad updater = new AdaGrad(lRate);
+//		 AdaMax updater = new AdaMax(lRate);
+//		 AdaGrad updater = new AdaGrad(lRate);
 		// Nesterovs updater = new Nesterovs(lRate);
 		// RmsProp updater = new RmsProp(lRate);
-		// updater.setLearningRateSchedule(new ExponentialSchedule(ScheduleType.EPOCH,
-		// lRate, 0.9 ));
+//		 updater.setLearningRateSchedule(new ExponentialSchedule(ScheduleType.EPOCH,
+//		 lRate, 0.9 ));
 
 		IUpdater updater = new AdaDelta();
 
@@ -644,7 +676,7 @@ public class NeuralNet {
 		for (int e = 0; e < numEpochs; e++) {
 
 			trainingData.shuffle();
-			List<DataSet> listDataTrain = trainingData.batchBy(batchSize); // TODO: very inefficient!
+			List<DataSet> listDataTrain = trainingData.batchBy(batchSize); 
 			its = 0;
 			// maxItsTrain=listDataTrain.size()/4;
 			while (listDataTrain.iterator().hasNext() && its++ < maxItsTrain)
@@ -737,30 +769,30 @@ public class NeuralNet {
 		ChemicalReactionNetwork model;
 
 
-		double epsInv = 1E2;
-		double alpha = 1E-4;
-		double[]c = {1.0,alpha};
-		double[] x0 = {epsInv,epsInv/alpha};
-		double T = 1.6;
-		double tau = 0.2;
-
-		
-		
-		 model = new ReversibleIsomerizationComparable(c,x0,tau,T);
-		String dataFolder = "data/ReversibleIsometrization/";
-		model.init();
-		
-		
-//		double[]c = {3E-7, 1E-4, 1E-3,3.5};
-//		double[] x0 = {250.0, 1E5, 2E5};
-//		double T = 4;
+//		double epsInv = 1E2;
+//		double alpha = 1E-4;
+//		double[]c = {1.0,alpha};
+//		double[] x0 = {epsInv,epsInv/alpha};
+//		double T = 1.6;
 //		double tau = 0.2;
 //
 //		
 //		
-//		 model = new SchloeglSystem(c,x0,tau,T);
-//		String dataFolder = "data/SchloeglSystem/";
+//		 model = new ReversibleIsomerizationComparable(c,x0,tau,T);
+//		String dataFolder = "data/ReversibleIsometrization/";
 //		model.init();
+		
+		
+		double[]c = {3E-7, 1E-4, 1E-3,3.5};
+		double[] x0 = {250.0, 1E5, 2E5};
+		double T = 4;
+		double tau = 0.2;
+
+		
+		
+		 model = new SchloeglSystem(c,x0,tau,T);
+		String dataFolder = "data/SchloeglSystem/";
+		model.init();
 		
 		NeuralNet test = new NeuralNet(model,dataFolder); // This is the array of comparable chains.
 		
@@ -784,14 +816,16 @@ public class NeuralNet {
 		 */
 		boolean genData = true;
 
+//		String dataLabel = "SobData";
 		String dataLabel = "MCData";
-//		PointSet sobol = new SobolSequence(logNumChains, 31, d * 2);
+
+//		PointSet sobol = new SobolSequence(logNumChains, 31, model.numSteps * model.getK());
 //		PointSetRandomization rand = new LMScrambleShift(stream);
 //		RQMCPointSet p = new RQMCPointSet(sobol, rand);
 
 		if (genData) {
 			timer.init();
-//			test.genData(dataLabel, numChains, d, p.iterator());
+//			test.genData(dataLabel, numChains, model.numSteps, p.iterator());
 			test.genData(dataLabel, numChains, model.numSteps, stream);
 			System.out.println("\n\nTiming:\t" + timer.format());
 		}
@@ -810,7 +844,7 @@ public class NeuralNet {
 
 		ArrayList<DataSet> dataAllList = new ArrayList<DataSet>();
 		for(int s = 0; s < model.numSteps; s++) {
-			dataAllList.add(test.getData(dataLabel,7,numChains));
+			dataAllList.add(test.getData(dataLabel,s,numChains));
 		}
 		
 		
@@ -821,13 +855,13 @@ public class NeuralNet {
 		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
 		for (int i = 0; i < model.numSteps; i++) {
 //			lRate += 1.0;
-			networkList.add(test.genNetwork(i,model.numSteps, lRate));
+			networkList.add(test.genNetwork(model.numSteps-2,model.numSteps, lRate));
 		}
 		
 		/*
 		 * TRAIN NETWORK
 		 */
-		FileWriter fw = new FileWriter("./data/comparison.txt");
+		FileWriter fw = new FileWriter("./data/comparison" +dataLabel+ ".txt");
 		StringBuffer sb = new StringBuffer("");
 		String str;
 
@@ -861,7 +895,7 @@ public class NeuralNet {
 			sb.append(str);
 			System.out.println(str);
 
-			NeuralNet.trainNetwork(network, trainingData, numEpochs, batchSize, (numChains / batchSize) * 1, 1000);
+			NeuralNet.trainNetwork(network, trainingData, numEpochs, batchSize, (numChains / batchSize) * 4, 1000);
 			
 			// TEST NETWORK
 			str = NeuralNet.testNetwork(network, testData, batchSize);
@@ -870,7 +904,7 @@ public class NeuralNet {
 
 
 			// saveNetwork(network,"Asian_Step" + currentStep, normalizer);
-			test.saveNetwork(network, "Step" + i, normalizer);
+			test.saveNetwork(network, dataLabel + "Step" + i, normalizer);
 			// i++;
 			// network.clear();
 			// network = loadNetwork("Asian_Step" + currentStep);

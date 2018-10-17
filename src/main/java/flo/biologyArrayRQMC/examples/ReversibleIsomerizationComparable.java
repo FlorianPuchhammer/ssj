@@ -27,7 +27,13 @@ import org.nd4j.linalg.learning.config.IUpdater;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 import flo.neuralNet.NeuralNet;
+import umontreal.ssj.hups.LMScrambleShift;
+import umontreal.ssj.hups.PointSet;
+import umontreal.ssj.hups.PointSetRandomization;
+import umontreal.ssj.hups.RQMCPointSet;
+import umontreal.ssj.hups.SobolSequence;
 import umontreal.ssj.markovchainrqmc.*;
+import umontreal.ssj.util.Chrono;
 import umontreal.ssj.util.PrintfFormat;
 import umontreal.ssj.util.sort.MultiDim;
 import umontreal.ssj.util.sort.MultiDim01;
@@ -122,108 +128,58 @@ public class ReversibleIsomerizationComparable extends ChemicalReactionNetwork {
 	}
 	
 	public static final void main(String[] args) throws IOException, InterruptedException {
+		ChemicalReactionNetwork model;
+
+
 		double epsInv = 1E2;
 		double alpha = 1E-4;
 		double[]c = {1.0,alpha};
 		double[] x0 = {epsInv,epsInv/alpha};
 		double T = 1.6;
 		double tau = 0.2;
+
 		
-		ReversibleIsomerizationComparable model = new ReversibleIsomerizationComparable(c,x0,tau,T);
+		
+		 model = new ReversibleIsomerizationComparable(c,x0,tau,T);
+		String dataFolder = "data/ReversibleIsometrization/";
 		model.init();
+		
+NeuralNet test = new NeuralNet(model,dataFolder); // This is the array of comparable chains.
+		
 		System.out.println(model.toString());
-		String filepath = "data/ReversibleIsometrization/";
+
+		
+		
+		int numChains = 524288 *2;
+//		int numChains = 100;
+		int logNumChains = 19 + 1;
+
+		
+		Chrono timer = new Chrono();
+		RandomStream stream = new MRG32k3a(); 
+		
+		
+
+		/*
+		 ***********************************************************************
+		 ************* BUILD DATA***********************************************
+		 ***********************************************************************
+		 */
+//		boolean genData = true;
+
+//		String dataLabel = "SobData";
 		String dataLabel = "MCData";
-		int numChains = 1048576/1;
-		RandomStream stream = new MRG32k3a();
 
-		
-		
-		NeuralNet net = new NeuralNet(model,filepath);
-		
-		net.genData(dataLabel, numChains, model.numSteps, stream);
-	
-//		net.genData(dataLabel, numChains, model.numSteps, stream);
-		
-		int batchSize = 128;
-		int numEpochs = 32;
+//		PointSet sobol = new SobolSequence(logNumChains, 31, model.numSteps * model.getK());
+//		PointSetRandomization rand = new LMScrambleShift(stream);
+//		RQMCPointSet p = new RQMCPointSet(sobol, rand);
 
-		/*
-		 * READ DATA
-		 */
-
-		ArrayList<DataSet> dataAllList = new ArrayList<DataSet>();
-		for(int s = 0; s < model.numSteps; s++) {
-//			dataAllList.add(net.getData(dataLabel,s,numChains));
-			dataAllList.add(net.getData(dataLabel,3,numChains));
-
-		}
-		
-		
-		/*
-		 * GENERATE NETWORKS
-		 */
-		double lRate = 0.1;
-		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
-		for (int i = 0; i < model.numSteps; i++) {
-//			lRate += 1.0;
-			networkList.add(net.genNetwork(model.numSteps-2,model.numSteps, lRate));
-		}
-		
-		/*
-		 * TRAIN NETWORK
-		 */
-		FileWriter fw = new FileWriter("./data/comparison.txt");
-		StringBuffer sb = new StringBuffer("");
-		String str;
-
-		DataSet dataAll, trainingData, testData;
-		double ratioTrainingData = 0.8;
-		DataNormalization normalizer;
-		MultiLayerNetwork network;
-		SplitTestAndTrain testAndTrain;
-		
-		for(int i = 0; i < networkList.size(); i ++) {
-			
-			// GET DATA SET, SPLIT DATA, NORMALIZE
-			dataAll = dataAllList.get(i);
-			
-			 testAndTrain = dataAll.splitTestAndTrain(ratioTrainingData);
-
-			 trainingData = testAndTrain.getTrain();
-			 testData = testAndTrain.getTest();
-			
-			normalizer = new NormalizerStandardize();
-			normalizer.fit(trainingData);
-			normalizer.transform(trainingData);
-			normalizer.transform(testData);
-			
-			// GET AND TRAIN THE NETWORK
-			network = networkList.get(i);
-			
-			str = "*******************************************\n";
-			str += " CONFIGURATION: \n" + network.conf().toString() + "\n";
-			str += "*******************************************\n";
-			sb.append(str);
-			System.out.println(str);
-
-			NeuralNet.trainNetwork(network, trainingData, numEpochs, batchSize, (numChains / batchSize) * 1, 1000);
-			
-			// TEST NETWORK
-			str = NeuralNet.testNetwork(network, testData, batchSize);
-			sb.append(str);
-			System.out.println(str);
-
-		}
-		
-		fw.write(sb.toString());
-		fw.flush();
-		fw.close();
-
-
-		
-		
-		
+//		if (genData) {
+			timer.init();
+//			test.genData(dataLabel, numChains, model.numSteps, p.iterator());
+			test.genData(dataLabel, numChains, model.numSteps, stream);
+			System.out.println("\n\nTiming:\t" + timer.format());
+//		}
 	}
 
 }

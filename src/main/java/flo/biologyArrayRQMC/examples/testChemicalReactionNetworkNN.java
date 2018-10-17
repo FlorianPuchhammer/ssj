@@ -51,11 +51,12 @@ public class testChemicalReactionNetworkNN {
 		
 		 model = new SchloeglSystem(c,x0,tau,T);
 		String modelDescription = "SchloeglSystem";
+		String dataLabel = "MCData";
 
 		String[] fileNames = new String[model.numSteps];
 		for(int s = 0; s < fileNames.length; s++) {
-			fileNames[s] = "/u/puchhamf/misc/jars/biology/schlogl/2Layer/";
-			fileNames[s] += "relu-relu/data/"+ modelDescription +"/Step" + s + ".zip";
+			fileNames[s] = "/u/puchhamf/misc/jars/biology/schlogl/2Layer/id-id";
+			fileNames[s] += "/data/"+ modelDescription +"/" +dataLabel+ "Step" + s + ".zip";
 			}
 		ArrayOfComparableChainsNN chain = new ArrayOfComparableChainsNN(model, fileNames);
 
