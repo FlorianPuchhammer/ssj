@@ -102,4 +102,18 @@ public class Credit {
 	public void setSector(int sector) {
 		this.sector = sector;
 	}
+	
+	public String toString() {
+		StringBuffer sb = new StringBuffer("");
+		sb.append("***************************************\n");
+		sb.append("CREDIT:\n");
+		sb.append("\tNominal value:\t" + getAmount()+"\n" );
+		sb.append("\tRating:\t" + getRating() + "\n");
+		sb.append("\tDuration:\t" + getDuration() + "\n");
+		sb.append("\tCoupon:\t" + getCoupon() + "\n");
+		sb.append("\tSecurity Class:\t" + getSecurityClass() + "\n");
+		sb.append("\tSector:\t" + getSector() + "\n");
+		sb.append("***************************************\n");
+		return sb.toString();
+	}
 }

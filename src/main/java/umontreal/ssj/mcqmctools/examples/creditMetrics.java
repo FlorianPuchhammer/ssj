@@ -1,22 +1,27 @@
 package umontreal.ssj.mcqmctools.examples;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 
+import cern.colt.matrix.DoubleFactory2D;
 import cern.colt.matrix.DoubleMatrix2D;
+import umontreal.ssj.mcqmctools.MonteCarloModelDouble;
 import umontreal.ssj.mcqmctools.MonteCarloModelDoubleArray;
 import umontreal.ssj.probdist.BetaDistFlo;
+import umontreal.ssj.probdist.NormalDist;
 import umontreal.ssj.randvar.NormalGen;
 import umontreal.ssj.randvarmulti.MultinormalGen;
 import umontreal.ssj.randvarmulti.MultinormalPCAGen;
 import umontreal.ssj.rng.MRG32k3a;
 import umontreal.ssj.rng.RandomStream;
 
-public class creditMetrics implements MonteCarloModelDoubleArray {
+public class creditMetrics implements MonteCarloModelDouble {
 
-	
-	
 	/**
 	 * forward interest rates \f$f_{0,k}\f$ (in %). The first index represents the
 	 * rating (AAA, AA, ...,CCC) and the second index the number of years (1 year to
@@ -119,20 +124,45 @@ public class creditMetrics implements MonteCarloModelDoubleArray {
 	 * future ratings
 	 */
 	public int[] ratings;
-	
+
 	/**
 	 * random stream for generating evaluation points, beta-variates, etc.
 	 */
 	private RandomStream utilStream;
-	/**
-	 * empirical mean
-	 */
-	private double empMean;
-	
-	/**
-	 * empirical variance
-	 */
-	private double empVar;
+
+	public creditMetrics(String filename, double[][] sigma, RandomStream utilStream) throws FileNotFoundException {
+		readCredit(filename);
+		this.sigma = MultinormalPCAGen.decompPCA(sigma);
+		this.dimension = listK.size();
+		this.utilStream = utilStream;
+	}
+
+	public creditMetrics(String filename, RandomStream utilStream) throws FileNotFoundException {
+		readCredit(filename);
+		this.dimension = listK.size();
+		this.sigma = DoubleFactory2D.sparse.identity(dimension);
+		this.utilStream = utilStream;
+	}
+
+	private void readCredit(String filename) throws FileNotFoundException {
+		Scanner sc = new Scanner(new BufferedReader(new FileReader(filename)));
+		listK = new ArrayList<Credit>();
+		String[] line;
+		while (sc.hasNextLine()) {
+			line = sc.nextLine().trim().split("\t");
+			listK.add(new Credit(Double.parseDouble(line[0]), Integer.parseInt(line[1]) - 1, Integer.parseInt(line[2]),
+					Double.parseDouble(line[3]), Integer.parseInt(line[4])-1, Integer.parseInt(line[5])-1));
+		}
+		sc.close();
+	}
+	public creditMetrics(String filename, double[][] sigma) throws FileNotFoundException {
+		this(filename, sigma, new MRG32k3a());
+	}
+
+	public creditMetrics(String filename) throws FileNotFoundException {
+		this(filename, new MRG32k3a());
+	}
+
 	/**
 	 * 
 	 * @param listK
@@ -144,11 +174,11 @@ public class creditMetrics implements MonteCarloModelDoubleArray {
 		this.dimension = listK.size();
 		this.utilStream = utilStream;
 	}
-	
+
 	public creditMetrics(List<Credit> listK, double[][] sigma) {
-		this(listK,sigma,new MRG32k3a());
+		this(listK, sigma, new MRG32k3a());
 	}
-	
+
 	/**
 	 * Forward interest rates \f$f_{k,k+l}\f$ for credits with rating \a rating.
 	 * 
@@ -180,11 +210,10 @@ public class creditMetrics implements MonteCarloModelDoubleArray {
 			gesA0 += A0(K);
 		return gesA0;
 	}
-	
+
 	public double GesA0() {
 		return GesA0(listK);
 	}
-	
 
 	public static double A1(Credit K, int rating) {
 		double a1 = 0.0;
@@ -199,9 +228,6 @@ public class creditMetrics implements MonteCarloModelDoubleArray {
 
 		return a1;
 	}
-	
-
-
 
 	public static double A1Sim(Credit K, int rating, RandomStream stream) {
 
@@ -217,9 +243,9 @@ public class creditMetrics implements MonteCarloModelDoubleArray {
 
 		return a1;
 	}
-	
-	public  double A1Sim(Credit K, int rating) {
-		return A1Sim(K,rating,utilStream);
+
+	public double A1Sim(Credit K, int rating) {
+		return A1Sim(K, rating, utilStream);
 	}
 
 	private static double getBetaVariate(Credit K, double p, double q, int maxIts, RandomStream stream) {
@@ -246,72 +272,87 @@ public class creditMetrics implements MonteCarloModelDoubleArray {
 
 	/**
 	 * Nominal value of the portfolio \a listK.
+	 * 
 	 * @param listK the credit portfolio.
 	 * @return the nominal value.
 	 */
 	public static double nom(List<Credit> listK) {
 		double sum = 0.0;
-		for(Credit K : listK) {
+		for (Credit K : listK) {
 			sum += K.getAmount();
 		}
 		return sum;
 	}
-	
+
 	public double nom() {
 		return nom(listK);
 	}
-	
+
 	/**
-	 * Normalizes a portfolio w.r.t. the value and returns result as a new list of credits.
-	 * @param listK un-normalized portfolio
+	 * Normalizes a portfolio w.r.t. the value and returns result as a new list of
+	 * credits.
+	 * 
+	 * @param listK  un-normalized portfolio
 	 * @param nomVal value w.r.t. which the portoflio is normalized.
 	 * @return
 	 */
 	public static List<Credit> normalize(List<Credit> listK, double nomVal) {
 		double val;
 		List<Credit> listNormalizedK = new ArrayList<Credit>();
-		for(Credit K : listK) {
+		for (Credit K : listK) {
 			val = K.getAmount() * 100.0 / nomVal;
-			listNormalizedK.add(new Credit(val, K.getRating(),K.getDuration(),K.getCoupon(),K.getSecurityClass(),K.getSector()) );
+			listNormalizedK.add(new Credit(val, K.getRating(), K.getDuration(), K.getCoupon(), K.getSecurityClass(),
+					K.getSector()));
 		}
 		return listNormalizedK;
 	}
-	
-	public List<Credit> normalize(double nomVal){
-		return normalize(listK,nomVal);
+
+	public void normalize(double nomVal) {
+		double val;
+		List<Credit> listNormalizedK = new ArrayList<Credit>();
+		for (int i = 0; i < listK.size(); i++) {
+			val = listK.get(i).getAmount() * 100.0 / nomVal;
+			listK.get(i).setAmount(val);
+		}
 	}
+
 	/**
 	 * Computes \f$\mathbb{E}A_1(K)\f$ for the credit \a K.
+	 * 
 	 * @param K the credit
 	 * @return the expected future value of \a K.
 	 */
 	public static double expectedA1(Credit K) {
-		double sum = transitionProbabilities[K.getRating()][7] * securityClassesRecoveryRates[K.getSecurityClass()][0] * 0.01 * K.getAmount();
-		for (int i =0 ; i < 7; i++) {
-			sum += transitionProbabilities[K.getRating()][i]*0.01* A1(K,i);
+		double sum = transitionProbabilities[K.getRating()][7] * securityClassesRecoveryRates[K.getSecurityClass()][0]
+				* 0.01 * K.getAmount();
+		for (int i = 0; i < 7; i++) {
+			sum += transitionProbabilities[K.getRating()][i] * 0.01 * A1(K, i);
 		}
 		return sum;
 	}
-	
+
 	/**
-	 * Computes \f$\sum_{i = 0}^{n-1}\mathbb{E}A_1(K_i)\f$ for the credit protfolio \a listK consisting of credits \f$K_0,K_1,\dots,K_{n-1}\f$.
+	 * Computes \f$\sum_{i = 0}^{n-1}\mathbb{E}A_1(K_i)\f$ for the credit protfolio
+	 * \a listK consisting of credits \f$K_0,K_1,\dots,K_{n-1}\f$.
+	 * 
 	 * @param listK the credit portfolio
 	 * @return the expected future value of the portfolio.
 	 */
 	public static double expectedA1(List<Credit> listK) {
 		double sum = 0.0;
-		for(Credit K : listK) {
+		for (Credit K : listK) {
 			sum += expectedA1(K);
 		}
 		return sum;
 	}
-	
+
 	public double expectedA1() {
 		return expectedA1(listK);
 	}
-	
+
 	/**
 	 * Computes the variance of the credit \a K.
+	 * 
 	 * @param K the credit
 	 * @return the variance of \a K.
 	 */
@@ -320,18 +361,18 @@ public class creditMetrics implements MonteCarloModelDoubleArray {
 		double diff;
 		double fac1 = transitionProbabilities[K.getRating()][7] * 0.01;
 		double fac2 = securityClassesRecoveryRates[K.getSecurityClass()][0] * K.getAmount() - ew;
-		double fac3 = securityClassesRecoveryRates[K.getSecurityClass()][1] *  K.getAmount();
-		double sum = fac1 *( fac2*fac2 + fac1 * fac3*fac3);
-		for(int i = 0; i < 7; i++){
-			diff = A1(K,i) - ew;
+		double fac3 = securityClassesRecoveryRates[K.getSecurityClass()][1] * K.getAmount();
+		double sum = fac1 * (fac2 * fac2 + fac1 * fac3 * fac3);
+		for (int i = 0; i < 7; i++) {
+			diff = A1(K, i) - ew;
 			sum += transitionProbabilities[K.getRating()][i] * 0.01 * diff * diff;
 		}
 		return sum;
 	}
-	
+
 	/**
-	 * Computes the distribution function blabla
-	 * TODO: add formulas
+	 * Computes the distribution function blabla TODO: add formulas
+	 * 
 	 * @param K1
 	 * @param K2
 	 * @param r1
@@ -341,28 +382,28 @@ public class creditMetrics implements MonteCarloModelDoubleArray {
 	 * @param stream
 	 * @return
 	 */
-	public static double biNormalDist(Credit K1, Credit K2, int r1, int r2, double[][] correl,int numEvalPts, RandomStream stream) {
+	public static double biNormalDist(Credit K1, Credit K2, int r1, int r2, double[][] correl, int numEvalPts,
+			RandomStream stream) {
 		double integral = 0.0;
-		double[] u = genEvalPts(limitsZ[K1.getRating()][r1+1], limitsZ[K1.getRating()][r1],numEvalPts,stream);
-		double[] v = genEvalPts(limitsZ[K2.getRating()][r2+1], limitsZ[K2.getRating()][r2],numEvalPts,stream);
+		double[] u = genEvalPts(limitsZ[K1.getRating()][r1 + 1], limitsZ[K1.getRating()][r1], numEvalPts, stream);
+		double[] v = genEvalPts(limitsZ[K2.getRating()][r2 + 1], limitsZ[K2.getRating()][r2], numEvalPts, stream);
 		double cor = correl[K1.getSector()][K2.getSector()];
-		
-		double nSqInv = 1.0 / (double)(numEvalPts * numEvalPts);
-		double norma1 = 0.5*nSqInv/ (Math.PI * Math.sqrt(1.0-cor*cor));
-		double norma2 = -0.5/(1.0-cor*cor);
-		for(int i = 0; i < numEvalPts; i++) {
-			for(int j = 0; j < numEvalPts; j++) {
-				integral += Math.exp(norma2 * (u[i] * u[i] + v[j]*v[j] - 2.0 * cor * u[i] * v[j]));
+
+		double nSqInv = 1.0 / (double) (numEvalPts * numEvalPts);
+		double norma1 = 0.5 * nSqInv / (Math.PI * Math.sqrt(1.0 - cor * cor));
+		double norma2 = -0.5 / (1.0 - cor * cor);
+		for (int i = 0; i < numEvalPts; i++) {
+			for (int j = 0; j < numEvalPts; j++) {
+				integral += Math.exp(norma2 * (u[i] * u[i] + v[j] * v[j] - 2.0 * cor * u[i] * v[j]));
 			}
 		}
 		return integral * norma1;
 	}
-	
-	
-	
+
 	/**
-	 * Same as #biNormalDist(Credit, Credit, int, int, double[][], int, RandomStream) but with
-	 * 64 integration nodes for each coordinate (i.e. 4096 in total).
+	 * Same as #biNormalDist(Credit, Credit, int, int, double[][], int,
+	 * RandomStream) but with 64 integration nodes for each coordinate (i.e. 4096 in
+	 * total).
 	 * 
 	 * @param K1
 	 * @param K2
@@ -373,141 +414,154 @@ public class creditMetrics implements MonteCarloModelDoubleArray {
 	 * @return
 	 */
 	public static double biNormalDist(Credit K1, Credit K2, int r1, int r2, double[][] correl, RandomStream stream) {
-		return biNormalDist(K1,K2,r1,r2,correl,64,stream);
+		return biNormalDist(K1, K2, r1, r2, correl, 64, stream);
 	}
-	
-	//TODO: this can be made more efficient by a two-dim (quasi) Monte Carlo experiment.
-	private static double[] genEvalPts(double a, double b,int numPts, RandomStream stream) {
+
+	// TODO: this can be made more efficient by a two-dim (quasi) Monte Carlo
+	// experiment.
+	private static double[] genEvalPts(double a, double b, int numPts, RandomStream stream) {
 		double[] pts = new double[numPts];
-		double h = (b - a)/ (double) numPts;
-		for(int i = 0; i < numPts; i ++)
-			pts[i] = a + ((double)i + stream.nextDouble()) * h;
+		double h = (b - a) / (double) numPts;
+		for (int i = 0; i < numPts; i++)
+			pts[i] = a + ((double) i + stream.nextDouble()) * h;
 		return pts;
 	}
-	
+
 	/**
 	 * Computes the future variance of the portfolio \a listK.
-	 * @param listK the credit portfolio.
+	 * 
+	 * @param listK  the credit portfolio.
 	 * @param correl the correlation matrix.
-	 * @param stream the stream with which the stratified integration nodes are generated.
+	 * @param stream the stream with which the stratified integration nodes are
+	 *               generated.
 	 * @return
 	 */
-	
-	public static double varA1(List<Credit> listK, double[][] correl,RandomStream stream) {
+
+	public static double varA1(List<Credit> listK, double[][] correl, RandomStream stream) {
 		double sum = 0.0;
 		double fac, fac1;
 		int n = listK.size();
-		for(Credit K : listK)
+		for (Credit K : listK)
 			sum += varA1(K);
-		for(int i = 0; i < n-1; i++) {
-			for(int j = i +1; j <n; j++ ) {
-				for(int r1 = 0; r1 < 8; r1++) {
-					for(int r2 = 0; r2 <8; r2++) {
-						fac = A1(listK.get(i),r1) + A1(listK.get(j),r2)-expectedA1(listK.get(i))-expectedA1(listK.get(j));
-						sum +=biNormalDist(listK.get(i),listK.get(j),r1,r2,correl,stream) * fac * fac;
-					}//end for r2
-				}//end for r1
+		for (int i = 0; i < n - 1; i++) {
+			for (int j = i + 1; j < n; j++) {
+				for (int r1 = 0; r1 < 8; r1++) {
+					for (int r2 = 0; r2 < 8; r2++) {
+						fac = A1(listK.get(i), r1) + A1(listK.get(j), r2) - expectedA1(listK.get(i))
+								- expectedA1(listK.get(j));
+						sum += biNormalDist(listK.get(i), listK.get(j), r1, r2, correl, stream) * fac * fac;
+					} // end for r2
+				} // end for r1
 				sum = sum - varA1(listK.get(i)) - varA1(listK.get(j));
-			}//end for j
-		}//end for i
-		
-		for(int i = 0; i < n-1; i++) {
-			for(int j = i+1; j < n; j++) {
-				fac = securityClassesRecoveryRates[listK.get(i).getSecurityClass()][1]*0.01*listK.get(i).getAmount();
-				fac1 = securityClassesRecoveryRates[listK.get(j).getSecurityClass()][1]*0.01*listK.get(j).getAmount();
-				for(int r = 0; r < 8; r++) {
-					sum += biNormalDist(listK.get(i),listK.get(j),7,r,correl,stream) * fac * fac 
-							+ biNormalDist(listK.get(i),listK.get(j),r,7,correl,stream) * fac1 * fac1;
-							
-				} //end r
-				sum += biNormalDist(listK.get(i),listK.get(j),7,7,correl,stream) * (fac * fac + fac1 * fac1);
-			}//end j
-		}//end for i
-			
+			} // end for j
+		} // end for i
+
+		for (int i = 0; i < n - 1; i++) {
+			for (int j = i + 1; j < n; j++) {
+				fac = securityClassesRecoveryRates[listK.get(i).getSecurityClass()][1] * 0.01
+						* listK.get(i).getAmount();
+				fac1 = securityClassesRecoveryRates[listK.get(j).getSecurityClass()][1] * 0.01
+						* listK.get(j).getAmount();
+				for (int r = 0; r < 8; r++) {
+					sum += biNormalDist(listK.get(i), listK.get(j), 7, r, correl, stream) * fac * fac
+							+ biNormalDist(listK.get(i), listK.get(j), r, 7, correl, stream) * fac1 * fac1;
+
+				} // end r
+				sum += biNormalDist(listK.get(i), listK.get(j), 7, 7, correl, stream) * (fac * fac + fac1 * fac1);
+			} // end j
+		} // end for i
+
 		return sum;
 	}
-	
-	public  double varA1( double[][] correl) {
-		   return varA1(listK,  correl, utilStream) ;
+
+	public double varA1(double[][] correl) {
+		return varA1(listK, correl, utilStream);
 	}
-	
+
 	/**
 	 * Same as #varA1(List, double[][], RandomStream)but for uncorrelated credits.
+	 * 
 	 * @param listK uncorrelated credit portfolio.
 	 * @return the total variance of the uncorrelated portfolio.
 	 */
 	public static double varA1(List<Credit> listK) {
 		double sum = 0.0;
-		for(Credit K : listK)
+		for (Credit K : listK)
 			sum += varA1(K);
 		return sum;
 	}
-	
+
 	public double varA1() {
 		return varA1(listK);
 	}
-	
-	public static int [] newRating(double[] y, List<Credit> listK) {
+
+	public static int[] newRating(double[] y, List<Credit> listK) {
 		int n = listK.size();
 		int[] rating = new int[n];
 		Arrays.fill(rating, -1);
-		for(int i = 0; i < n; i++) {
-			for(int r = 0; r < 8; r++) {
-				if(y[i] < limitsZ[listK.get(i).getRating()][r])
+		for (int i = 0; i < n; i++) {
+			for (int r = 0; r < 8; r++) {
+//				System.out.println("TEST:\t(" + i + ", " + r + "):\t" + limitsZ[listK.get(i).getRating()][r]);
+				if (y[i] < limitsZ[listK.get(i).getRating()][r])
 					rating[i] = r;
 			}
 		}
 		return rating;
 	}
-	
+
 	public int[] newRating(double[] y) {
-		return newRating(y,listK);
+		return newRating(y, listK);
 	}
-	
-	
-	@Override
+
 	public void simulate(RandomStream stream) {
-		
+
 		double[] mu = new double[dimension];
 		double[] u = new double[dimension];
 		Arrays.fill(mu, 0);
-		MultinormalGen ptGen = new MultinormalGen(new NormalGen(stream),mu,sigma);
-		ptGen.nextPoint(u);
-		
+
+		nextPoint(u, stream);
+
 		ratings = newRating(u);
 	}
 
-	@Override
-	public double[] getPerformance() {
+	public double getPerformance() {
 		double a1 = 0.0;
-		for(int i = 0; i < dimension; i++)
-			a1 += A1Sim(listK.get(i),ratings[i]);
-		
-		return {a1};
+		for (int i = 0; i < dimension; i++)
+			a1 += A1Sim(listK.get(i), ratings[i]);
+
+		return a1;
 	}
 
-	@Override
-	public int getPerformanceDim() {
-		// TODO Auto-generated method stub
-		return 0;
+	public String toString() {
+		return "CreditMetrics (" + dimension + " Credits)";
 	}
 
-	public static void main(String[] args) {
-		StringBuffer sb = new StringBuffer("{");
-		double[][] zinsen = new double[7][8];
-		for (int j = 0; j < 7; j++) {
-			sb.append("{");
-			for (int i = 0; i < 8; i++) {
-
-				zinsen[j][i] = fwdInterest(0, i + 1, j) * 100.0;
-				sb.append(zinsen[j][i] + ",");
-			}
-			sb.deleteCharAt(sb.length() - 1);
-			sb.append("},\n");
+	public void nextPoint(double[] z, RandomStream stream) {
+		double[] u = new double[dimension];
+		for (int i = 0; i < dimension; i++) {
+			u[i] = NormalDist.inverseF01(stream.nextDouble());
 		}
-		sb.deleteCharAt(sb.length() - 1);
-		sb.append("}");
-		System.out.println(sb.toString());
+		for (int i = 0; i < dimension; i++) {
+			z[i] = 0;
+//	         System.out.println("TEST: sigma\t" + sqrtSigma.toString());
+			for (int c = 0; c < dimension; c++)
+				z[i] += sigma.getQuick(i, c) * u[c];
+		}
+	}
+	
+	public int getDimension() {
+		return dimension;
+	}
+
+	public static void main(String[] args) throws FileNotFoundException {
+		String filename = "data/creditMetrics/out.dat";
+		creditMetrics portfolio = new creditMetrics(filename);
+		System.out.println(portfolio.toString());
+		System.out.println(portfolio.listK.get(0).toString());
+//		System.out.println(portfolio.A1Sim(portfolio.listK.get(2), 4));
+		portfolio.simulate(portfolio.utilStream);
+		System.out.println("A0:\t" + portfolio.GesA0());
+		System.out.println("Performance:\t" + portfolio.getPerformance());
 	}
 
 }

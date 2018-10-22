@@ -1,6 +1,12 @@
 package flo.biologyArrayRQMC.examples;
 
+import java.io.IOException;
+
+import flo.neuralNet.NeuralNet;
 import umontreal.ssj.markovchainrqmc.MarkovChainComparable;
+import umontreal.ssj.rng.MRG32k3a;
+import umontreal.ssj.rng.RandomStream;
+import umontreal.ssj.util.Chrono;
 
 public class SchloeglSystem extends ChemicalReactionNetwork {
 
@@ -51,6 +57,58 @@ public class SchloeglSystem extends ChemicalReactionNetwork {
 		return X[0];
 	}
 	
+	public static  void main(String[] args) throws IOException, InterruptedException {
+		ChemicalReactionNetwork model;
+
+
+		double[]c = {3E-7, 1E-4, 1E-3,3.5};
+		double[] x0 = {250.0, 1E5, 2E5};
+		double T = 4;
+		double tau = 0.2;
+
+		
+		
+		 model = new SchloeglSystem(c,x0,tau,T);;
+		String dataFolder = "data/SchloeglSystem/";
+		model.init();
+		
+NeuralNet test = new NeuralNet(model,dataFolder); // This is the array of comparable chains.
+		
+		System.out.println(model.toString());
+
+		
+		
+		int numChains = 524288 *2;
+//		int numChains = 100;
+		int logNumChains = 19 + 1;
+
+		
+		Chrono timer = new Chrono();
+		RandomStream stream = new MRG32k3a(); 
+		
+		
+
+		/*
+		 ***********************************************************************
+		 ************* BUILD DATA***********************************************
+		 ***********************************************************************
+		 */
+//		boolean genData = true;
+
+//		String dataLabel = "SobData";
+		String dataLabel = "MCData";
+
+//		PointSet sobol = new SobolSequence(logNumChains, 31, model.numSteps * model.getK());
+//		PointSetRandomization rand = new LMScrambleShift(stream);
+//		RQMCPointSet p = new RQMCPointSet(sobol, rand);
+
+//		if (genData) {
+			timer.init();
+//			test.genData(dataLabel, numChains, model.numSteps, p.iterator());
+			test.genData(dataLabel, numChains, model.numSteps, stream);
+			System.out.println("\n\nTiming:\t" + timer.format());
+//		}
+	}
 	
 
 }

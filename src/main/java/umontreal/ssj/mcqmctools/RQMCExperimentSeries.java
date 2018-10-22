@@ -183,8 +183,10 @@ public class RQMCExperimentSeries {
 	    	System.out.println("Model: " + model.toString());
 	    	System.out.println(" Number of indep copies m  = " + m);
 	    	System.out.println(" Point sets: " + theSets[0].toString() + "\n");
-			System.out.println("    n     CPU time         mean      log(var) ");	    	
+			System.out.println(" n \tCPU time \tmean \t\tlog(var) ");	    	
 	    }
+//	    System.out.println("   log(n)\tmean\tlog(variance)\t\n");
+		
 		for (int s = 0; s < numSets; s++) { // For each cardinality n
 			n = theSets[s].getNumPoints();
 			size[s] = n;
@@ -195,10 +197,12 @@ public class RQMCExperimentSeries {
 			mean[s] = statReps.average();
 			variance[s] = statReps.variance();
 		    logVar[s] = Math.log(variance[s]) / logOfBase;
+//		    System.out.println(" " + logn[s] + "\t " + PrintfFormat.f(10, 5, mean[s]) + "\t "
+//			        + PrintfFormat.f(10, 5, logVar[s]) + "\n");
 		    if (displayExec) {
-			   System.out.println("  " + n + "     " + timer.format() + 
-			              "   " + PrintfFormat.f(10, 5, mean[s]) + 
-			              "   " + PrintfFormat.f(7, 2, logVar[s]));
+			   System.out.println(" " + n + "\t" + timer.format() + 
+			              "\t" + PrintfFormat.f(10, 5, mean[s]) + 
+			              "\t" + PrintfFormat.f(7, 2, logVar[s]));
 		    }
 		}	   
         cpuTime = timer.format();	 
@@ -283,8 +287,8 @@ public class RQMCExperimentSeries {
 		sb.append("\n ============================================= \n");
 		sb.append("RQMC simulation for mean estimation: \n ");
 		sb.append("Model: " + model.toString() + "\n");
-		sb.append(" Number of indep copies m  = " + numReplicates + "\n");
-		sb.append(" RQMC point sets: " + theSets[0].toString() + "\n\n");
+		sb.append("\tNumber of indep copies m  = " + numReplicates + "\n");
+		sb.append("\tRQMC point sets: " + theSets[0].toString() + "\n\n");
 		sb.append("RQMC variance \n");
 		if (details) sb.append(dataLogForPlot());
 		sb.append (formatRegression (regressionLogVariance (numSkip)));
@@ -342,9 +346,9 @@ public class RQMCExperimentSeries {
 	 */
 	public String dataLogForPlot() {
 		StringBuffer sb = new StringBuffer("");
-		sb.append("   log(n)      mean       log(variance) \n");
+		sb.append("   log(n)\tmean\tlog(variance)\t\n");
 		for (int s = 0; s < numSets; s++)  // For each cardinality n
-			sb.append(" " + logn[s] + " " + PrintfFormat.f(10, 5, mean[s]) + " "
+			sb.append(" " + logn[s] + "\t " + PrintfFormat.f(10, 5, mean[s]) + "\t "
 			        + PrintfFormat.f(10, 5, logVar[s]) + "\n");
 		return sb.toString();
 	}

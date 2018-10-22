@@ -1,0 +1,34 @@
+*****************************************************************
+
+* CREDIT METRICS 
+*	 Number of Credits:	100
+*	 A0:			95.72237884594571
+*	 Expected A1:		233.49514652056772
+*	Variance A1:		19686.893561997244
+*****************************************************************
+
+
+ ============================================= 
+RQMC simulation for mean estimation: 
+ Model: CreditMetrics (100 Credits)
+	Number of indep copies m  = 100
+	RQMC point sets: RQMC with point setFaure sequence:
+, base = 2, Num cols = 9, Num rows = 31, outDigits = 31  Left matrix scramble + random digital shift
+
+RQMC variance 
+   log(n)	mean	log(variance)	
+ 9.0	   99.15615	  -13.98968
+ 10.0	   99.15576	  -15.89309
+ 11.0	   99.15626	  -17.42792
+ 12.0	   99.15613	  -19.85674
+ 13.0	   99.15626	  -22.24821
+ 14.0	   99.15626	  -23.79112
+ 15.0	   99.15627	  -26.34606
+ 16.0	   99.15625	  -27.91267
+ 17.0	   99.15626	  -30.26231
+ 18.0	   99.15626	  -31.62258
+  Slope of log(var) = -2.01646
+    constant term      =  4.28712
+
+  Total CPU Time = 3:17:10.19
+-----------------------------------------------------

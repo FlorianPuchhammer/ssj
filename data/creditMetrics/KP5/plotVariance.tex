@@ -1,0 +1,62 @@
+\documentclass[12pt]{article}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.12}
+\usepackage{xcolor}
+\usetikzlibrary{shapes,decorations,arrows,automata,plotmarks,patterns}
+\usepackage{tikz-inet}
+\usepgfplotslibrary{groupplots}
+%
+\pgfplotscreateplotcyclelist{defaultcolorlist}{%
+  {blue!85!black,line width=0.9pt,mark=*,solid},
+  {red!85!black,line width=0.9pt,mark=square*,dashed},
+  {lime!60!black,line width=0.9pt,mark=triangle*,dotted},
+  {orange!90!black,line width=0.9pt,mark=diamond*,loosely dashed},
+  {black,mark=star,loosely dotted},
+  {violet!85!black,mark=o,solid},
+  {brown!85!black,mark=square,dashed},
+  {purple!85!black,mark=triangle,dotted}}
+%
+\pgfplotsset{
+  every axis/.append style={
+    font=\footnotesize,
+    width=.8\columnwidth,
+    height=.6\columnwidth,
+    %!line width=0.6pt,
+    legend style={at={(1.02,1)}, anchor={north west}},
+    cycle list name=defaultcolorlist,
+  },
+  every axis title/.style={
+    at={(0.5,1)},
+    below
+  },
+ }
+%
+\begin{document}
+
+  \begin{tikzpicture} 
+    \begin{axis}[ 
+      title ={CreditMetrics (100 Credits): Variance},
+      xlabel=log(n),
+      ylabel=log(variance),
+       grid,
+,
+      ] 
+      \addplot table[x=log(n),y=log(variance)] { 
+      log(n)  log(variance) 
+      9.0  -13.98967775400717 
+      10.0  -15.893088084487145 
+      11.0  -17.427918593492056 
+      12.0  -19.856741902549242 
+      13.0  -22.248207189549184 
+      14.0  -23.791118883700573 
+      15.0  -26.346064845328307 
+      16.0  -27.912669201711978 
+      17.0  -30.262306240426852 
+      18.0  -31.622578383820546 
+ }; 
+      \addlegendentry{Faure+LMS}
+      \label{Faure+LMS}
+%   
+    \end{axis}
+  \end{tikzpicture}
+  \end{document}
