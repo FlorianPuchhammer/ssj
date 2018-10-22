@@ -54,6 +54,7 @@ import umontreal.ssj.hups.CachedPointSet;
 import umontreal.ssj.hups.PointSet;
 import umontreal.ssj.hups.PointSetIterator;
 import umontreal.ssj.hups.PointSetRandomization;
+import umontreal.ssj.hups.RQMCPointSet;
 import umontreal.ssj.stat.PgfDataTable;
 import umontreal.ssj.stat.Tally;
 import umontreal.ssj.util.Chrono;
@@ -1222,6 +1223,66 @@ public class ArrayOfComparableChains<T extends MarkovChainComparable> {
 		return str.toString();
 	}
 
+	public String testVarianceRateFormat(RQMCPointSet[] rqmcPts, MultiDimSort sort,
+			int sortCoordPts, int numSteps, int m, double varMC, String filenamePlot, String methodLabel) {
+		label = methodLabel;
+		int numSets = rqmcPts.length; // Number of point sets.
+		Tally statPerf = new Tally("Performance");
+		double[] logn = new double[numSets];
+		double[] variance = new double[numSets];
+		double[] logVariance = new double[numSets];
+		long initTime; // For timings.
+
+		StringBuffer str = new StringBuffer("\n\n --------------------------");
+		str.append(methodLabel + "\n  MC Variance : " + varMC + "\n\n");
+
+		// Array-RQMC experiment with each pointSet.
+		for (int i = 0; i < numSets; ++i) {
+			initTime = System.currentTimeMillis();
+			n = rqmcPts[i].getNumPoints();
+			str.append("n = " + n + "\n");
+			simulReplicatesArrayRQMC(rqmcPts[i].getPointSet(),rqmcPts[i].getRandomization(), sort, sortCoordPts, numSteps, m, statPerf);
+			logn[i] = Num.log2(n);
+			variance[i] = statPerf.variance();
+			logVariance[i] = Num.log2(variance[i]);
+			str.append("  Average = " + statPerf.average() + "\n");
+			str.append(" RQMC Variance : " + n * variance[i] + "\n\n");
+			str.append("  VRF =  " + varMC / (n * variance[i]) + "\n");
+			str.append(formatTime((System.currentTimeMillis() - initTime) / 1000.) + "\n");
+		}
+		// Estimate regression slope and print plot and overall results.
+		double regSlope = slope(logn, logVariance, numSets);
+		str.append("Regression slope (log) for variance = " + regSlope + "\n\n");
+
+		String[] tableField = { "log(n)", "log(Var)" };
+		double[][] data = new double[numSets][2];
+		for (int s = 0; s < numSets; s++) { // For each cardinality n
+			data[s][0] = logn[s];
+			data[s][1] = logVariance[s];
+		}
+
+		// Print plot and overall results in files.
+		if (filenamePlot != null)
+			try {
+				/*
+				 * Writer file = new FileWriter (filenamePlot + ".tex"); XYLineChart chart = new
+				 * XYLineChart(); // ("title", "$log_2(n)$", "$log_2 Var[hat mu_{rqmc,s,n}]$");
+				 * chart.add (logn, logVariance); file.write (chart.toLatex(12, 8));
+				 * file.close();
+				 */
+				PgfDataTable pgf = new PgfDataTable(filenamePlot, rqmcPts[0].getLabel(), tableField, data);
+				String pVar = pgf.drawPgfPlotSingleCurve(filenamePlot, "axis", 0, 1, 2, "", "");
+				String plotIV = (PgfDataTable.pgfplotFileHeader() + pVar + PgfDataTable.pgfplotEndDocument());
+
+				FileWriter fileIV = new FileWriter(filenamePlot + "_" + "VAr.tex");
+				fileIV.write(plotIV);
+				fileIV.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+		return str.toString();
+	}
 	/**
 	 * Sorts the chains that have not stopped yet using the stored
 	 * 

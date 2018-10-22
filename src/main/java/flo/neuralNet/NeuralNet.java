@@ -69,7 +69,7 @@ public class NeuralNet {
 	 * Default location, to which neural networks, data, and normalizers are stored.
 	 */
 	public String filepath = "";
-	public ChemicalReactionNetwork model;
+	public MarkovChainComparable model;
 
 	/**
 	 * Constructor for a specific \a model using the default location for saving.
@@ -77,7 +77,7 @@ public class NeuralNet {
 	 * @param model
 	 *            the underlying model
 	 */
-	public NeuralNet(ChemicalReactionNetwork model) {
+	public NeuralNet(MarkovChainComparable model) {
 		this(model, "");
 	}
 
@@ -89,7 +89,7 @@ public class NeuralNet {
 	 * @param filepath
 	 *            path to where networks, data, and normalizers are saved.
 	 */
-	public NeuralNet(ChemicalReactionNetwork model, String filepath) {
+	public NeuralNet(MarkovChainComparable model, String filepath) {
 		this.filepath = filepath;
 		this.model = model;
 
@@ -116,7 +116,7 @@ public class NeuralNet {
 	public void genData(String dataLabel, int n, int numSteps, RandomStream stream) throws IOException {
 		double[][][] states = new double[n][][];
 		double[] performance = new double[n];
-		model.simulRunsWithSubstreams(n, numSteps, stream, states, performance);
+		model.simulRuns(n, numSteps, stream, states, performance);
 		StringBuffer sb;
 		FileWriter fw;
 		File file;
@@ -199,7 +199,7 @@ public class NeuralNet {
 	}
 	
 	//initX.length batches; l chains each to get dist, r draws each to get data.
-	public void genDataWithDist(double[][] initX, int l, int r, RandomStream stream) {
+	/*public void genDataWithDist(double[][] initX, int l, int r, RandomStream stream) {
 		int stepsToEnd = model.numSteps;
 		int k = initX.length;
 //		double[] X0 = new double[k];
@@ -228,11 +228,13 @@ public class NeuralNet {
 			}//end kk
 		}//end s
 	}
-	
+	*/
 	public void genData(String dataLabel, int n, int numSteps, RandomStream stream, int numDraws) throws IOException {
 		double[][][] states = new double[n][][];
 		double[] performance = new double[n];
-		model.simulRunsWithSubstreams(n, numSteps, stream, states, performance);
+		model.simulRuns(n, numSteps, stream, states, performance);
+//		model.simulRunsWithSubstreams(n, numSteps, stream, states, performance);
+
 		StringBuffer sb;
 		FileWriter file;
 		
@@ -455,8 +457,8 @@ public class NeuralNet {
 		MultiLayerConfiguration conf = null;
 		int seed = 123;
 		WeightInit weightInit = WeightInit.NORMAL;
-		Activation activation1 = Activation.RELU;
-		Activation activation2 = Activation.RELU;
+		Activation activation1 = Activation.IDENTITY;
+		Activation activation2 = Activation.CUBE;
 		LossFunction lossFunction = LossFunction.MSE;
 		// AdaMax updater = new AdaMax(lRate);
 		// AdaGrad updater = new AdaGrad(lRate);
@@ -472,15 +474,13 @@ public class NeuralNet {
 		OptimizationAlgorithm optAlgo = OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT;
 //		OptimizationAlgorithm optAlgo = OptimizationAlgorithm.LBFGS;
 
-		ListBuilder interim = new NeuralNetConfiguration.Builder().seed(seed).optimizationAlgo(optAlgo).weightInit(weightInit)
-				.updater(updater).list();
-		int numLayers = numSteps - step + 1;
-		int layerIndex;
-		for(layerIndex = 0; layerIndex < numLayers-1; layerIndex++)
-			interim.layer(layerIndex, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build());
-		interim.layer(layerIndex,new OutputLayer.Builder().nIn(stateDim).nOut(1).activation(activation2)
-				.lossFunction(lossFunction).build());
-		conf = interim.pretrain(false).backprop(true).build();
+		conf = new NeuralNetConfiguration.Builder().seed(seed).optimizationAlgo(optAlgo).weightInit(weightInit)
+				.updater(updater).list()
+				.layer(0, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim-1).activation(activation1).build())
+				.layer(1, new DenseLayer.Builder().nIn(stateDim-1).nOut(1).activation(activation2).build())
+				.layer(2, new OutputLayer.Builder().nIn(1).nOut(1).activation(activation1)
+						.lossFunction(lossFunction).build())
+				.pretrain(false).backprop(true).build();
 		return new MultiLayerNetwork(conf);
 	}
 
@@ -855,7 +855,7 @@ public class NeuralNet {
 		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
 		for (int i = 0; i < model.numSteps; i++) {
 //			lRate += 1.0;
-			networkList.add(test.genNetwork(model.numSteps-2,model.numSteps, lRate));
+			networkList.add(test.genNetwork2(model.numSteps-2,model.numSteps, lRate));
 		}
 		
 		/*
@@ -895,7 +895,7 @@ public class NeuralNet {
 			sb.append(str);
 			System.out.println(str);
 
-			NeuralNet.trainNetwork(network, trainingData, numEpochs, batchSize, (numChains / batchSize) * 4, 1000);
+			NeuralNet.trainNetwork(network, trainingData, numEpochs, batchSize, (numChains / batchSize) *2, 1000);
 			
 			// TEST NETWORK
 			str = NeuralNet.testNetwork(network, testData, batchSize);

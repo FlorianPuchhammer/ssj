@@ -34,25 +34,19 @@ public class testRQMCExperimentDouble {
 		String modelDescr;
 		RandomStream noise = new MRG32k3a();
 		int dim;
-		String outdir = "data/creditMetrics/KP6/";
+		String outdir = "/u/puchhamf/misc/jars/creditMetrics/data/creditMetrics/KP6/";
 		FileWriter fw;
 		File file;
 		StringBuffer sb = new StringBuffer("");
 
-		String filename = "KP6.dat";
-		model = new creditMetrics(outdir + filename, noise);
-		double norma = ((creditMetrics) model).nom();
-		((creditMetrics) model).normalize(norma);
+		String filename = "KP.dat";
+		model = new CreditMetrics(outdir + filename, noise);
+		double norma = ((CreditMetrics) model).nom();
+		((CreditMetrics) model).normalize(norma);
 		modelDescr = model.toString();
-		dim = ((creditMetrics) model).getDimension();
+		dim = ((CreditMetrics) model).getDimension();
 		
-		sb.append("*****************************************************************\n\n");
-		sb.append("* CREDIT METRICS \n");
-		sb.append("*\t Number of Credits:\t" + dim + "\n");
-		sb.append("*\t A0:\t\t\t" + ((creditMetrics) model).GesA0()+"\n");
-		sb.append("*\t Expected A1:\t\t" + ((creditMetrics) model).expectedA1() + "\n");
-		sb.append("*\tVariance A1:\t\t" + ((creditMetrics) model).varA1()+"\n");
-		sb.append("*****************************************************************\n\n");
+		sb.append( ((CreditMetrics) model).toStringHeader());
 		String str = sb.toString();
 		System.out.println(str);
 
@@ -65,7 +59,7 @@ public class testRQMCExperimentDouble {
 		int i;
 		int m = 100; // Number of RQMC randomizations.
 //		int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576, 2097152 }; // 13
-		int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072};
+		int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072,262144, 524288, 1048576};
 		int numSets = N.length; // Number of sets in the series.
 
 		// Create a list of series of RQMC point sets.
@@ -149,7 +143,7 @@ public class testRQMCExperimentDouble {
 		RQMCExperimentSeries experSeries = new RQMCExperimentSeries(listRQMC.get(0), basis);
 		experSeries.setExecutionDisplay(details);
 		file = new File(outdir + "reportRQMC.txt");
-		file.getParentFile().mkdirs();
+//		file.getParentFile().mkdirs();
 		fw = new FileWriter(file);
 
 		fw.write(str + experSeries.testVarianceRateManyPointTypes(model, listRQMC, m, numSkipReg, makePgfTable, printReport,
