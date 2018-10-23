@@ -27,13 +27,13 @@ public class SchloeglSystem extends ChemicalReactionNetwork {
 		}
 		double mx;
 
-		mx = ((ReversibleIsomerizationComparable) m).X[i];
+		mx = ((SchloeglSystem) m).X[i];
 		return (X[i] > mx ? 1 : (X[i] < mx ? -1 : 0));
 	}
 	
 	public String toString() {
 		StringBuffer sb = new StringBuffer("----------------------------------------------\n");
-		sb.append(" ReversibleIsomerisation:\n");
+		sb.append(" SchloeglSystem:\n");
 		sb.append("X0 =\t" + "{" + X0[0] + ", " + X0[1] + ", " + X0[2] + "}\n");
 		sb.append("c =\t" + "{" + c[0] + ", " + c[1] + ", " + c[2] + "}\n");
 		sb.append("T =\t" + T + "\n");

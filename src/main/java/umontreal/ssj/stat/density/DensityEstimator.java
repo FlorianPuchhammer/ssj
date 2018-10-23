@@ -1,9 +1,25 @@
 
 package umontreal.ssj.stat.density;
 
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+
+import umontreal.ssj.hups.LMScrambleShift;
+import umontreal.ssj.hups.PointSet;
+import umontreal.ssj.hups.PointSetRandomization;
+import umontreal.ssj.hups.RQMCPointSet;
+import umontreal.ssj.hups.SobolSequence;
+import umontreal.ssj.mcqmctools.MonteCarloModelDouble;
+import umontreal.ssj.mcqmctools.RQMCExperiment;
+import umontreal.ssj.mcqmctools.examples.CreditMetrics;
 import umontreal.ssj.probdist.ContinuousDistribution;
+import umontreal.ssj.probdist.NormalDist;
+import umontreal.ssj.rng.MRG32k3a;
+import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.stat.PgfDataTable;
+import umontreal.ssj.stat.Tally;
 
 /**
  * This abstract class represents a univariate density estimator (DE).
@@ -521,11 +537,16 @@ public abstract class DensityEstimator {
 	 * @return
 	 */
 	public static String plotDensity(double[] evalPoints, double[] density, String plotTitle, String[] axisTitles) {
-		double[][] plotData = { evalPoints, density };
+		double[][] plotData = new double[evalPoints.length][];
+		for(int i = 0; i < evalPoints.length; i++) {
+			plotData[i] = new double [2];
+			plotData[i][0] =evalPoints[i];
+			plotData[i][1] = density[i];
+		}
 		PgfDataTable table = new PgfDataTable(plotTitle, "", axisTitles, plotData);
 		StringBuffer sb = new StringBuffer("");
 		sb.append(PgfDataTable.pgfplotFileHeader());
-		sb.append(table.drawPgfPlotSingleCurve(plotTitle, "axis", 0, 1, -1, "", ""));
+		sb.append(table.drawPgfPlotSingleCurve(plotTitle, "axis", 0, 1, 2, "", ""));
 		sb.append(PgfDataTable.pgfplotEndDocument());
 		return sb.toString();
 	}
@@ -554,6 +575,48 @@ public abstract class DensityEstimator {
 			sum += d * d;
 		}
 		return fac * sum;
+	}
+	private static double [] genEvalPoints(int numPts, double a, double b) {
+		double[] evalPts = new double[numPts];
+		double invNumPts = 1.0 / ((double) numPts);
+		for(int i = 0; i <numPts; i++)
+			evalPts[i] = a + (b-a) * ( (double)i + 0.5 ) * invNumPts;
+		return evalPts;
+	}
+	public static void main(String[] args) throws IOException {
+		int n = 32768;
+		int mink = 15;
+		int m = 1;
+		int numEvalPoints = 100;
+		RandomStream noise = new MRG32k3a();
+		String outdir = "/u/puchhamf/misc/workspace/ssj/data/creditMetrics/KP5/";
+		String filename = "KP5.dat";
+		MonteCarloModelDouble model = new CreditMetrics(outdir + filename, noise);
+		int dim  = ((CreditMetrics) model).getDimension();
+		double nomVal = ((CreditMetrics) model).nom();
+		((CreditMetrics) model).normalize(nomVal);
+		double[][] data = new double[m][];
+		
+		
+		
+		PointSet p = new SobolSequence( mink, 31,dim);
+
+		PointSetRandomization rand = new LMScrambleShift(noise);
+		
+		double a = 99.0;
+		double b = 102.5;
+		
+		double [] evalPoints = genEvalPoints(numEvalPoints,a,b); 
+		
+		RQMCExperiment.simulReplicatesRQMC(model, p,rand, m, new Tally(), data);
+		DEKernelDensity de = new DEKernelDensity(new NormalDist(), (b-a)/64.0,data[0]);
+		double[] density = new double[numEvalPoints];
+		density = de.evalDensity(evalPoints);
+		String[] axis = {"A1", "dens"};
+		FileWriter fw = new FileWriter(outdir + "_density.tex");
+		fw.write(		plotDensity(evalPoints,density,"dens-KP5",axis));
+		fw.close();
+		
 	}
 
 }

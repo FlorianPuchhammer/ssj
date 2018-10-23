@@ -1,10 +1,20 @@
 package umontreal.ssj.stat.density;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
 
+import umontreal.ssj.hups.LMScrambleShift;
+import umontreal.ssj.hups.PointSet;
+import umontreal.ssj.hups.PointSetRandomization;
+import umontreal.ssj.hups.SobolSequence;
+import umontreal.ssj.mcqmctools.MonteCarloModelDouble;
+import umontreal.ssj.mcqmctools.RQMCExperiment;
+import umontreal.ssj.mcqmctools.examples.SumOfStandardNormalsNormalized;
 import umontreal.ssj.rng.MRG32k3a;
 import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.stat.ScaledHistogram;
+import umontreal.ssj.stat.Tally;
 import umontreal.ssj.stat.TallyHistogram;
 
 /**
@@ -96,6 +106,8 @@ public class DEHistogram extends DensityEstimator {
 		TallyHistogram tallyHist = new TallyHistogram(a, b, numBins);
 		tallyHist.fillFromArray(data);
 		histDensity = new ScaledHistogram(tallyHist, tallyHist.getProportionInBoundaries());
+//		histDensity = new ScaledHistogram(tallyHist, 1.0);
+		
 	}
 
 	/**
@@ -108,6 +120,7 @@ public class DEHistogram extends DensityEstimator {
 	 */
 	public DEHistogram(TallyHistogram tallyHist) {
 		histDensity = new ScaledHistogram(tallyHist, tallyHist.getProportionInBoundaries());
+//		histDensity = new ScaledHistogram(tallyHist, 1.0);
 	}
 
 	/**
@@ -135,6 +148,7 @@ public class DEHistogram extends DensityEstimator {
 		TallyHistogram tallyHist = new TallyHistogram(histDensity.getA(), histDensity.getB(), histDensity.getNumBins());
 		tallyHist.fillFromArray(data);
 		histDensity = new ScaledHistogram(tallyHist, tallyHist.getProportionInBoundaries());
+//		histDensity = new ScaledHistogram(tallyHist, 1.0);
 	}
 
 	/**
@@ -187,7 +201,7 @@ public class DEHistogram extends DensityEstimator {
 	 */
 	@Override
 	public String toString() {
-		return "Histogram estimator with " + getNumBins() + " bins.";
+		return "Histogram estimator with " + getNumBins() + " bins";
 	}
 
 	/**
@@ -363,6 +377,7 @@ double h = getH();
 	 */
 	public static double[][] evalDensity(double[][] data, double a, double b, int numBins) {
 		int m = data.length;
+
 		double[][] dens = new double[m][numBins];
 		TallyHistogram tallyHist = new TallyHistogram(a, b, numBins);
 		for (int r = 0; r < m; r++) {
@@ -423,6 +438,7 @@ double h = getH();
 	 */
 	public static double evalDensity(double x, TallyHistogram tallyHist) {
 		ScaledHistogram hist = new ScaledHistogram(tallyHist, tallyHist.getProportionInBoundaries());
+//		ScaledHistogram hist = new ScaledHistogram(tallyHist, 1.0);
 		double h = (hist.getB() - hist.getA()) / (double) hist.getNumBins();
 		return hist.getHeights()[(int) ((x - hist.getA()) / h)];
 	}
@@ -441,6 +457,7 @@ double h = getH();
 	 */
 	public static double[] evalDensity(double[] evalPoints, TallyHistogram tallyHist) {
 		ScaledHistogram hist = new ScaledHistogram(tallyHist, tallyHist.getProportionInBoundaries());
+//		ScaledHistogram hist = new ScaledHistogram(tallyHist, 1.0);
 		int k = evalPoints.length;
 		double[] density = new double[k];
 		double h = (hist.getB() - hist.getA()) / (double) hist.getNumBins();
@@ -461,6 +478,8 @@ double h = getH();
 	 */
 	public static double[] evalDensity(TallyHistogram tallyHist) {
 		ScaledHistogram hist = new ScaledHistogram(tallyHist, tallyHist.getProportionInBoundaries());
+//		ScaledHistogram hist = new ScaledHistogram(tallyHist, 1.0);
+
 		return hist.getHeights();
 	}
 
@@ -600,14 +619,48 @@ double h = getH();
 
 		return density;
 	}
+	
+	public void setH(double h) {
+		int numBins = (int) ( (getB() - getA())/h  );
+		TallyHistogram tallyHist = new TallyHistogram(histDensity.getA(), histDensity.getB(), numBins);
+			tallyHist.fillFromArray(data);
+			histDensity = new ScaledHistogram(tallyHist, tallyHist.getProportionInBoundaries());
+//			histDensity = new ScaledHistogram(tallyHist, 1.0);
+		
+	}
+
 
 	
-	public static final void main(String[] args) {
-		int n = (int) 1E6;
-		int numBins = (int) 1E3;
-		RandomStream stream = new MRG32k3a();
-		double[] z = new double[n];
-		stream.nextArrayOfDouble(z, 0, n);
-		Arrays.sort(z);
+	public static  void main(String[] args) throws IOException {
+		int n = 32768;
+		int m = 1;
+		int numBins = 32;
+		System.out.println("Numbins:\t" + numBins);
+		int dim =3;
+		RandomStream noise = new MRG32k3a();
+		MonteCarloModelDouble model = new SumOfStandardNormalsNormalized(dim);
+		double[][] data = new double[m][];
+		
+		PointSet p = new SobolSequence(15, 31, dim);
+		
+					PointSetRandomization rand = new LMScrambleShift(noise);
+					
+
+		RQMCExperiment.simulReplicatesRQMC(model, p,rand, m, new Tally(), data);
+		
+		double[] dens = new double[numBins];
+		dens = evalDensity(data[0],-1.0,1.0,numBins);
+		double[] evalPoints = new double[numBins];
+		for(int i = 0; i < numBins; i++) 
+			evalPoints[i] = -1.0 +(double)i * 2.0/(double)numBins;
+		
+		
+		String[] axisTitles = {"x","y"};
+		
+		FileWriter fw = new FileWriter("densPlot.tex");
+		fw.write(DensityEstimator.plotDensity(evalPoints, dens, "N(0,1)", axisTitles));
+		fw.close();
 	}
+
+	
 }

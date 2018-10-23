@@ -25,5 +25,9 @@ public class SchloeglSystemSort extends MultDimToOneDimSort {
 				- 3.0363962286145344E-10 * x * y * y - 2.3778485538469843E-11 * y * y * y;
 
 	}
+	
+	public String toString() {
+		return "SchloeglSystemSort";
+	}
 
 }

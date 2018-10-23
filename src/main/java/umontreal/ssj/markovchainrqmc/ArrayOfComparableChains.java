@@ -1246,7 +1246,7 @@ public class ArrayOfComparableChains<T extends MarkovChainComparable> {
 			variance[i] = statPerf.variance();
 			logVariance[i] = Num.log2(variance[i]);
 			str.append("  Average = " + statPerf.average() + "\n");
-			str.append(" RQMC Variance : " + n * variance[i] + "\n\n");
+			str.append(" RQMC Variance : " +  variance[i] + "\n\n");
 			str.append("  VRF =  " + varMC / (n * variance[i]) + "\n");
 			str.append(formatTime((System.currentTimeMillis() - initTime) / 1000.) + "\n");
 		}

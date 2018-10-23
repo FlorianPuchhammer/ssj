@@ -55,8 +55,8 @@ public class testChemicalReactionNetworkNN {
 
 		String[] fileNames = new String[model.numSteps];
 		for(int s = 0; s < fileNames.length; s++) {
-			fileNames[s] = "/u/puchhamf/misc/jars/biology/schlogl/2Layer/id-id";
-			fileNames[s] += "/data/"+ modelDescription +"/" +dataLabel+ "Step" + s + ".zip";
+			fileNames[s] = "/u/puchhamf/misc/jars/biology/schlogl/id-cube-id/";
+			fileNames[s] += "data/"+ modelDescription +"/" +dataLabel+ "Step" + s + ".zip";
 			}
 		ArrayOfComparableChainsNN chain = new ArrayOfComparableChainsNN(model, fileNames);
 
@@ -88,15 +88,15 @@ public class testChemicalReactionNetworkNN {
 		ArrayList<RQMCPointSet[]> listP = new ArrayList<RQMCPointSet[]>();
 
 		// Independent points (Monte Carlo)
-//		rqmcPts = new RQMCPointSet[numSets];
-//		for (s = 0; s < numSets; ++s) {
-//			pointSets[s] = new IndependentPointsCached(N[s], model.K + model.N);
-//			rand = new RandomShift(stream);
-//			prqmc = new RQMCPointSet(pointSets[s], rand);
-//			rqmcPts[s] = prqmc;
-//		}
-//		rqmcPts[0].setLabel("Independent points");
-//		listP.add(rqmcPts);
+		rqmcPts = new RQMCPointSet[numSets];
+		for (s = 0; s < numSets; ++s) {
+			pointSets[s] = new IndependentPointsCached(N[s], model.K + model.N);
+			rand = new RandomShift(stream);
+			prqmc = new RQMCPointSet(pointSets[s], rand);
+			rqmcPts[s] = prqmc;
+		}
+		rqmcPts[0].setLabel("Independent points");
+		listP.add(rqmcPts);
 
 		// Stratification
 //		rqmcPts = new RQMCPointSet[numSets];
