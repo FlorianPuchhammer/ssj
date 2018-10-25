@@ -589,7 +589,7 @@ public abstract class DensityEstimator {
 		int m = 1;
 		int numEvalPoints = 100;
 		RandomStream noise = new MRG32k3a();
-		String outdir = "/u/puchhamf/misc/workspace/ssj/data/creditMetrics/KP5/";
+		String outdir = "data/creditMetrics/KP5/";
 		String filename = "KP5.dat";
 		MonteCarloModelDouble model = new CreditMetrics(outdir + filename, noise);
 		int dim  = ((CreditMetrics) model).getDimension();
@@ -603,12 +603,28 @@ public abstract class DensityEstimator {
 
 		PointSetRandomization rand = new LMScrambleShift(noise);
 		
-		double a = 99.0;
-		double b = 102.5;
+		double a = 98.5;
+		double b = 102.4;
+		
+		
 		
 		double [] evalPoints = genEvalPoints(numEvalPoints,a,b); 
 		
 		RQMCExperiment.simulReplicatesRQMC(model, p,rand, m, new Tally(), data);
+		
+		int numLeft = 0;
+		int numRight = 0;
+		for(double d : data[0]) {
+			if(d<a)
+				numLeft++;
+			else if(d>b)
+				numRight++;
+		}
+		System.out.println("LeftPerc:\t" + ((double) numLeft/(double)data[0].length));
+		System.out.println("RightPerc:\t" + ((double) numRight/(double)data[0].length));
+		System.out.println("Total Mass:\t" + (1.0 - (double) (numLeft+numRight)/(double)data[0].length));
+		
+		
 		DEKernelDensity de = new DEKernelDensity(new NormalDist(), (b-a)/64.0,data[0]);
 		double[] density = new double[numEvalPoints];
 		density = de.evalDensity(evalPoints);

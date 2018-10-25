@@ -5,15 +5,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import umontreal.ssj.functionfit.LeastSquares;
+import umontreal.ssj.hups.CachedPointSet;
 import umontreal.ssj.hups.FaureSequence;
+import umontreal.ssj.hups.IndependentPointsCached;
 import umontreal.ssj.hups.LMScrambleShift;
+import umontreal.ssj.hups.NestedUniformScrambling;
 import umontreal.ssj.hups.PointSet;
 import umontreal.ssj.hups.PointSetRandomization;
 import umontreal.ssj.hups.RQMCPointSet;
+import umontreal.ssj.hups.RandomShift;
 import umontreal.ssj.hups.SobolSequence;
 import umontreal.ssj.mcqmctools.MonteCarloModelDouble;
 import umontreal.ssj.mcqmctools.RQMCExperiment;
 import umontreal.ssj.mcqmctools.RQMCExperimentSeries;
+import umontreal.ssj.mcqmctools.examples.CreditMetrics;
 import umontreal.ssj.mcqmctools.examples.SumOfStandardNormalsNormalized;
 import umontreal.ssj.probdist.NormalDist;
 import umontreal.ssj.rng.MRG32k3a;
@@ -264,41 +269,35 @@ public class DEModelBandwidthBased {
 	 * MonteCarloModelDouble, double, double). Or implement #setAlpha for the
 	 * desired estimator.
 	 * 
-	 * @param de
-	 *            the density estimator to obtain \f$\alpha\f$.
-	 * @param a
-	 *            left boundary of the interval over which we estimate.
-	 * @param b
-	 *            right boundary of the interval over which we estimate.
+	 * @param de the density estimator to obtain \f$\alpha\f$.
+	 * @param a  left boundary of the interval over which we estimate.
+	 * @param b  right boundary of the interval over which we estimate.
 	 */
 	public DEModelBandwidthBased(DensityEstimator de, double a, double b) {
 
 		setRange(a, b);
-		setAlpha( de);
+		setAlpha(de);
 	}
-	
+
 	public DEModelBandwidthBased(DEHistogram de, double a, double b) {
 
 		setRange(a, b);
-		setAlpha( de);
+		setAlpha(de);
 	}
-	
+
 	public DEModelBandwidthBased(DEKernelDensity de, double a, double b) {
 
 		setRange(a, b);
-		setAlpha( de);
+		setAlpha(de);
 	}
 
 	/**
 	 * Constructs an instance of this parametric model over the interval
 	 * \f$[a,b]\f$.
 	 * 
-	 * @param alpha
-	 *            the value for \f$\alpha\f$ used.
-	 * @param a
-	 *            left boundary of the interval over which we estimate.
-	 * @param b
-	 *            right boundary of the interval over which we estimate.
+	 * @param alpha the value for \f$\alpha\f$ used.
+	 * @param a     left boundary of the interval over which we estimate.
+	 * @param b     right boundary of the interval over which we estimate.
 	 */
 	public DEModelBandwidthBased(double alpha, double a, double b) {
 		this.alpha = alpha;
@@ -309,8 +308,7 @@ public class DEModelBandwidthBased {
 	 * Sets #displayExec, i.e. the flag whether to display output during the runtime
 	 * of the experiment or not to \a displayExec.
 	 * 
-	 * @param displayExec
-	 *            flag, whether display output during runtime or not.
+	 * @param displayExec flag, whether display output during runtime or not.
 	 */
 	public void setDisplayExec(boolean displayExec) {
 		this.displayExec = displayExec;
@@ -330,9 +328,8 @@ public class DEModelBandwidthBased {
 	 * Sets #producePlots, i.e. the flag whether to produce plots at the end of the
 	 * experiment or not to \a producePlots.
 	 * 
-	 * @param producePlots
-	 *            flag, whether to produce plots at the end of the experiment or
-	 *            not.
+	 * @param producePlots flag, whether to produce plots at the end of the
+	 *                     experiment or not.
 	 */
 	public void setProducePlots(boolean producePlots) {
 		this.producePlots = producePlots;
@@ -351,10 +348,8 @@ public class DEModelBandwidthBased {
 	/**
 	 * Sets the current interval over which we estimate to \f$[a,b]\f$.
 	 * 
-	 * @param a
-	 *            left boundary of the interval over which we estimate.
-	 * @param b
-	 *            right boundary of the interval over which we estimate.
+	 * @param a left boundary of the interval over which we estimate.
+	 * @param b right boundary of the interval over which we estimate.
 	 */
 	public void setRange(double a, double b) {
 		this.a = a;
@@ -382,8 +377,7 @@ public class DEModelBandwidthBased {
 	/**
 	 * Sets the base for all logarithms in the experiment to \a base.
 	 * 
-	 * @param base
-	 *            the base for all logarithms.
+	 * @param base the base for all logarithms.
 	 */
 	public void setBaseOfLog(double base) {
 		this.baseOfLog = base;
@@ -411,8 +405,7 @@ public class DEModelBandwidthBased {
 	/**
 	 * Sets the current value of \f$\alpha\f$ to \a alpha.
 	 * 
-	 * @param alpha
-	 *            the desired value for \f$\alpha\f$.
+	 * @param alpha the desired value for \f$\alpha\f$.
 	 */
 	public void setAlpha(double alpha) {
 		this.alpha = alpha;
@@ -459,8 +452,7 @@ public class DEModelBandwidthBased {
 	/**
 	 * Sets the current value of \f$B\f$ to \a B.
 	 * 
-	 * @param B
-	 *            the desired value for \f$B\f$.
+	 * @param B the desired value for \f$B\f$.
 	 */
 	public void setB(double B) {
 		this.B = B;
@@ -469,8 +461,7 @@ public class DEModelBandwidthBased {
 	/**
 	 * Sets the current value of \f$\beta\f$ to \a beta.
 	 * 
-	 * @param beta
-	 *            the desired value for \f$\beta\f$.
+	 * @param beta the desired value for \f$\beta\f$.
 	 */
 	public void setBeta(double beta) {
 		this.beta = beta;
@@ -488,8 +479,7 @@ public class DEModelBandwidthBased {
 	/**
 	 * Sets the current value of \f$C\f$ to \a C.
 	 * 
-	 * @param C
-	 *            the desired value for \f$C\f$.
+	 * @param C the desired value for \f$C\f$.
 	 */
 	public void setC(double C) {
 		this.C = C;
@@ -516,8 +506,7 @@ public class DEModelBandwidthBased {
 	/**
 	 * Sets the current value of \f$\delta\f$ to \a delta.
 	 * 
-	 * @param delta
-	 *            the desired value for \f$\delta\f$.
+	 * @param delta the desired value for \f$\delta\f$.
 	 */
 	public void setDelta(double delta) {
 		this.delta = delta;
@@ -528,10 +517,8 @@ public class DEModelBandwidthBased {
 	 * \f$b=\f$#logOfBase, and gives the logarithm in base \f$b\f$ of the modeled
 	 * IV, i.e. \f$\log_b(C h^{-\delta} n^{-\beta}) \f$.
 	 * 
-	 * @param logH
-	 *            the logarithm in base #logOfBase of \f$h\f$.
-	 * @param logN
-	 *            the logarithm in base #logOfBase of \f$n\f$.
+	 * @param logH the logarithm in base #logOfBase of \f$h\f$.
+	 * @param logN the logarithm in base #logOfBase of \f$n\f$.
 	 * @return the logarithm modeled IV in base #logOfBase.
 	 */
 	public double estimateLogIV(double logH, double logN) {
@@ -543,8 +530,7 @@ public class DEModelBandwidthBased {
 	 * the logarithm in base \f$b\f$ of the modeled ISB, i.e. \f$\log_b(B
 	 * h^{\alpha}\f$.
 	 * 
-	 * @param logH
-	 *            the logarithm in base #logOfBase of \f$h\f$.
+	 * @param logH the logarithm in base #logOfBase of \f$h\f$.
 	 * @return the logarithm modeled ISB in base #logOfBase.
 	 */
 	public double estimateLogISB(double logH) {
@@ -556,8 +542,7 @@ public class DEModelBandwidthBased {
 	 * the logarithm in base \f$b\f$ of the modeled MISE, i.e. \f$\log_b(K
 	 * n^{-\nu}\f$.
 	 * 
-	 * @param logN
-	 *            the logarithm in base #logOfBase of \f$n\f$.
+	 * @param logN the logarithm in base #logOfBase of \f$n\f$.
 	 * @return the logarithm modeled MISE in base #logOfBase.
 	 */
 	public double estimateLogMISE(double logN) {
@@ -567,10 +552,8 @@ public class DEModelBandwidthBased {
 	/**
 	 * Sets the bin width of the histogram estimator \a de to \a h.
 	 * 
-	 * @param de
-	 *            the histogram considered.
-	 * @param h
-	 *            the desired bin width.
+	 * @param de the histogram considered.
+	 * @param h  the desired bin width.
 	 */
 	public static void setH(DEHistogram de, double h) {
 //		de.setH(h)de;
@@ -580,10 +563,8 @@ public class DEModelBandwidthBased {
 	/**
 	 * Sets the bin width of the kernel density estimator \a de to \a h.
 	 * 
-	 * @param de
-	 *            the kernel density estimator considered.
-	 * @param h
-	 *            the desired bin width.
+	 * @param de the kernel density estimator considered.
+	 * @param h  the desired bin width.
 	 */
 	public static void setH(DEKernelDensity de, double h) {
 		de.setH(h);
@@ -593,10 +574,8 @@ public class DEModelBandwidthBased {
 	 * Fallback method for all density estimators \a de for which this method is not
 	 * specifically implemented. Throws an \ref UnsupportedOperationException.
 	 * 
-	 * @param de
-	 *            the density estimator considered.
-	 * @param h
-	 *            the desired bin width.
+	 * @param de the density estimator considered.
+	 * @param h  the desired bin width.
 	 */
 	public static void setH(DensityEstimator de, double h) {
 		throw new UnsupportedOperationException("setH is not implemented for the DensityEstimator " + de.toString());
@@ -667,8 +646,8 @@ public class DEModelBandwidthBased {
 	 * Sets #logH, the logarithms in base #baseOfLog of the bin-/bandwidths used in
 	 * the test grid w.r.t. \f$(n,h)\f$, to \a hArray.
 	 * 
-	 * @param hArray
-	 *            an array containing the desired bin-/bandwidths for the test grid.
+	 * @param hArray an array containing the desired bin-/bandwidths for the test
+	 *               grid.
 	 */
 	public void setLogH(double[] hArray) {
 		logH = new double[hArray.length];
@@ -693,14 +672,12 @@ public class DEModelBandwidthBased {
 	 * formatted string containing a head with basic information that can be used as
 	 * a introductory head for the estimation of the IV parameters.
 	 *
-	 * @param pointLabel
-	 *            a description of the point set employed.
-	 * @param estimatorLabel
-	 *            a description of the density estimator.
-	 * @param numEvalPoints
-	 *            the number of evaluation points to estimate the empirical IV
-	 * @param m
-	 *            the number of independent replications of the observations.
+	 * @param pointLabel     a description of the point set employed.
+	 * @param estimatorLabel a description of the density estimator.
+	 * @param numEvalPoints  the number of evaluation points to estimate the
+	 *                       empirical IV
+	 * @param m              the number of independent replications of the
+	 *                       observations.
 	 * @return a formatted introductory head for the parameter estimation of the IV.
 	 */
 	public String parametersIVFormatHead(String pointLabel, String estimatorLabel, String numEvalPoints, int m) {
@@ -723,12 +700,10 @@ public class DEModelBandwidthBased {
 	 * when passing evaluation points is not necessary for IV estimation, as is the
 	 * case for histograms, for instance.
 	 * 
-	 * @param pointLabel
-	 *            a description of the point set employed.
-	 * @param estimatorLabel
-	 *            a description of the density estimator.
-	 * @param m
-	 *            the number of independent replications of the observations.
+	 * @param pointLabel     a description of the point set employed.
+	 * @param estimatorLabel a description of the density estimator.
+	 * @param m              the number of independent replications of the
+	 *                       observations.
 	 * @return a formatted introductory head for the parameter estimation of the IV.
 	 */
 	public String parametersIVFormatHead(String pointLabel, String estimatorLabel, int m) {
@@ -740,10 +715,8 @@ public class DEModelBandwidthBased {
 	 * parameters. The array \a rqmcPts is only used to determine the numbers of
 	 * observations.
 	 * 
-	 * @param rqmcPts
-	 *            the RQMC point set of different sizes.
-	 * @param hArray
-	 *            the bin-/bandwidths from the testing grid for \f$(n,h)\f$.
+	 * @param rqmcPts the RQMC point set of different sizes.
+	 * @param hArray  the bin-/bandwidths from the testing grid for \f$(n,h)\f$.
 	 */
 	public void parametersIVPreprocess(RQMCPointSet[] rqmcPts, double[] hArray) {
 		logIV3D = new double[rqmcPts.length * hArray.length];
@@ -763,21 +736,14 @@ public class DEModelBandwidthBased {
 	 * denotes the size of the corresponding point set, and the IV estimates are
 	 * written into #logIV3D.
 	 * 
-	 * @param model
-	 *            the underlying model.
-	 * @param rqmcPts
-	 *            RQMC point sets of different sizes.
-	 * @param m
-	 *            the number of independent replications of the model for each RQMC
-	 *            point set.
-	 * @param de
-	 *            the density estimator considered.
-	 * @param hArray
-	 *            the desired values for \f$h\f$ for the testing grid.
-	 * @param regDataX
-	 *            two-dimensional array to which the testing grid is stored.
-	 * @param evalPoints
-	 *            the evaluation points used for estimating the empirical IV.
+	 * @param model      the underlying model.
+	 * @param rqmcPts    RQMC point sets of different sizes.
+	 * @param m          the number of independent replications of the model for
+	 *                   each RQMC point set.
+	 * @param de         the density estimator considered.
+	 * @param hArray     the desired values for \f$h\f$ for the testing grid.
+	 * @param regDataX   two-dimensional array to which the testing grid is stored.
+	 * @param evalPoints the evaluation points used for estimating the empirical IV.
 	 * @return a formatted table summarizing the experiment.
 	 */
 	public String parametersIVComputeRegData(MonteCarloModelDouble model, RQMCPointSet[] rqmcPts, int m,
@@ -829,6 +795,7 @@ public class DEModelBandwidthBased {
 
 		return sb.toString();
 	}
+
 	public String parametersIVComputeRegData(MonteCarloModelDouble model, RQMCPointSet[] rqmcPts, int m,
 			DEKernelDensity de, double[] hArray, double[][] regDataX, double[] evalPoints) {
 		double[] variance;
@@ -885,19 +852,13 @@ public class DEModelBandwidthBased {
 	 * histograms. Recall that passing evaluation points is not necessary for a \ref
 	 * DEHistogram, as the IV is constant on each bin.
 	 * 
-	 * @param model
-	 *            the underlying model.
-	 * @param rqmcPts
-	 *            RQMC point sets of different sizes.
-	 * @param m
-	 *            the number of independent replications of the model for each RQMC
-	 *            point set.
-	 * @param de
-	 *            the density estimator considered.
-	 * @param hArray
-	 *            the desired values for \f$h\f$ for the testing grid.
-	 * @param regDataX
-	 *            two-dimensional array to which the testing grid is stored.
+	 * @param model    the underlying model.
+	 * @param rqmcPts  RQMC point sets of different sizes.
+	 * @param m        the number of independent replications of the model for each
+	 *                 RQMC point set.
+	 * @param de       the density estimator considered.
+	 * @param hArray   the desired values for \f$h\f$ for the testing grid.
+	 * @param regDataX two-dimensional array to which the testing grid is stored.
 	 * @return a formatted table summarizing the experiment.
 	 */
 	public String parametersIVComputeRegData(MonteCarloModelDouble model, RQMCPointSet[] rqmcPts, int m, DEHistogram de,
@@ -923,12 +884,10 @@ public class DEModelBandwidthBased {
 				RQMCExperiment.simulReplicatesRQMC(model, rqmcPts[i], m, statReps, data);
 //				de.setData(data[0]);
 //				setH(de,hArray[j]);
-				numBins = (int) ( (b - a)/hArray[j] );
-				
+				numBins = (int) ((b - a) / hArray[j]);
 
-				
 				density = new double[m][numBins];
-				density = DEHistogram.evalDensity(data,a,b,numBins);
+				density = DEHistogram.evalDensity(data, a, b, numBins);
 
 				variance = new double[numBins];
 
@@ -939,8 +898,7 @@ public class DEModelBandwidthBased {
 				logIV3D[i * logH.length + j] = Math.log(DensityEstimator.computeIV(density, a, b, variance))
 						/ logOfBase;
 
-				str = PrintfFormat.f(3, 1, logN[i]) + "\t " + PrintfFormat.f(6, 4, logH[j]) 
-						+ "\t "
+				str = PrintfFormat.f(3, 1, logN[i]) + "\t " + PrintfFormat.f(6, 4, logH[j]) + "\t "
 						+ logIV3D[i * logH.length + j] + "\n";
 				sb.append(str);
 				if (displayExec)
@@ -964,21 +922,14 @@ public class DEModelBandwidthBased {
 	 * parametersIVComputeRegData(MonteCarloModelDouble, RQMCPointSet[], int,
 	 * DensityEstimator, double[], double[][], double[])
 	 * 
-	 * @param model
-	 *            the underlying model.
-	 * @param rqmcPts
-	 *            RQMC point sets of different sizes.
-	 * @param m
-	 *            the number of independent replications of the model for each RQMC
-	 *            point set.
-	 * @param de
-	 *            the density estimator considered.
-	 * @param hArray
-	 *            the desired values for \f$h\f$ for the testing grid.
-	 * @param regDataX
-	 *            two-dimensional array to which the testing grid is stored.
-	 * @param evalPoints
-	 *            placeholder.
+	 * @param model      the underlying model.
+	 * @param rqmcPts    RQMC point sets of different sizes.
+	 * @param m          the number of independent replications of the model for
+	 *                   each RQMC point set.
+	 * @param de         the density estimator considered.
+	 * @param hArray     the desired values for \f$h\f$ for the testing grid.
+	 * @param regDataX   two-dimensional array to which the testing grid is stored.
+	 * @param evalPoints placeholder.
 	 * @return a formatted table summarizing the experiment.
 	 */
 	public String parametersIVComputeRegData(MonteCarloModelDouble model, RQMCPointSet[] rqmcPts, int m, DEHistogram de,
@@ -991,8 +942,7 @@ public class DEModelBandwidthBased {
 	 * regression with the data saved in #logIV3D. Subsequently, it sets the
 	 * parameters \f$C\f$, \f$\beta\f$, and \f$delta\f$ to the values obtained.
 	 * 
-	 * @param regDataX
-	 *            the testing grid \f$(n,h)\f$.
+	 * @param regDataX the testing grid \f$(n,h)\f$.
 	 */
 	public void parametersIVComputeCoefficients(double[][] regDataX) {
 		double[] regCoeffs = LeastSquares.calcCoefficients0(regDataX, logIV3D);
@@ -1016,14 +966,15 @@ public class DEModelBandwidthBased {
 		str += "delta =\t" + getDelta() + "\n\n";
 
 		double[] estData = new double[logIV3D.length];
-		for(int i = 0; i < logN.length; i++) {
-			for(int j = 0; j < logH.length; j++) {
-				estData[i * logH.length + j] = Math.log(getC())/logOfBase - getBeta() * logN[i] - getDelta()*logH[j];
+		for (int i = 0; i < logN.length; i++) {
+			for (int j = 0; j < logH.length; j++) {
+				estData[i * logH.length + j] = Math.log(getC()) / logOfBase - getBeta() * logN[i]
+						- getDelta() * logH[j];
 			}
 		}
-		
-		double r2 = coefficientOfDetermination(logIV3D,estData);
-		
+
+		double r2 = coefficientOfDetermination(logIV3D, estData);
+
 		str += "R^2 =\t" + r2 + "\n\n";
 		if (displayExec)
 			System.out.print(str);
@@ -1038,16 +989,12 @@ public class DEModelBandwidthBased {
 	 * evaluation point per bin only is usually more efficient.
 	 * 
 	 * 
-	 * @param rqmcPts
-	 *            the RQMC point sets to construct the observation.
-	 * @param model
-	 *            the underlying model, from which the observations are obtained.
-	 * @param m
-	 *            the number of independent repetitions.
-	 * @param de
-	 *            the histogram.
-	 * @param hArray
-	 *            the values for \f$h\f$ of the testing region.
+	 * @param rqmcPts the RQMC point sets to construct the observation.
+	 * @param model   the underlying model, from which the observations are
+	 *                obtained.
+	 * @param m       the number of independent repetitions.
+	 * @param de      the histogram.
+	 * @param hArray  the values for \f$h\f$ of the testing region.
 	 * @return a formatted String containing all the information about this
 	 *         parameter estimation.
 	 */
@@ -1098,18 +1045,13 @@ public class DEModelBandwidthBased {
 	 * #parametersIVComputeCoefficients, and #parametersIVFormatCoefficients
 	 * sequentially.
 	 * 
-	 * @param rqmcPts
-	 *            the RQMC point sets to construct the observation.
-	 * @param model
-	 *            the underlying model, from which the observations are obtained.
-	 * @param m
-	 *            the number of independent repetitions.
-	 * @param de
-	 *            the histogram.
-	 * @param hArray
-	 *            the values for \f$h\f$ of the testing region.
-	 * @param evalPoints
-	 *            the evaluation points used to estimate the empirical IV.
+	 * @param rqmcPts    the RQMC point sets to construct the observation.
+	 * @param model      the underlying model, from which the observations are
+	 *                   obtained.
+	 * @param m          the number of independent repetitions.
+	 * @param de         the histogram.
+	 * @param hArray     the values for \f$h\f$ of the testing region.
+	 * @param evalPoints the evaluation points used to estimate the empirical IV.
 	 * @return a formatted String containing all the information about this
 	 *         parameter estimation.
 	 */
@@ -1133,7 +1075,7 @@ public class DEModelBandwidthBased {
 		return sb.toString();
 
 	}
-	
+
 	public String parametersIVEstimate(MonteCarloModelDouble model, RQMCPointSet[] rqmcPts, int m, DEHistogram de,
 			double[] hArray, double[] evalPoints) {
 
@@ -1153,7 +1095,7 @@ public class DEModelBandwidthBased {
 
 		return sb.toString();
 	}
-	
+
 	public String parametersIVEstimate(MonteCarloModelDouble model, RQMCPointSet[] rqmcPts, int m, DEKernelDensity de,
 			double[] hArray, double[] evalPoints) {
 
@@ -1165,7 +1107,7 @@ public class DEModelBandwidthBased {
 
 		sb.append(parametersIVFormatHead(rqmcPts[0].getLabel(), de.toString(), Integer.toString(evalPoints.length), m));
 
-		sb.append(parametersIVComputeRegData(model, rqmcPts, m, (DEKernelDensity)de, hArray, regDataX, evalPoints));
+		sb.append(parametersIVComputeRegData(model, rqmcPts, m, (DEKernelDensity) de, hArray, regDataX, evalPoints));
 
 		parametersIVComputeCoefficients(regDataX);
 
@@ -1180,12 +1122,9 @@ public class DEModelBandwidthBased {
 	 * \f$[a,b]\f$. As for now, only 3 and 4 are allowed values of \a order, any
 	 * other will throw an exception.
 	 * 
-	 * @param order
-	 *            the order of the derivative. Must be 3 or 4.
-	 * @param mu
-	 *            the mean.
-	 * @param sigma
-	 *            the standard deviation.
+	 * @param order the order of the derivative. Must be 3 or 4.
+	 * @param mu    the mean.
+	 * @param sigma the standard deviation.
 	 * @return the roughness functional for the \a order -th derivative of the
 	 *         density of a normal distribution with parameters (\a mu,\a sigma).
 	 */
@@ -1250,15 +1189,17 @@ public class DEModelBandwidthBased {
 	 * 
 	 * 
 	 * 
-	 * @param model
-	 *            the underlying model.
-	 * @param rqmc
-	 *            the RQMC point set used.
-	 * @param m the number of independent replications.
-	 * @param evalPoints the evaluation points to estimate the roughness functionals.
-	 * @param order the sought order of the derivative of the density. Has to be 1 or 2 for a histogram or a kernel density estimator, respectively.
-	 * @param factor the factor with which the respective roughness functional is multiplied to yield \f$B\f$. For a histogram this is 1/4 and for
-	 * a KDE 1/12.
+	 * @param model      the underlying model.
+	 * @param rqmc       the RQMC point set used.
+	 * @param m          the number of independent replications.
+	 * @param evalPoints the evaluation points to estimate the roughness
+	 *                   functionals.
+	 * @param order      the sought order of the derivative of the density. Has to
+	 *                   be 1 or 2 for a histogram or a kernel density estimator,
+	 *                   respectively.
+	 * @param factor     the factor with which the respective roughness functional
+	 *                   is multiplied to yield \f$B\f$. For a histogram this is 1/4
+	 *                   and for a KDE 1/12.
 	 */
 	public void estimateB(MonteCarloModelDouble model, RQMCPointSet rqmc, int m, double[] evalPoints, int order,
 			double factor) {
@@ -1293,11 +1234,14 @@ public class DEModelBandwidthBased {
 	 * For parameter estimation of the ISB this method produces and returns a
 	 * formatted string containing a head with basic information that can be used as
 	 * a introductory head for the estimation of the ISB parameters.
-	 * @param pointLabel short description of the RQMC point set.
+	 * 
+	 * @param pointLabel     short description of the RQMC point set.
 	 * @param estimatorLabel short description of the estimator used.
-	 * @param numEvalPoints the number of evaluation points to compute the roughness functionals.
-	 * @param m number of independent replications.
-	 * @param n the number of points considered, i.e. the size of the point set.
+	 * @param numEvalPoints  the number of evaluation points to compute the
+	 *                       roughness functionals.
+	 * @param m              number of independent replications.
+	 * @param n              the number of points considered, i.e. the size of the
+	 *                       point set.
 	 * @return a formatted introductory head for the parameter estimation of the IV.
 	 */
 	public String parametersISBFormatHead(String pointLabel, String estimatorLabel, int numEvalPoints, int m, int n) {
@@ -1316,7 +1260,8 @@ public class DEModelBandwidthBased {
 	}
 
 	/**
-	 * Gives the current values of the parameters \f$\alpha\f$ and \f$B\f$ as formatted string.
+	 * Gives the current values of the parameters \f$\alpha\f$ and \f$B\f$ as
+	 * formatted string.
 	 * 
 	 * @return the ISB parameters in a formatted string.
 	 */
@@ -1331,14 +1276,17 @@ public class DEModelBandwidthBased {
 	}
 
 	/**
-	 * Carries out the estimation of the parameter \f$B\f$ in the ISB for a \ref DEKernelDensity. More precisely,
-	 *  it sets the necessary parameters to compute the estimate \f$B\f$ an then calls #estimateB.
-	 * @param model the underlying model.
-	 * @param rqmc the RQMC point set used.
-	 * @param m the number of independent replications.
-	 * @param de the kernel density estimator.
-	 * @param evalPoints the evaluation points used to estimate the roughness functionals.
-	 * @return a 
+	 * Carries out the estimation of the parameter \f$B\f$ in the ISB for a \ref
+	 * DEKernelDensity. More precisely, it sets the necessary parameters to compute
+	 * the estimate \f$B\f$ an then calls #estimateB.
+	 * 
+	 * @param model      the underlying model.
+	 * @param rqmc       the RQMC point set used.
+	 * @param m          the number of independent replications.
+	 * @param de         the kernel density estimator.
+	 * @param evalPoints the evaluation points used to estimate the roughness
+	 *                   functionals.
+	 * @return a
 	 */
 	public String parametersISBEstimate(MonteCarloModelDouble model, RQMCPointSet rqmc, int m, DEKernelDensity de,
 			double[] evalPoints) {
@@ -1397,14 +1345,12 @@ public class DEModelBandwidthBased {
 	 * carrying basic information that can be used as a introductory head for the
 	 * estimation of the IV parameters.
 	 *
-	 * @param pointLabel
-	 *            a description of the point set employed.
-	 * @param estimatorLabel
-	 *            a description of the density estimator.
-	 * @param numEvalPoints
-	 *            the number of evaluation points to estimate the empirical IV
-	 * @param m
-	 *            the number of independent replications of the observations.
+	 * @param pointLabel     a description of the point set employed.
+	 * @param estimatorLabel a description of the density estimator.
+	 * @param numEvalPoints  the number of evaluation points to estimate the
+	 *                       empirical IV
+	 * @param m              the number of independent replications of the
+	 *                       observations.
 	 * @return a formatted introductory head for the parameter estimation of the IV.
 	 */
 	public String estimateMISEOptHFormatHead(String pointLabel, String estimatorLabel, String numEvalPoints, int m) {
@@ -1468,27 +1414,24 @@ public class DEModelBandwidthBased {
 
 			RQMCExperiment.simulReplicatesRQMC(model, rqmcPts[i], m, statReps, data);
 			h = Math.pow(baseOfLog, logHOpt[i]);
-			numBins = (int) ( (b - a)/h );
-			
+			numBins = (int) ((b - a) / h);
 
-			
 			density = new double[m][numBins];
-			density = DEHistogram.evalDensity(data,a,b,numBins);
-			
+			density = DEHistogram.evalDensity(data, a, b, numBins);
+
 //			setH(de,Math.pow(baseOfLog, logHOpt[i]));
 //			density = new double[m][de.getNumBins()];
 //			density = DEHistogram.evalDensity(data, a, b,de.getNumBins());
 
 			variance = new double[numBins];
 
-			logIV[i] = Math.log(DensityEstimator.computeIV(density, a, b, variance))/logOfBase;
-			logMISE[i] = Math.log(Math.pow(baseOfLog,logIV[i]) + Math.pow(baseOfLog,logEstISB[i])) / logOfBase;
+			logIV[i] = Math.log(DensityEstimator.computeIV(density, a, b, variance)) / logOfBase;
+			logMISE[i] = Math.log(Math.pow(baseOfLog, logIV[i]) + Math.pow(baseOfLog, logEstISB[i])) / logOfBase;
 
 			str = PrintfFormat.f(3, 1, logN[i]) + "\t " + PrintfFormat.f(8, 6, logHOpt[i]) + "\t "
 					+ PrintfFormat.f(8, 6, logEstIV[i]) + "\t\t " + PrintfFormat.f(8, 6, logEstISB[i]) + "\t\t "
 					+ PrintfFormat.f(8, 6, logEstMISE[i]) + "\t\t " + PrintfFormat.f(8, 6, logIV[i]) + "\t\t "
 					+ PrintfFormat.f(8, 6, logMISE[i]) + "\n";
-
 
 			sb.append(str);
 			if (displayExec)
@@ -1531,14 +1474,13 @@ public class DEModelBandwidthBased {
 
 			variance = new double[evalPoints.length];
 
-			logIV[i] = Math.log(DensityEstimator.computeIV(density, a, b, variance))/logOfBase;
-			logMISE[i] = Math.log(Math.pow(baseOfLog,logIV[i]) + Math.pow(baseOfLog,logEstISB[i])) / logOfBase;
+			logIV[i] = Math.log(DensityEstimator.computeIV(density, a, b, variance)) / logOfBase;
+			logMISE[i] = Math.log(Math.pow(baseOfLog, logIV[i]) + Math.pow(baseOfLog, logEstISB[i])) / logOfBase;
 
 			str = PrintfFormat.f(3, 1, logN[i]) + "\t " + PrintfFormat.f(8, 6, logHOpt[i]) + "\t "
 					+ PrintfFormat.f(8, 6, logEstIV[i]) + "\t\t " + PrintfFormat.f(8, 6, logEstISB[i]) + "\t\t "
 					+ PrintfFormat.f(8, 6, logEstMISE[i]) + "\t\t " + PrintfFormat.f(8, 6, logIV[i]) + "\t\t "
 					+ PrintfFormat.f(8, 6, logMISE[i]) + "\n";
-
 
 			sb.append(str);
 			if (displayExec)
@@ -1554,6 +1496,7 @@ public class DEModelBandwidthBased {
 		return sb.toString();
 
 	}
+
 	public String estimateMISEOptHComputeTable(MonteCarloModelDouble model, RQMCPointSet[] rqmcPts, int m,
 			DEKernelDensity de, double[] evalPoints) {
 
@@ -1580,8 +1523,8 @@ public class DEModelBandwidthBased {
 
 			variance = new double[evalPoints.length];
 
-			logIV[i] = Math.log(DensityEstimator.computeIV(density, a, b, variance))/logOfBase;
-			logMISE[i] = Math.log(Math.pow(baseOfLog,logIV[i]) + Math.pow(baseOfLog,logEstISB[i])) / logOfBase;
+			logIV[i] = Math.log(DensityEstimator.computeIV(density, a, b, variance)) / logOfBase;
+			logMISE[i] = Math.log(Math.pow(baseOfLog, logIV[i]) + Math.pow(baseOfLog, logEstISB[i])) / logOfBase;
 
 			str = PrintfFormat.f(3, 1, logN[i]) + "\t " + PrintfFormat.f(8, 6, logHOpt[i]) + "\t "
 					+ PrintfFormat.f(8, 6, logEstIV[i]) + "\t\t " + PrintfFormat.f(8, 6, logEstISB[i]) + "\t\t "
@@ -1654,12 +1597,13 @@ public class DEModelBandwidthBased {
 		sb.append(estimateMISEOptHFormatHead(rqmcPts[0].getLabel(), de.toString(), Integer.toString(evalPoints.length),
 				m));
 		estimateMISEOptHPreprocess(rqmcPts);
-		sb.append(estimateMISEOptHComputeTable(model, rqmcPts, m, (DEKernelDensity)de, evalPoints));
+		sb.append(estimateMISEOptHComputeTable(model, rqmcPts, m, (DEKernelDensity) de, evalPoints));
 		sb.append(estimateMISEOptHRsqIV());
 		sb.append(estimateMISEOptHSlopes());
 
 		return sb.toString();
 	}
+
 	public String estimateMISEOptH(MonteCarloModelDouble model, RQMCPointSet[] rqmcPts, int m, DensityEstimator de,
 			double[] evalPoints) {
 		StringBuffer sb = new StringBuffer("");
@@ -1703,13 +1647,13 @@ public class DEModelBandwidthBased {
 
 		return sb.toString();
 	}
-	
+
 	public String testMISERate(MonteCarloModelDouble model, RQMCPointSet[] rqmcPts, int m, DEHistogram de,
 			double[] hArray, double[] evalPoints, boolean genSinglePlots2D) throws IOException {
 		StringBuffer sb = new StringBuffer("");
 		sb.append(testMISERateFormatHead(model));
 
-		sb.append(parametersIVEstimate(model, rqmcPts, m, (DEHistogram)de, hArray, evalPoints));
+		sb.append(parametersIVEstimate(model, rqmcPts, m, (DEHistogram) de, hArray, evalPoints));
 		sb.append(parametersISBEstimate(model, rqmcPts[rqmcPts.length - 1], m, de, evalPoints));
 		sb.append(parametersMISEFormatCoefficients());
 		sb.append(estimateMISEOptH(model, rqmcPts, m, de, evalPoints));
@@ -1741,13 +1685,26 @@ public class DEModelBandwidthBased {
 
 		return sb.toString();
 	}
-	
+
 	public String testMISERate(MonteCarloModelDouble model, ArrayList<RQMCPointSet[]> rqmcPtsList, int m,
 			DensityEstimator de, double[] hArray, double[] evalPoints) throws IOException {
 		StringBuffer sb = new StringBuffer("");
 		ArrayList<PgfDataTable> pgfTblList = new ArrayList<PgfDataTable>();
 		for (RQMCPointSet[] rqmcPts : rqmcPtsList) {
 			sb.append(testMISERate(model, rqmcPts, m, de, hArray, evalPoints, false));
+			if (producePlots)
+				pgfTblList.add(genPgfDataTable(rqmcPts[0].getLabel(), rqmcPts[0].getLabel()));
+		}
+
+		return sb.toString();
+	}
+	
+	public String testMISERate(MonteCarloModelDouble model, ArrayList<RQMCPointSet[]> rqmcPtsList, int m,
+			DEHistogram de, double[] hArray, double[] evalPoints) throws IOException {
+		StringBuffer sb = new StringBuffer("");
+		ArrayList<PgfDataTable> pgfTblList = new ArrayList<PgfDataTable>();
+		for (RQMCPointSet[] rqmcPts : rqmcPtsList) {
+			sb.append(testMISERate(model, rqmcPts, m, de, hArray, evalPoints, true));
 			if (producePlots)
 				pgfTblList.add(genPgfDataTable(rqmcPts[0].getLabel(), rqmcPts[0].getLabel()));
 		}
@@ -1778,13 +1735,13 @@ public class DEModelBandwidthBased {
 		int index;
 		double[][] pgfData = new double[len][4];
 		for (int i = 0; i < logN.length; i++) {
-			for(int j = 0; j< logH.length; j++) {
+			for (int j = 0; j < logH.length; j++) {
 				index = i * logH.length + j;
-			pgfData[index][0] = logN[i];
-			pgfData[index][1] = logH[j];
-			pgfData[index][2] = logIV3D[index];
-			pgfData[index][3] = estimateLogIV(logH[j], logN[i]);
-		}
+				pgfData[index][0] = logN[i];
+				pgfData[index][1] = logH[j];
+				pgfData[index][2] = logIV3D[index];
+				pgfData[index][3] = estimateLogIV(logH[j], logN[i]);
+			}
 		}
 		return new PgfDataTable(tableName, tableLabel, tableFields3D, pgfData);
 
@@ -1906,8 +1863,7 @@ public class DEModelBandwidthBased {
 	 * data.
 	 * 
 	 * 
-	 * @param data
-	 *            the observations.
+	 * @param data the observations.
 	 * @return the mean and standard deviation.
 	 */
 
@@ -1929,10 +1885,12 @@ public class DEModelBandwidthBased {
 		result[1] = Math.sqrt(var / ((double) n - 1.0));
 		return result;
 	}
-	
+
 	/**
-	 * Computes the coefficient of determination, \f$R^2\f$, w.r.t. \a data and \a dataEstimated.
-	 * @param data the true data.
+	 * Computes the coefficient of determination, \f$R^2\f$, w.r.t. \a data and \a
+	 * dataEstimated.
+	 * 
+	 * @param data          the true data.
 	 * @param dataEstimated the estimated data.
 	 * @return the coefficient of determination.
 	 */
@@ -1952,69 +1910,132 @@ public class DEModelBandwidthBased {
 		}
 		return 1.0 - SSres / SStot;
 	}
-	
-	private static double [] genEvalPoints(int numPts, double a, double b,RandomStream stream) {
+
+	private static double[] genEvalPoints(int numPts, double a, double b, RandomStream stream) {
 		double[] evalPts = new double[numPts];
 		double invNumPts = 1.0 / ((double) numPts);
-		for(int i = 0; i <numPts; i++)
-			evalPts[i] = a + (b-a) * ( (double)i + stream.nextDouble() ) * invNumPts;
+		for (int i = 0; i < numPts; i++)
+			evalPts[i] = a + (b - a) * ((double) i + stream.nextDouble()) * invNumPts;
 		return evalPts;
 	}
-	
+
 	public static void main(String[] args) throws IOException {
-		
-		/* ****************************************
-		 * MODEL
-		 */
-		
-		int dim = 3;
-		MonteCarloModelDouble model = new SumOfStandardNormalsNormalized(dim);
-		
-		
+
+		/*
+		 * **************************************** UTIL PARAMETERS
+		 ****************************************/
+
 		RandomStream noise = new MRG32k3a();
-		
-//		int basis = 2; // Basis for the loglog plots.
-//		int numSkipReg = 0; // Number of sets skipped for the regression.
-		int mink = 15; // first log(N) considered
+		int mink = 14; // first log(N) considered
 		int i;
 		int m = 50; // Number of RQMC randomizations.
 //		int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576, 2097152 }; // 13
-		int[] N = { 32768, 65536, 131072, 262144, 524288, 1048576};
+		int[] N = { 16384,32768, 65536, 131072, 262144, 524288 };
 		int numSets = N.length; // Number of sets in the series.
-//		double[][] data = new double[m][];
+
+		/* ************************
+		 * MODEL
+		 ****************************************/
+
+		String outdir = "data/creditMetrics/KP5/";
+		String filename = "KP5.dat";
+		MonteCarloModelDouble model = new CreditMetrics(outdir + filename, noise);
+		int dim = ((CreditMetrics) model).getDimension();
+		double nomVal = ((CreditMetrics) model).nom();
+		((CreditMetrics) model).normalize(nomVal);
+		double[][] data = new double[m][];
+
+		/* ************************
+		 * DENSITY ESTIMATOR
+		 ****************************************/
 		
-		
-		
-		double a = -2.0;
-		double b = 2.0;
-		int numEvalPts = 16;
-		double[] evalPoints = genEvalPoints(numEvalPts, a,b,noise);
-		DEHistogram de = new DEHistogram(a,b,32);
+		double a = 98.5;
+		double b = 102.4;
+		int numEvalPts = 32;
+		double[] evalPoints = genEvalPoints(numEvalPts, a, b, noise);
+		DEHistogram de = new DEHistogram(a, b, 32);
 //		DEKernelDensity de = new DEKernelDensity(new NormalDist());
-		double [] hArray = {0.03125, 0.0441942, 0.0625};
+		double[] hArray = {0.24375, 0.172357, 0.121875, 0.0861786, 0.0609375, 0.0430893};
+
 		
+		/* ************************
+		 * POINT SETS
+		 ****************************************/
+		// Create a list of series of RQMC point sets.
+		ArrayList<RQMCPointSet[]> listRQMC = new ArrayList<RQMCPointSet[]>();
 		PointSet p;
 		PointSetRandomization rand;
 		RQMCPointSet[] rqmcPts;
-		
+
+		// Independent points (Monte Carlo)
+//		rqmcPts = new RQMCPointSet[numSets];
+//		for (i = 0; i < numSets; ++i) {
+//			p = new IndependentPointsCached(N[i], dim);
+//			rand = new RandomShift(noise);
+//			rqmcPts[i] = new RQMCPointSet(p, rand);
+//		}
+//		rqmcPts[0].setLabel("Independent points");
+//		listRQMC.add(rqmcPts);
+
+		// Stratification
+//		rqmcPts = new RQMCPointSet[numSets];
+//		int k;
+//		for (i = 0; i < numSets; ++i) {
+//			k = (int) Math.round(Math.pow(Num.TWOEXP[i + mink], 1.0 / (double) (dim)));
+//			p = new StratifiedUnitCube(k, dim);
+//
+//			rand = new RandomShift(noise);
+//			rqmcPts[i] = new RQMCPointSet(p, rand);
+//		}
+//		rqmcPts[0].setLabel("Stratification");
+//		listRQMC.add(rqmcPts);
+
+		// FAURE + LMS
+//		rqmcPts = new RQMCPointSet[numSets];
+//		for (i = 0; i < numSets; ++i) {
+//
+//			p = new FaureSequence(2, i + mink, 31, 31, dim);
+//
+//			rand = new LMScrambleShift(noise);
+//			rqmcPts[i] = new RQMCPointSet(p, rand);
+//		}
+//		rqmcPts[0].setLabel("Faure+LMS");
+//		listRQMC.add(rqmcPts);
+
+		// Sobol + LMS
 		rqmcPts = new RQMCPointSet[numSets];
 		for (i = 0; i < numSets; ++i) {
 
-			p = new SobolSequence(i + mink, 31,dim);
+			p = new SobolSequence(i + mink, 31, dim);
 
 			rand = new LMScrambleShift(noise);
 			rqmcPts[i] = new RQMCPointSet(p, rand);
 		}
 		rqmcPts[0].setLabel("Sobol+LMS");
-		
+		listRQMC.add(rqmcPts);
+
+		// Sobol+NUS
+//		rqmcPts = new RQMCPointSet[numSets];
+//		for (i = 0; i < numSets; ++i) {
+//			CachedPointSet cp = new CachedPointSet(new SobolSequence(i + mink, 31, dim));
+//			cp.setRandomizeParent(false);
+//			p = cp;
+//
+//			rand = new NestedUniformScrambling(noise);
+//			rqmcPts[i] = new RQMCPointSet(p, rand);
+//		}
+//		rqmcPts[0].setLabel("Sobol+NUS");
+//		listRQMC.add(rqmcPts);
+
 //		DEModelBandwidthBased modelbb = new DEModelBandwidthBased((DEKernelDensity)de,a,b);
-		DEModelBandwidthBased modelbb = new DEModelBandwidthBased(de,a,b);
-		
+		DEModelBandwidthBased modelbb = new DEModelBandwidthBased(de, a, b);
+		modelbb.setDisplayExec(true);
+		modelbb.setProducePlots(true);
+
 //		System.out.println(modelbb.testMISERate( model,  rqmcPts,  m,  (DEKernelDensity)de,
 //				 hArray,  evalPoints, true));
-		System.out.println(modelbb.testMISERate( model,  rqmcPts,  m,  de,
-				 hArray,  evalPoints, true));
+		System.out.println(modelbb.testMISERate(model, listRQMC, m, de, hArray, evalPoints));
+		
 	}
-	
-	
+
 }
