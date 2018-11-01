@@ -1,0 +1,113 @@
+\documentclass[12pt]{article}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.12}
+\usepackage{xcolor}
+\usetikzlibrary{shapes,decorations,arrows,automata,plotmarks,patterns}
+\usepackage{tikz-inet}
+\usepgfplotslibrary{groupplots}
+%
+\pgfplotscreateplotcyclelist{defaultcolorlist}{%
+  {blue!85!black,line width=0.9pt,mark=*,solid},
+  {red!85!black,line width=0.9pt,mark=*,solid},
+  {lime!85!black,line width=0.9pt,mark=*,solid},
+  {orange!85!black,line width=0.9pt,mark=*,solid},
+  {lime!60!black,line width=0.9pt,mark=triangle*,dotted},
+  {orange!90!black,line width=0.9pt,mark=diamond*,loosely dashed},
+  {black,mark=star,loosely dotted},
+  {violet!85!black,mark=o,solid},
+  {brown!85!black,mark=square,dashed},
+  {purple!85!black,mark=triangle,dotted}}
+%
+\pgfplotsset{
+  every axis/.append style={
+    font=\footnotesize,
+    width=.8\columnwidth,
+    height=.6\columnwidth,
+    %!line width=0.6pt,
+    legend style={at={(1.02,1)}, anchor={north west}},
+    cycle list name=defaultcolorlist,
+  },
+  every axis title/.style={
+    at={(0.5,1)},
+    below
+  },
+ }
+%
+\begin{document}
+
+  \begin{tikzpicture} 
+    \begin{axis}[ 
+      title ={SchloeglSystemProj-Splitsort-Sobol+LMS},
+      xlabel=log(n),
+      ylabel=log(Var),
+       grid,
+,
+      ] 
+      \addplot table[x=log(n),y=log(Var)] { 
+      log(n)  log(Var) 
+      9.0  -0.6604045305820272 
+      10.0  -2.655082120559271 
+      11.0  -4.670092512222325 
+      11.999999999999998  -5.994332380588728 
+      12.999999999999998  -7.624960298447037 
+      13.999999999999998  -8.787292758728555 
+      15.0  -10.023639642675914 
+      16.0  -11.314601847751188 
+      17.0  -13.30604840577643 
+      18.0  -14.406748984802048 
+      19.0  -15.849817897100705 
+      20.0  -16.906943288456674 
+ }; 
+      \addlegendentry{Split Sort}
+%       \label{Sobol+LMS}
+\addplot table[x=log(n),y=log(Var)] { 
+      log(n)  log(Var) 
+      9.0  -2.6322775785743175 
+      10.0  -4.231895615195448 
+      11.0  -5.109564533127924 
+      11.999999999999998  -7.271783254966824 
+      12.999999999999998  -9.14333907954682 
+      13.999999999999998  -10.400389537387722 
+      15.0  -11.146798765179485 
+      16.0  -12.490550482090677 
+      17.0  -13.899072542071822 
+      18.0  -15.125590044102625 
+      19.0  -16.877523149491875 
+      20.0  -18.449974956552666 
+};
+	\addlegendentry{Tanh}
+	\addplot table[x=log(n),y=log(Var)] { 
+      log(n)  log(Var) 
+       9.0  -2.9397709238631546 
+      10.0  -4.301408006659315 
+      11.0  -5.543099602368761 
+      11.999999999999998  -7.210341602983017 
+      12.999999999999998  -8.679940641724192 
+      13.999999999999998  -9.872001362272238 
+      15.0  -10.940970721423149 
+      16.0  -12.38401567209374 
+      17.0  -13.30361004005434 
+      18.0  -14.286438979110383 
+      19.0  -15.713587678169862 
+      20.0  -16.935358823346345 
+ }; 
+ \addlegendentry{Tanh for each step}
+           \addplot table[x=log(n),y=log(Var)] { 
+      log(n)  log(Var) 
+         9.0  -1.887001867243095 
+      10.0  -2.4630745707587245 
+      11.0  -3.5489594822205888 
+      11.999999999999998  -6.712070496464636 
+      12.999999999999998  -8.086368197890232 
+      13.999999999999998  -9.522412532233314 
+      15.0  -10.983484330040508 
+      16.0  -12.461824738592764 
+      17.0  -13.560949450669437 
+      18.0  -15.631428280928613 
+      19.0  -17.03899793966068 
+      20.0  -17.590691408739787 
+ }; 
+      \addlegendentry{Hilbert Sort}
+    \end{axis}
+  \end{tikzpicture}
+  \end{document}

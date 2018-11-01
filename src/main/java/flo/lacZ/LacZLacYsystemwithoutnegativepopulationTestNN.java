@@ -1,4 +1,4 @@
-package tau_leaping2;
+package flo.lacZ;
 
 import umontreal.ssj.markovchainrqmc.*;
 
@@ -12,6 +12,7 @@ import org.nd4j.linalg.dataset.SplitTestAndTrain;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 
+import flo.neuralNet.NeuralNet;
 import umontreal.ssj.hups.*;
 import umontreal.ssj.rng.*;
 import umontreal.ssj.stat.Tally;
@@ -304,6 +305,8 @@ public class LacZLacYsystemwithoutnegativepopulationTestNN extends ArrayOfCompar
 		//double []  X0={1, 0, 0,  0, 0, 0, 0, 0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0};
 		
 		double []  X0={100, 50, 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50};
+		for(int j = 0; j < X0.length; j++)
+			X0[j] *= 1000;
 		double[][] S={{ -1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0 ,0, 0,0,0}, 
 				{ -1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0 ,0, 0,0,0}, 
 				{ 1, -1, -1,0 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0 ,0, 0,0,0}, 
@@ -398,7 +401,7 @@ public class LacZLacYsystemwithoutnegativepopulationTestNN extends ArrayOfCompar
 		          {1},
 		          {1},
 		          {1},
-		          {1},
+		          {1,1},
 		          {1},
 		          {1,1},
 		          {1},		        	  
@@ -507,21 +510,18 @@ int [][] Product={{2},
 
 		System.out.println("\n  Done !!!");
 	}*/
-		NeuralNet testN = new NeuralNet(biology); 
+		NeuralNet testN = new NeuralNet(biology,""); 
 		boolean genData = true;
 		int numChains = 524288 * 2;
 		int logNumChains = 19 + 1;
 
 		Chrono timer = new Chrono();
 		RandomStream stream = new MRG32k3a();
-		String dataLabel = "SobolData";
-		PointSet sobol = new SobolSequence(logNumChains, 31, numSteps * 24);
-		PointSetRandomization rand = new LMScrambleShift(stream);
-		RQMCPointSet p = new RQMCPointSet(sobol, rand);
+		String dataLabel = "MCData";
 
 		if (genData) {
 			timer.init();
-			testN.genData(dataLabel, numChains, numSteps, p.iterator());
+			testN.genData(dataLabel, numChains, numSteps,stream);
 			System.out.println("\n\nTiming:\t" + timer.format());
 		}
 		/*
@@ -552,13 +552,13 @@ int [][] Product={{2},
 		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
 		for (int i = 0; i < numSteps; i++) {
 //			lRate += 1.0;
-			networkList.add(testN.genNetwork(6, lRate));
+			networkList.add(testN.genNetwork(i,6, lRate));
 		}
 		
 		/*
 		 * TRAIN NETWORK
 		 */
-		FileWriter fw = new FileWriter("/u/benabama/SSJ2/WorkspaceFinal/array-rqmcFinal/data/comparisonLacYLaZ.txt");
+		FileWriter fw = new FileWriter("comparisonLacYLaZ.txt");
 		StringBuffer sb = new StringBuffer("");
 		String str;
 
@@ -567,8 +567,8 @@ int [][] Product={{2},
 		DataNormalization normalizer;
 		MultiLayerNetwork network;
 		SplitTestAndTrain testAndTrain;
-		NeuralNet NN = new NeuralNet(biology,"/u/benabama/SSJ2/WorkspaceFinal/array-rqmcFinal/data/LacYLaZ/");
-		for(int i = 1; i < numSteps; i ++) {
+		NeuralNet NN = new NeuralNet(biology,"");
+		for(int i = 0; i < numSteps; i ++) {
 			
 			// GET DATA SET, SPLIT DATA, NORMALIZE
 			dataAll = dataAllList.get(i);
@@ -617,7 +617,7 @@ int [][] Product={{2},
 	
 		
 		String [] fileNames = new String[numSteps];
-		String base = "/u/benabama/SSJ2/WorkspaceFinal/array-rqmcFinal/data/LacYLaZ/";
+		String base = "";
 		for(int j = 0; j < numSteps; j++) {
 			fileNames[j] = base + "LacYLaZ_Step" + j + ".zip";
 		}
@@ -630,12 +630,12 @@ int [][] Product={{2},
 		// sort02 = new NeuralNetworkSort(2);
 		test.testMethods(biology, 1, numSteps, m, numSets, "NeuralNetwork");
 		
-		/* 
+		 
 		 System.out.println("\n *************  SPLIT SORT  *************** \n");
 		 sort = new SplitSort (23);		
 		 test.testMethods (biology, sort, 15, T, m, numSets);
 
-		 	System.out.println("\n *************  BATCH SORT  *************** \n");
+	/*	 	System.out.println("\n *************  BATCH SORT  *************** \n");
 		sort = new BatchSort<LacZLacYwithoutnegativepopulationComparable>(batchExp);    // Sort in 3 dim.
 		test.testMethods(biology, sort, 15, T, m, numSets);
 		System.out.println("\n **********  HILBERT BATCH SORT  ***********\n");

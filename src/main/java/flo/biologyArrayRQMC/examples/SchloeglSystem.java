@@ -1,5 +1,7 @@
 package flo.biologyArrayRQMC.examples;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
 import flo.neuralNet.NeuralNet;
@@ -22,15 +24,14 @@ public class SchloeglSystem extends ChemicalReactionNetwork {
 	@Override
 	public int compareTo(MarkovChainComparable m, int i) {
 		if (!(m instanceof SchloeglSystem)) {
-			throw new IllegalArgumentException(
-					"Can't compare an SchloeglSystem with other types of Markov chains.");
+			throw new IllegalArgumentException("Can't compare an SchloeglSystem with other types of Markov chains.");
 		}
 		double mx;
 
 		mx = ((SchloeglSystem) m).X[i];
 		return (X[i] > mx ? 1 : (X[i] < mx ? -1 : 0));
 	}
-	
+
 	public String toString() {
 		StringBuffer sb = new StringBuffer("----------------------------------------------\n");
 		sb.append(" SchloeglSystem:\n");
@@ -57,58 +58,82 @@ public class SchloeglSystem extends ChemicalReactionNetwork {
 		return X[0];
 	}
 	
-	public static  void main(String[] args) throws IOException, InterruptedException {
+	public void genDataPoly(String dataLabel, int n, int numSteps, RandomStream stream) throws IOException {
+		double[][][] states = new double[n][][];
+		double[] performance = new double[n];
+		simulRunsWithSubstreams(n, numSteps, stream, states, performance);
+		StringBuffer sb;
+		FileWriter fw;
+		File file;
+		for (int step = 0; step < numSteps; step++) {
+			sb = new StringBuffer("{");
+			file = new File(dataLabel + "_Step_" + step + "poly.txt");
+			file.getParentFile().mkdirs();
+			fw = new FileWriter(file);
+
+			for (int i = 0; i < n; i++) {
+				sb.append("{");
+				for (int j = 0; j < getStateDimension(); j++)
+					sb.append(states[i][step][j] + ",");
+				
+				sb.append(performance[i] + "},\n");
+			}
+			sb.deleteCharAt(sb.lastIndexOf(","));
+			sb.append("}");
+			fw.write(sb.toString());
+			fw.close();
+			System.out.println("*******************************************");
+			System.out.println(" STEP " + step);
+			System.out.println("*******************************************");
+			System.out.println(sb.toString());
+		}
+		}
+
+	public static void main(String[] args) throws IOException, InterruptedException {
 		ChemicalReactionNetwork model;
 
-
-		double[]c = {3E-7, 1E-4, 1E-3,3.5};
-		double[] x0 = {250.0, 1E5, 2E5};
-		double T = 4;
+		double[] c = { 3E-7, 1E-4, 1E-3, 3.5 };
+		double[] x0 = { 250.0, 1E5, 2E5 };
+		double T = 4.2;
 		double tau = 0.2;
 
-		
-		
-		 model = new SchloeglSystem(c,x0,tau,T);;
+		model = new SchloeglSystem(c, x0, tau, T);
+		;
 		String dataFolder = "data/SchloeglSystem/";
 		model.init();
-		
-NeuralNet test = new NeuralNet(model,dataFolder); // This is the array of comparable chains.
-		
+
+		NeuralNet test = new NeuralNet(model, dataFolder); // This is the array of comparable chains.
+
 		System.out.println(model.toString());
 
-		
-		
-		int numChains = 524288 *2;
-//		int numChains = 100;
+		int numChains = 524288 * 2;
+		// int numChains = 100;
 		int logNumChains = 19 + 1;
 
-		
 		Chrono timer = new Chrono();
-		RandomStream stream = new MRG32k3a(); 
-		
-		
+		RandomStream stream = new MRG32k3a();
 
 		/*
 		 ***********************************************************************
 		 ************* BUILD DATA***********************************************
 		 ***********************************************************************
 		 */
-//		boolean genData = true;
+		// boolean genData = true;
 
-//		String dataLabel = "SobData";
+		// String dataLabel = "SobData";
 		String dataLabel = "MCData";
 
-//		PointSet sobol = new SobolSequence(logNumChains, 31, model.numSteps * model.getK());
-//		PointSetRandomization rand = new LMScrambleShift(stream);
-//		RQMCPointSet p = new RQMCPointSet(sobol, rand);
+		// PointSet sobol = new SobolSequence(logNumChains, 31, model.numSteps *
+		// model.getK());
+		// PointSetRandomization rand = new LMScrambleShift(stream);
+		// RQMCPointSet p = new RQMCPointSet(sobol, rand);
 
-//		if (genData) {
-			timer.init();
-//			test.genData(dataLabel, numChains, model.numSteps, p.iterator());
-			test.genData(dataLabel, numChains, model.numSteps, stream);
-			System.out.println("\n\nTiming:\t" + timer.format());
-//		}
+		// if (genData) {
+		timer.init();
+		// test.genData(dataLabel, numChains, model.numSteps, p.iterator());
+		test.genData(dataLabel, numChains, model.numSteps, stream);
+		System.out.println("\n\nTiming:\t" + timer.format());
+		// }
 	}
-	
 
 }

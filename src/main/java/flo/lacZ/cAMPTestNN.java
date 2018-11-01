@@ -66,30 +66,30 @@ public class cAMPTestNN extends ArrayOfComparableChainsNN<cAMPComparable> {
 		    
 		 
 		  // Independent points (Monte Carlo) 
-		for (s = 0; s < numSets; ++s) {
-		  pointSets[s] = new IndependentPointsCached(N[s], baseChain.N+baseChain.K); }
-		  System.out.println (testVarianceRateFormat (pointSets, randShift, 0, 
-					 numSteps, m, varMC, "cAMP+Independent points"+sor, "Independent points")); 
+//		for (s = 0; s < numSets; ++s) {
+//		  pointSets[s] = new IndependentPointsCached(N[s], baseChain.N+baseChain.K); }
+//		  System.out.println (testVarianceRateFormat (pointSets, randShift, 0, 
+//					 numSteps, m, varMC, "cAMP+Independent points"+sor, "Independent points")); 
 		  
 	
 			
 		// Stratification
-		int k;   
-	    for (s = 0; s < numSets; ++s) {
-			k = (int) Math.round(Math.pow(Num.TWOEXP[s + 9],
-				 1.0 / (double) (sortCoordPts + baseChain.K)));
-			pointSets[s] = new StratifiedUnitCube (k, sortCoordPts +baseChain.K);
-			// Here the points must be sorted at each step, always.
-			// In the case of Hilbert map, the points should be 2d and sorted based on one coordinate,
-			// whereas the states are 2d and sorted by the Hilbert sort.
-	    }
-		System.out.println (testVarianceRateFormat (pointSets, randShift, sortCoordPts, 
-				 numSteps, m, varMC, "cAMP+Stratification"+sor, "Stratification")); 
+//		int k;   
+//	    for (s = 0; s < numSets; ++s) {
+//			k = (int) Math.round(Math.pow(Num.TWOEXP[s + 9],
+//				 1.0 / (double) (sortCoordPts + baseChain.K)));
+//			pointSets[s] = new StratifiedUnitCube (k, sortCoordPts +baseChain.K);
+//			// Here the points must be sorted at each step, always.
+//			// In the case of Hilbert map, the points should be 2d and sorted based on one coordinate,
+//			// whereas the states are 2d and sorted by the Hilbert sort.
+//	    }
+//		System.out.println (testVarianceRateFormat (pointSets, randShift, sortCoordPts, 
+//				 numSteps, m, varMC, "cAMP+Stratification"+sor, "Stratification")); 
 
 
 		// Sobol
 		for (s = 0; s < numSets; ++s) {
-		
+			pointSets[s] =  (new SobolSequence(s + 9, 31, 1+baseChain.K));
 			
 		}
 		// When the point set is sorted only one, it must be sorted before calling this function.
@@ -98,52 +98,52 @@ public class cAMPTestNN extends ArrayOfComparableChainsNN<cAMPComparable> {
 
 		
 		// Sobol + LMS+  Baker
-		for (s = 0; s < numSets; ++s) {
-			
-			pointSets[s] = new BakerTransformedPointSet (new SobolSequence(s + 9,
-					31, 1+baseChain.K));
-		
-		}
-	
-		System.out.println (testVarianceRateFormat (pointSets, randDigital, 0, 
-				 numSteps, m, varMC, "cAMP+Sobol+LMS+Baker"+sor, "Sobol + LMS+ Baker")); 
+//		for (s = 0; s < numSets; ++s) {
+//			
+//			pointSets[s] = new BakerTransformedPointSet (new SobolSequence(s + 9,
+//					31, 1+baseChain.K));
+//		
+//		}
+//	
+//		System.out.println (testVarianceRateFormat (pointSets, randDigital, 0, 
+//				 numSteps, m, varMC, "cAMP+Sobol+LMS+Baker"+sor, "Sobol + LMS+ Baker")); 
 		
 		
 		// Sobol NUS
-		for (s = 0; s < numSets; ++s) {
-			
-				CachedPointSet p = new CachedPointSet(new SobolSequence(s + 9, 31, 1+baseChain.K));
-				p.setRandomizeParent(false);
-				pointSets[s] = p;
-			
-		}
-		// When the point set is sorted only one, it must be sorted before calling this function.
-		System.out.println (testVarianceRateFormat (pointSets, randNUS, 0,
-			 numSteps, m, varMC, "cAMP+Sobol+NUS"+sor, "Sobol + NUS\n"));
+//		for (s = 0; s < numSets; ++s) {
+//			
+//				CachedPointSet p = new CachedPointSet(new SobolSequence(s + 9, 31, 1+baseChain.K));
+//				p.setRandomizeParent(false);
+//				pointSets[s] = p;
+//			
+//		}
+//		// When the point set is sorted only one, it must be sorted before calling this function.
+//		System.out.println (testVarianceRateFormat (pointSets, randNUS, 0,
+//			 numSteps, m, varMC, "cAMP+Sobol+NUS"+sor, "Sobol + NUS\n"));
 		
 		//Korobov 
 		
-		 for (s = 0; s < numSets; ++s){
-			
-				pointSets[s] = new KorobovLattice(N[s],a[s],1+baseChain.K, 1);
-			
-		 }
-		 
-		  System.out.println (testVarianceRateFormat (pointSets, randShift, 0,  
-					 numSteps, m, varMC, "cAMP+Korobov"+sor, 
-					 //  "Asian-var-korobov-Baker", 
-					 "Korobov "));
+//		 for (s = 0; s < numSets; ++s){
+//			
+//				pointSets[s] = new KorobovLattice(N[s],a[s],1+baseChain.K, 1);
+//			
+//		 }
+//		 
+//		  System.out.println (testVarianceRateFormat (pointSets, randShift, 0,  
+//					 numSteps, m, varMC, "cAMP+Korobov"+sor, 
+//					 //  "Asian-var-korobov-Baker", 
+//					 "Korobov "));
 		// Korobov lattice
-		for (s = 0; s < numSets; ++s) {
-			
-				pointSets[s] = new BakerTransformedPointSet (new KorobovLattice
-						(N[s], a[s], 1+baseChain.K, 1));
-			
-		}
-	    System.out.println (testVarianceRateFormat (pointSets, randShift, 0,  
-				 numSteps, m, varMC, "cAMP+Korobov+Baker"+sor, 
-				 //  "Asian-var-korobov-Baker", 
-				 "Korobov + Baker"));
+//		for (s = 0; s < numSets; ++s) {
+//			
+//				pointSets[s] = new BakerTransformedPointSet (new KorobovLattice
+//						(N[s], a[s], 1+baseChain.K, 1));
+//			
+//		}
+//	    System.out.println (testVarianceRateFormat (pointSets, randShift, 0,  
+//				 numSteps, m, varMC, "cAMP+Korobov+Baker"+sor, 
+//				 //  "Asian-var-korobov-Baker", 
+//				 "Korobov + Baker"));
 		}
 	
 	public static void usage() {
@@ -168,7 +168,7 @@ public class cAMPTestNN extends ArrayOfComparableChainsNN<cAMPComparable> {
 		
 		
 		
-		double []  X0={30, 30, 10, 10, 10, 10};
+		double []  X0={33030, 30000, 1100, 1100, 1100, 1100};
 		int[][] Reactant={{0,1},
 				          {2},
 				          {2,1},
@@ -309,7 +309,7 @@ public class cAMPTestNN extends ArrayOfComparableChainsNN<cAMPComparable> {
 		sort01 = new HilbertCurveSort(1, 12);
 		test.testMethods (biology, sort01, 1, T, m, numSets, "Hilbert");*/
 		
-		NeuralNet testN = new NeuralNet(biology,"data/cAMP/"); 
+		NeuralNet testN = new NeuralNet(biology,""); 
 		boolean genData = true;
 		int numChains = 524288 * 2;
 		int logNumChains = 19 + 1;
@@ -360,7 +360,7 @@ public class cAMPTestNN extends ArrayOfComparableChainsNN<cAMPComparable> {
 		/*
 		 * TRAIN NETWORK
 		 */
-		FileWriter fw = new FileWriter("./data/comparison" +dataLabel+ ".txt");
+/*		FileWriter fw = new FileWriter("./data/comparison" +dataLabel+ ".txt");
 		StringBuffer sb = new StringBuffer("");
 		String str;
 
@@ -369,7 +369,7 @@ public class cAMPTestNN extends ArrayOfComparableChainsNN<cAMPComparable> {
 		DataNormalization normalizer;
 		MultiLayerNetwork network;
 		SplitTestAndTrain testAndTrain;
-		NeuralNet NN = new NeuralNet(biology,"data/cAMP/");
+		NeuralNet NN = new NeuralNet(biology,"");
 		for(int i = 0; i < numSteps; i ++) {
 			
 			// GET DATA SET, SPLIT DATA, NORMALIZE
@@ -415,11 +415,12 @@ public class cAMPTestNN extends ArrayOfComparableChainsNN<cAMPComparable> {
 		fw.write(sb.toString());
 		fw.flush();
 		fw.close();
-
+*/
 	
 		
 		String [] fileNames = new String[numSteps];
-		String base = "data/cAMP/";
+		String base = "";
+//		 base += "data/cAMP/";
 		for(int j = 0; j < numSteps; j++) {
 			fileNames[j] = base + "cAMP_Step" + j + ".zip";
 		}
@@ -430,6 +431,6 @@ public class cAMPTestNN extends ArrayOfComparableChainsNN<cAMPComparable> {
 //		sort02 = new NeuralNetworkSort(2);
 		// test.testMethods (biology, sort02, 1, T, m, numSets, "NeuralNetworkSort");
 		// sort02 = new NeuralNetworkSort(2);
-		test.testMethods(biology, 1, numSteps, m, numSets, "NeuralNetwork");
+		test.testMethods(biology, 0, numSteps, m, numSets, "NeuralNetwork");
 	}
 }

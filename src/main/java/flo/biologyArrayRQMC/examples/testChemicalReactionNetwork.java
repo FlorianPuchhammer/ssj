@@ -16,6 +16,7 @@ import umontreal.ssj.markovchainrqmc.MarkovChainComparable;
 import umontreal.ssj.rng.MRG32k3a;
 import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.stat.Tally;
+import umontreal.ssj.util.sort.HilbertCurveSort;
 import umontreal.ssj.util.sort.MultiDimSort;
 import umontreal.ssj.util.sort.SplitSort;
 
@@ -37,21 +38,31 @@ public class testChemicalReactionNetwork {
 		//
 		// System.out.println(model.toString());
 
+//		double[] c = { 3E-7, 1E-4, 1E-3, 3.5 };
+//		double[] x0 = { 250.0, 1E5, 2E5 };
+//		double T = 4;
+//		double tau = 0.2;
+//
+//		model = new SchloeglSystem(c, x0, tau, T);
+//		String modelDescription = "SchloeglSystem";
+		
 		double[] c = { 3E-7, 1E-4, 1E-3, 3.5 };
-		double[] x0 = { 250.0, 1E5, 2E5 };
+		double[] x0 = { 250.0, 1E5 };
+		double N0 = 2E5 + 250.0 + 1E5;
 		double T = 4;
 		double tau = 0.2;
 
-		model = new SchloeglSystem(c, x0, tau, T);
-		String modelDescription = "SchloeglSystem";
+		model = new SchloeglSystemProjected(c, x0, tau, T,N0);
+		String modelDescription = "SchloeglSystemProj";
 		String dataLabel = "MCData";
 
 		ArrayOfComparableChains chain = new ArrayOfComparableChains(model);
 
-		// int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144,
-		// 524288, 1048576 }; // n from 8
+		 int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144,
+		 524288, 1048576 }; // n from 8
 		// to 20.
-		int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072 }; // n from 8
+//		int[] N = { 512, 1024, 2048,4096, 8192, 16384, 32768, 65536, 131072 }; // n from 8
+		
 
 		int[] logN = { 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
 		int mink = 9;
@@ -59,14 +70,17 @@ public class testChemicalReactionNetwork {
 
 		ArrayList<Integer> sortCoordPtsList = new ArrayList<Integer>();
 		ArrayList<MultiDimSort> sortList = new ArrayList<MultiDimSort>();
-		sortList.add(new SchloeglSystemSort());
-		sortCoordPtsList.add(1);
-		sortList.add(new SplitSort<MarkovChainComparable>(3));
-		sortCoordPtsList.add(3);
+//		sortList.add(new SchloeglSystemProjectedSort(276.6022004917788,-320.57268446165193, -0.0037027507157621027,-0.000013611715811696467,2.3474355837984646));
+//		sortCoordPtsList.add(1);
+//		sortList.add(new SplitSort<MarkovChainComparable>(2));
+//		sortCoordPtsList.add(2);
+		sortList.add(new HilbertCurveSort(2, 12));
+		sortCoordPtsList.add(2);
+		
 		// MultiDimSort sortPointSet = new SchloeglSystemSort(); //set here if
 		// sortCoordPts>1
 
-		int m = 80;
+		int m = 50;
 
 		StringBuffer sb = new StringBuffer("");
 		String str;
