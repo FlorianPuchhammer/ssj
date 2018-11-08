@@ -1,0 +1,148 @@
+\documentclass[12pt]{article}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.12}
+\usepackage{xcolor}
+\usetikzlibrary{shapes,decorations,arrows,automata,plotmarks,patterns}
+\usepackage{tikz-inet}
+\usepgfplotslibrary{groupplots}
+%
+\pgfplotscreateplotcyclelist{defaultcolorlist}{%
+  {blue!85!black,line width=0.9pt,mark=*,solid},
+%    {blue!85!black,line width=0.9pt,mark=*,dashed},
+  {red!85!black,line width=0.9pt,mark=*,solid},
+  {lime!85!black,line width=0.9pt,mark=*,solid},
+  {orange!85!black,line width=0.9pt,mark=*,solid},
+  {black!85!black,line width=0.9pt,mark=*,solid},
+  {red!85!black,line width=0.9pt,mark=square*,dashed},
+  {lime!60!black,line width=0.9pt,mark=triangle*,dotted},
+  {orange!90!black,line width=0.9pt,mark=diamond*,loosely dashed},
+  {black,mark=star,loosely dotted},
+  {violet!85!black,mark=o,solid},
+  {brown!85!black,mark=square,dashed},
+  {purple!85!black,mark=triangle,dotted}}
+%
+\pgfplotsset{
+  every axis/.append style={
+    font=\footnotesize,
+    width=.8\columnwidth,
+    height=.6\columnwidth,
+    %!line width=0.6pt,
+    legend style={at={(1.02,1)}, anchor={north west}},
+    cycle list name=defaultcolorlist,
+  },
+  every axis title/.style={
+    at={(0.5,1)},
+    below
+  },
+ }
+%
+\begin{document}
+
+  \begin{tikzpicture} 
+    \begin{axis}[ 
+      title ={PKA - Summary},
+      xlabel=log(n),
+      ylabel=log(Var),
+       grid,
+,
+      ] 
+      \addplot table[x=log(n),y=log(Var)] { 
+      log(n)  log(Var) 
+      9.0  -8.415344227258146 
+      10.0  -9.441226329204657 
+      11.0  -11.008024436614068 
+      11.999999999999998  -12.158643611806857 
+      12.999999999999998  -13.042394424200207 
+      13.999999999999998  -14.565716181027959 
+      15.0  -14.634097405934245 
+      16.0  -15.764518236339574 
+      17.0  -17.038436796803015 
+       18.0  -18.29434290586341 
+      19.0  -19.73295534976441 
+      20.0  -20.228159041143854 
+ }; 
+      \addlegendentry{Linear - last step}
+%       \label{Sobol+LMS}
+%   
+\addplot table[x=log(n),y=log(Var)] { 
+      log(n)  log(Var) 
+      9.0  -8.68585943938197 
+      10.0  -9.892261018332512 
+      11.0  -10.800693815323637 
+      11.999999999999998  -11.843909771484926 
+      12.999999999999998  -13.536770335569077 
+      13.999999999999998  -14.086420185831555 
+      15.0  -14.733135648134818 
+      16.0  -16.15705408393065 
+      17.0  -17.241239692561447 
+      18.0  -18.051534891900605 
+      19.0  -19.163293612198974 
+      20.0  -20.501522213818276
+ }; 
+      \addlegendentry{Linear}
+%       
+%       \addplot table[x=log(n),y=log(Var)] { 
+%       log(n)  log(Var) 
+%       9.0  -8.415344227258146 
+%       10.0  -9.441226329204657 
+%       11.0  -11.008024436614068 
+%       11.999999999999998  -12.158643611806857 
+%       12.999999999999998  -13.042394424200207 
+%       13.999999999999998  -14.565716181027959 
+%       15.0  -14.634097405934245 
+%       16.0  -15.764518236339574 
+%       17.0  -17.038436796803015 
+% 18.0  -18.664216725643534 
+%       19.0  -19.439311787120378 
+%       20.0  -20.6089248686017 
+%  }; 
+%       \addlegendentry{Linear - last step + Schlogl ab 18}
+	 \addplot table[x=log(n),y=log(Var)] { 
+      log(n)  log(Var) 
+      9.0  -8.71580147268825 
+      10.0  -9.67218388446955 
+      11.0  -11.0683410607229 
+      11.999999999999998  -12.287318424593288 
+      12.999999999999998  -13.83669125363912 
+      13.999999999999998  -14.402360279907743 
+      15.0  -15.147276314843348 
+      16.0  -17.06953341576045 
+      17.0  -17.22722535635822 
+       18.0  -18.236381814787485 
+      19.0  -19.28028585602355 
+      20.0  -20.562083583081034 
+ }; 
+      \addlegendentry{Split Sort}
+        \addplot table[x=log(n),y=log(Var)] { 
+      log(n)  log(Var) 
+      9.0  -8.482029387238684 
+      10.0  -9.867123137614566 
+      11.0  -11.419443766388932 
+      11.999999999999998  -11.617785252611586 
+      12.999999999999998  -13.169252875216172 
+      13.999999999999998  -14.188913044964755 
+      15.0  -14.932226730957455 
+      16.0  -16.088165511909228 
+      17.0  -17.741868154167282 
+      18.0  -18.177190870754686 
+      19.0  -19.322443016168485 
+      20.0  -19.788765923486302 
+};
+	\addlegendentry{NN - linear, 3 layer}
+% 	
+	 \addplot table[x=log(n),y=log(Var)] { 
+      log(n)  log(Var) 
+      9.0  -8.601714286663757 
+      10.0  -10.473501946386817 
+      11.0  -10.807703698076248 
+      11.999999999999998  -12.309922816126935 
+      12.999999999999998  -12.984483857601784 
+      13.999999999999998  -14.166725637023696 
+      15.0  -15.027130673350314 
+      16.0  -16.062390480425144 
+      17.0  -17.120927324932435 
+ }; 
+      \addlegendentry{Conditional}
+    \end{axis}
+  \end{tikzpicture}
+  \end{document}

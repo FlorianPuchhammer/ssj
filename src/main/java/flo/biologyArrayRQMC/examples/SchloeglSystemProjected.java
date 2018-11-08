@@ -11,9 +11,11 @@ import umontreal.ssj.probdist.PoissonDist;
 import umontreal.ssj.rng.MRG32k3a;
 import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.util.Chrono;
+
 import umontreal.ssj.util.sort.MultiDim01;
 
 public class SchloeglSystemProjected extends ChemicalReactionNetwork implements MultiDim01 {
+
 
 	double N0; //Total number of molecules
 		public SchloeglSystemProjected(double[] c, double[] X0, double tau, double T, double N0) {
@@ -96,6 +98,7 @@ public class SchloeglSystemProjected extends ChemicalReactionNetwork implements 
 				System.out.println(sb.toString());
 			}
 			}
+
 		
 
 		@Override
@@ -110,17 +113,17 @@ public class SchloeglSystemProjected extends ChemicalReactionNetwork implements 
 		public double getCoordinate(int j) {
 			double zvalue;
 			double x02 = N0 - X0[0]-X0[1];
-//			switch (j) {
-//	        case 0:   
-//	        	zvalue = (X[j]- X0[j]-0.5*c[0]*X0[j]*(X0[j]-1)*X0[j+1]*step+c[1]*step /6.0*X0[j]*(X0[j]-1)*(X0[j]-2)-c[2]*step*x02+c[3]*step*X0[j])/(Math.sqrt(0.5*c[0]*X0[j]*(X0[j]-1)*X0[j+1]*step+c[1]*step /6.0*X0[j]*(X0[j]-1)*(X0[j]-2)+c[2]*step*x02+c[3]*step*X0[j]));
-//	            return NormalDist.cdf01 (zvalue);
-//	        case 1:   
-//	        	zvalue = (X[j]- X0[j]+0.5*c[0]*X0[j-1]*(X0[j-1]-1)*X0[j]*step-c[1]*step /6.0*X0[j-1]*(X0[j-1]-1)*(X0[j-1]-2))/(Math.sqrt(0.5*c[0]*X0[j]*(X0[j]-1)*x02*step+c[1]*step /6.0*X0[j]*(X0[j]-1)*(X0[j]-2)));
-//	            return NormalDist.cdf01 (zvalue);
-//	        default:
-//	            throw new IllegalArgumentException("Invalid state index");
-//	    	}
-			return NormalDist.cdf01(X[j]);
+			switch (j) {
+	        case 0:   
+	        	zvalue = (X[j]- X0[j]-0.5*c[0]*X0[j]*(X0[j]-1)*X0[j+1]*step+c[1]*step /6.0*X0[j]*(X0[j]-1)*(X0[j]-2)-c[2]*step*x02+c[3]*step*X0[j])/(Math.sqrt(0.5*c[0]*X0[j]*(X0[j]-1)*X0[j+1]*step+c[1]*step /6.0*X0[j]*(X0[j]-1)*(X0[j]-2)+c[2]*step*x02+c[3]*step*X0[j]));
+	            return NormalDist.cdf01 (zvalue);
+	        case 1:   
+	        	zvalue = (X[j]- X0[j]+0.5*c[0]*X0[j-1]*(X0[j-1]-1)*X0[j]*step-c[1]*step /6.0*X0[j-1]*(X0[j-1]-1)*(X0[j-1]-2))/(Math.sqrt(0.5*c[0]*X0[j]*(X0[j]-1)*x02*step+c[1]*step /6.0*X0[j]*(X0[j]-1)*(X0[j]-2)));
+	            return NormalDist.cdf01 (zvalue);
+	        default:
+	            throw new IllegalArgumentException("Invalid state index");
+	    	}
+//			return NormalDist.cdf01(X[j]);
 		}
 
 		public static void main(String[] args) throws IOException, InterruptedException {

@@ -42,28 +42,44 @@ public class testChemicalReactionNetworkNN {
 //
 //		System.out.println(model.toString());
 		
-		double[]c = {3E-7, 1E-4, 1E-3,3.5};
-//		double[] x0 = {250.0, 1E5, 2E5};
-		double[] x0 = {250.0,1E5};
-		double N0 = 2E5 + 250.0 + 1E5;
-		double T = 4;
-		double tau = 0.2;
+//		double[]c = {3E-7, 1E-4, 1E-3,3.5};
+////		double[] x0 = {250.0, 1E5, 2E5};
+//		double[] x0 = {250.0,1E5};
+//		double N0 = 2E5 + 250.0 + 1E5;
+//		double T = 4;
+//		double tau = 0.2;
+//
+//		
+//		
+//		 model = new SchloeglSystemProjected(c,x0,tau,T,N0);
+//		String modelDescription = "SchloeglSystemProj";
+		
+		double[]c = {8.696E-5, 0.02, 1.154E-4,0.02,0.016,0.0017};//Nano: 1E-9
+		double[] x0 = {33000.0,33030.0, 1100.0, 1100.0, 1100.0, 1100.0};
+		double T = 0.00005;
+		double tau = T/20.0;
 
 		
 		
-		 model = new SchloeglSystemProjected(c,x0,tau,T,N0);
-		String modelDescription = "SchloeglSystemProj";
+		 model = new PKA(c,x0,tau,T);
+		 System.out.println(model.toString());
+		 String modelDescription = "PKA";
+		
 		String dataLabel = "MCData";
 
 		String[] fileNames = new String[model.numSteps];
 		for(int s = 0; s < fileNames.length; s++) {
+
+//			fileNames[s] += dataLabel+ "Step" + s + ".zip";
+
 			fileNames[s] = "data/" + modelDescription + "/" + dataLabel+ "Step" + s + ".zip";
+
 			}
 		ArrayOfComparableChainsNN chain = new ArrayOfComparableChainsNN(model, fileNames);
 
-//		int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576 }; // n from 8
+		int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576 }; // n from 8
 		// to 20.
-		int[] N = { 512, 1024, 2048, 4096, 8192, 16384,32768, 65536, 131072}; // n from 8
+//		int[] N = { 512, 1024, 2048, 4096, 8192, 16384,32768, 65536, 131072}; // n from 8
 
 		int[] logN = { 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
 		int mink = 9;

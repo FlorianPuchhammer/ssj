@@ -40,9 +40,9 @@ import org.nd4j.linalg.schedule.ScheduleType;
 import flo.biologyArrayRQMC.AsianOptionComparable2;
 import flo.biologyArrayRQMC.AsianOptionTestFlo;
 import flo.biologyArrayRQMC.examples.ChemicalReactionNetwork;
+import flo.biologyArrayRQMC.examples.PKA;
 import flo.biologyArrayRQMC.examples.ReversibleIsomerizationComparable;
 import flo.biologyArrayRQMC.examples.SchloeglSystem;
-import flo.biologyArrayRQMC.examples.SchloeglSystemProjected;
 import umontreal.ssj.hups.LMScrambleShift;
 import umontreal.ssj.hups.PointSet;
 import umontreal.ssj.hups.PointSetRandomization;
@@ -455,12 +455,12 @@ public class NeuralNet {
 	 * @param lRate
 	 * @return
 	 */
-	public MultiLayerNetwork genNetwork2( ) {
+	public MultiLayerNetwork genNetwork2(int step, int numSteps, double lRate) {
 		MultiLayerConfiguration conf = null;
 		int seed = 123;
-		WeightInit weightInit = WeightInit.XAVIER;
+		WeightInit weightInit = WeightInit.NORMAL;
 		Activation activation1 = Activation.IDENTITY;
-		Activation activation2 = Activation.TANH;
+		Activation activation2 = Activation.IDENTITY;
 		LossFunction lossFunction = LossFunction.MSE;
 		// AdaMax updater = new AdaMax(lRate);
 		// AdaGrad updater = new AdaGrad(lRate);
@@ -479,8 +479,9 @@ public class NeuralNet {
 		conf = new NeuralNetConfiguration.Builder().seed(seed).optimizationAlgo(optAlgo).weightInit(weightInit)
 				.updater(updater).list()
 				.layer(0, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build())
-				.layer(1, new DenseLayer.Builder().nIn(stateDim).nOut(1).activation(activation2).build())
-				.layer(2, new OutputLayer.Builder().nIn(1).nOut(1).activation(activation1)
+				.layer(1, new DenseLayer.Builder().nIn(stateDim).nOut(stateDim).activation(activation1).build())
+				.layer(2, new DenseLayer.Builder().nIn(stateDim).nOut(1).activation(activation2).build())
+				.layer(3, new OutputLayer.Builder().nIn(1).nOut(1).activation(activation1)
 						.lossFunction(lossFunction).build())
 				.pretrain(false).backprop(true).build();
 		return new MultiLayerNetwork(conf);
@@ -796,15 +797,15 @@ public class NeuralNet {
 //		String dataFolder = "data/SchloeglSystem/";
 //		model.init();
 		
-		double[]c = {3E-7, 1E-4, 1E-3,3.5};
-		double[] x0 = {250.0, 1E5};
-		double T = 4;
-		double tau = 0.2;
+		double[]c = {8.696E-5, 0.02, 1.154E-4,0.02,0.016,0.0017};//Nano: 1E-9
+		double[] x0 = {33000.0,33030.0, 1100.0, 1100.0, 1100.0, 1100.0};
+		double T = 0.00005;
+		double tau = T/20.0;
 
 		
-		double N0= 250.0+1E5 + 2E5;
-		 model = new SchloeglSystemProjected(c,x0,tau,T,N0);
-		String dataFolder = "data/SchloeglSystemProj/";
+		
+		 model = new PKA(c,x0,tau,T);
+		String dataFolder = "data/PKA/";
 		model.init();
 		
 		NeuralNet test = new NeuralNet(model,dataFolder); // This is the array of comparable chains.
@@ -865,14 +866,10 @@ public class NeuralNet {
 		 * GENERATE NETWORKS
 		 */
 		double lRate = 0.1;
-		
-		
-		
-		
 		ArrayList<MultiLayerNetwork> networkList = new ArrayList<MultiLayerNetwork>();
 		for (int i = 0; i < model.numSteps; i++) {
 //			lRate += 1.0;
-			networkList.add(test.genNetwork2());
+			networkList.add(test.genNetwork2(model.numSteps-2,model.numSteps, lRate));
 		}
 		
 		/*
@@ -912,7 +909,7 @@ public class NeuralNet {
 			sb.append(str);
 			System.out.println(str);
 
-			NeuralNet.trainNetwork(network, trainingData, numEpochs, batchSize, (numChains / batchSize), 1000);
+			NeuralNet.trainNetwork(network, trainingData, numEpochs, batchSize, (numChains / batchSize) *2, 1000);
 			
 			// TEST NETWORK
 			str = NeuralNet.testNetwork(network, testData, batchSize);

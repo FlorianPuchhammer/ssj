@@ -69,7 +69,7 @@ public abstract class ChemicalReactionNetwork extends MarkovChainComparable impl
 		 
 	}
 	// product of a vector by a constant 
-	private static double[]  multvc( double [] v1, double c){
+	static double[]  multvc( double [] v1, double c){
 		double[] resu = new double[v1.length];
 		 for (int i=0; i<v1.length; i++)		  
 		      resu[i]= v1[i]*c;		     		   		  
@@ -78,7 +78,7 @@ public abstract class ChemicalReactionNetwork extends MarkovChainComparable impl
 		 
 	}
 	// sum of two vectors
-	private static double [] sumvv( double [] v1, double[] v2){
+	static double [] sumvv( double [] v1, double[] v2){
 		double[] v = new double [v1.length];
 	for(int i = 0; i < v1.length; i++) {
 		  v[i] = v1[i] + v2[i];
@@ -86,7 +86,7 @@ public abstract class ChemicalReactionNetwork extends MarkovChainComparable impl
 	return v;
 	}
 		// transpose of matrix
-	private static double[][] transposeMatrix(double [][] m){
+	static double[][] transposeMatrix(double [][] m){
 		double [][] tmp=new double[m[0].length][m.length];
 	for (int i=0; i< m[0].length; i++) 
 		for (int j=0; j< m.length; j++) 
@@ -112,8 +112,12 @@ public abstract class ChemicalReactionNetwork extends MarkovChainComparable impl
 			step++;
 			double[] p = new double[K] ;
 			computePropensities();
-			for ( int k=0; k<K; k++){		
-			  p[k] =   PoissonDist.inverseF(a[k] * tau,stream.nextDouble()); 
+			
+//			System.out.println("TEST\tStep: " + step);
+			
+			for ( int k=0; k<K; k++){	
+//				System.out.println("TEST\tSpecies: " + k);
+				p[k] =   PoissonDist.inverseF(a[k] * tau,stream.nextDouble()); 
 			}
 			
 			double [] [] Stransposed = new double[K][N];

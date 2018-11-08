@@ -46,22 +46,37 @@ public class testChemicalReactionNetwork {
 //		model = new SchloeglSystem(c, x0, tau, T);
 //		String modelDescription = "SchloeglSystem";
 		
-		double[] c = { 3E-7, 1E-4, 1E-3, 3.5 };
-		double[] x0 = { 250.0, 1E5 };
-		double N0 = 2E5 + 250.0 + 1E5;
-		double T = 4;
-		double tau = 0.2;
+//		double[] c = { 3E-7, 1E-4, 1E-3, 3.5 };
+//		double[] x0 = { 250.0, 1E5 };
+//
+//		double N0 = 2E5 + 250.0 + 1E5;
+//		double T = 4;
+//
+//		double tau = 0.2;
+		
+//		model = new SchloeglSystemProjected(c, x0, tau, T,N0);
+//		String modelDescription = "SchloeglSystemProj";
+//		String dataLabel = "MCData";
+		
+		double[]c = {8.696E-5, 0.02, 1.154E-4,0.02,0.016,0.0017};//Nano: 1E-9
+		double[] x0 = {33000.0,33030.0, 1100.0, 1100.0, 1100.0, 1100.0};
+		double T = 0.00005;
+		double tau = T/20.0;
 
-		model = new SchloeglSystemProjected(c, x0, tau, T,N0);
-		String modelDescription = "SchloeglSystemProj";
-		String dataLabel = "MCData";
+		
+		
+		 model = new PKA(c,x0,tau,T);
+		 System.out.println(model.toString());
+		 String modelDescription = "PKA";
+//		String dataFolder = "data/PKA/";
+		model.init();
 
 		ArrayOfComparableChains chain = new ArrayOfComparableChains(model);
 
-		 int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144,
-		 524288, 1048576 }; // n from 8
+//		 int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144,
+//		 524288, 1048576 }; // n from 8
 		// to 20.
-//		int[] N = { 512, 1024, 2048,4096, 8192, 16384, 32768, 65536, 131072 }; // n from 8
+		int[] N = { 262144,524288, 1048576 }; // n from 8
 		
 
 		int[] logN = { 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
@@ -70,17 +85,22 @@ public class testChemicalReactionNetwork {
 
 		ArrayList<Integer> sortCoordPtsList = new ArrayList<Integer>();
 		ArrayList<MultiDimSort> sortList = new ArrayList<MultiDimSort>();
+		
 //		sortList.add(new SchloeglSystemProjectedSort(276.6022004917788,-320.57268446165193, -0.0037027507157621027,-0.000013611715811696467,2.3474355837984646));
 //		sortCoordPtsList.add(1);
-//		sortList.add(new SplitSort<MarkovChainComparable>(2));
-//		sortCoordPtsList.add(2);
-		sortList.add(new HilbertCurveSort(2, 12));
-		sortCoordPtsList.add(2);
+		sortList.add(new PKASort(4001.843189480257,0.187482040311803,0.5491689981787978,0.33930041742527806,1.4881627893660272,1.8965252334871867,-0.20397563983883307));
+		sortCoordPtsList.add(1);
+//		sortList.add(new SplitSort<MarkovChainComparable>(6));
+//		sortCoordPtsList.add(6);
+//		sortList.add(new HilbertCurveSort(6, 12));
+//		sortCoordPtsList.add(6);
+		
 		
 		// MultiDimSort sortPointSet = new SchloeglSystemSort(); //set here if
 		// sortCoordPts>1
 
 		int m = 50;
+
 
 		StringBuffer sb = new StringBuffer("");
 		String str;
@@ -211,7 +231,7 @@ public class testChemicalReactionNetwork {
 				// If Stratification, then we need to sort point set in every step
 				int sortedCoords = label.startsWith("St") ? sortCoordPtsList.get(i) : 0;
 				str = (chain.testVarianceRateFormat(ptSeries, sort, sortedCoords, model.numSteps, m, varMC,
-						modelDescription+ "_" +sort.toString()+ "_" + label, label));
+						modelDescription+ "-" +sort.toString()+ "-" + label, label));
 				System.out.println(str);
 				sb.append(str + "\n");
 
