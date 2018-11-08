@@ -246,12 +246,7 @@ public class NeuralNet {
 		double [] data = performance.clone();
 		Arrays.sort(data);
 		DEHistogram histo = new DEHistogram(data, data[0],data[n-1],numBins);
-//		draw numDraws values from performance dist
-//		double[] pdf = histo.evalDensity();
-//		double[] cdf = pdf.clone();
-//		for(int i = 1; i < numBins; i++) {
-//			cdf[i] = cdf[i-1] + pdf[i];
-//		}
+
 		
 		double[] u = new double[numDraws];
 		double[] draws = new double[numDraws];
@@ -828,7 +823,7 @@ public class NeuralNet {
 		 ************* BUILD DATA***********************************************
 		 ***********************************************************************
 		 */
-		boolean genData = false;
+		boolean genData = true;
 
 //		String dataLabel = "SobData";
 		String dataLabel = "MCData";
@@ -839,7 +834,7 @@ public class NeuralNet {
 
 		if (genData) {
 			timer.init();
-//			test.genData(dataLabel, numChains, model.numSteps, p.iterator());
+//			test.genDataWithSubstreams(dataLabel, numChains, model.numSteps, p.iterator());
 			test.genData(dataLabel, numChains, model.numSteps, stream);
 			System.out.println("\n\nTiming:\t" + timer.format());
 		}

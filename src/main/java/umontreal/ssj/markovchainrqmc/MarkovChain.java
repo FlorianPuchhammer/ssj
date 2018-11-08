@@ -4,6 +4,11 @@ import umontreal.ssj.stat.Tally;
 import umontreal.ssj.rng.*;
 import umontreal.ssj.util.Chrono;
 import umontreal.ssj.util.PrintfFormat;
+
+import java.util.Arrays;
+
+import org.bytedeco.javacpp.opencv_face.FacemarkAAM.Model;
+
 import umontreal.ssj.hups.*;
 
 /**
@@ -332,6 +337,9 @@ public abstract class MarkovChain implements Cloneable {
    	nextStep(stream);
    }
    
+  
+   
+   
    /**
     * Starts a new simulation of the Markov chain with \a numSteps steps using the random stream \a stream.
     * The states are written to the 2-dimensional array \a states, where the first index refers to the step and the 
@@ -354,6 +362,8 @@ public abstract class MarkovChain implements Cloneable {
    
    
    
+   
+   
    /**
     * Simulates \a numSteps steps for \a n chains using the random stream \a stream. The performance of each chain
     * is stored in the array \a performance. All the states occurring in this simulation are stored in the tensor
@@ -371,6 +381,8 @@ public abstract class MarkovChain implements Cloneable {
            performance[i] = getPerformance();
        }
    }
+   
+   
    
    public void simulRunsWithSubstreams(int n, int numSteps, RandomStream stream, double[][][] states, double[] performance) {
        stream.resetStartStream ();
