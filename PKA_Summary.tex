@@ -13,6 +13,8 @@
   {lime!85!black,line width=0.9pt,mark=*,solid},
   {orange!85!black,line width=0.9pt,mark=*,solid},
   {black!85!black,line width=0.9pt,mark=*,solid},
+	{violet!85!black,line width=0.9pt,mark=*,solid},
+	{brown!85!black,line width=0.9pt,mark=*,solid},
   {red!85!black,line width=0.9pt,mark=square*,dashed},
   {lime!60!black,line width=0.9pt,mark=triangle*,dotted},
   {orange!90!black,line width=0.9pt,mark=diamond*,loosely dashed},
@@ -141,8 +143,46 @@
       15.0  -15.027130673350314 
       16.0  -16.062390480425144 
       17.0  -17.120927324932435 
+       18.0  -17.87649832123547 
+      19.0  -19.802711948057283 
+      20.0  -20.475928495235035
  }; 
-      \addlegendentry{Conditional}
+%  
+	 \addlegendentry{Conditional}
+	\addplot table[x=log(n),y=log(Var)] { 
+      log(n)  log(Var) 
+      9.0     -8.33878764889521 
+      10.0  -9.515295990363292 
+      11.0  -10.986620997013082 
+      11.999999999999998  -12.27914670296084 
+      12.999999999999998  -13.013220287755292 
+      13.999999999999998  -14.172646278092275 
+      15.0  -14.947581650301016 
+      16.0  -16.302574793501186 
+      17.0  -16.987585099717073 
+      18.0  -18.308950706751123 
+      19.0  -19.14690084936403 
+      20.0  -20.277982645251758 
+ }; 
+      \addlegendentry{Linear - less noise - last step}
+% 
+		\addplot table[x=log(n),y=log(Var)] {
+       log(n)  log(Var) 
+     9.0  -8.477349123884276 
+      10.0  -9.805312280444804 
+      11.0  -10.891593621151111 
+      11.999999999999998  -12.029819867614034 
+      12.999999999999998  -12.902229810377397 
+      13.999999999999998  -14.195967804190868 
+      15.0  -15.108948164670606 
+      16.0  -16.256145447884403 
+      17.0  -16.83536627818567 
+      18.0  -18.45566064539016 
+      19.0  -18.703548632370147 
+      20.0  -20.30828421063672
+ }; 
+      \addlegendentry{Linear - less noise}
+     
     \end{axis}
   \end{tikzpicture}
   \end{document}

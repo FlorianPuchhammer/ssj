@@ -257,7 +257,7 @@ public abstract class ChemicalReactionNetwork extends MarkovChainComparable impl
 
 		
 		
-		int numChains = 524288*2/256;
+		int numChains = 524288*2/4;
 		int logNumChains = 19 + 1;
 		int reps = 256;
 

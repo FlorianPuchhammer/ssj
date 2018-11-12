@@ -67,7 +67,7 @@ public class testChemicalReactionNetwork {
 		
 		 model = new PKA(c,x0,tau,T);
 		 System.out.println(model.toString());
-		 String modelDescription = "PKA";
+		 String modelDescription = "PKALessNoise";
 //		String dataFolder = "data/PKA/";
 		model.init();
 
@@ -76,11 +76,12 @@ public class testChemicalReactionNetwork {
 //		 int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144,
 //		 524288, 1048576 }; // n from 8
 		// to 20.
-		int[] N = { 262144,524288, 1048576 }; // n from 8
+		int[] N = {262144,
+				 524288, 1048576}; // n from 8
 		
 
 		int[] logN = { 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
-		int mink = 9;
+		int mink = 18;
 		int numSets = N.length;
 
 		ArrayList<Integer> sortCoordPtsList = new ArrayList<Integer>();
@@ -88,7 +89,11 @@ public class testChemicalReactionNetwork {
 		
 //		sortList.add(new SchloeglSystemProjectedSort(276.6022004917788,-320.57268446165193, -0.0037027507157621027,-0.000013611715811696467,2.3474355837984646));
 //		sortCoordPtsList.add(1);
-		sortList.add(new PKASort(4001.843189480257,0.187482040311803,0.5491689981787978,0.33930041742527806,1.4881627893660272,1.8965252334871867,-0.20397563983883307));
+		//normal PKASort
+//		sortList.add(new PKASort(4001.843189480257,0.187482040311803,0.5491689981787978,0.33930041742527806,1.4881627893660272,1.8965252334871867,-0.20397563983883307));
+//		sortCoordPtsList.add(1);
+		//less-noise PKASort
+		sortList.add(new PKASort(206.19660957631277,0.996641406322496,-0.025224064624056866,0.0004189966548408367,0.0013143537810302761,0.15111412538331995,0.0837105163740771));
 		sortCoordPtsList.add(1);
 //		sortList.add(new SplitSort<MarkovChainComparable>(6));
 //		sortCoordPtsList.add(6);

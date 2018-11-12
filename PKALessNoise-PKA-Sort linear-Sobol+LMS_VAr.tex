@@ -1,0 +1,55 @@
+\documentclass[12pt]{article}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.12}
+\usepackage{xcolor}
+\usetikzlibrary{shapes,decorations,arrows,automata,plotmarks,patterns}
+\usepackage{tikz-inet}
+\usepgfplotslibrary{groupplots}
+%
+\pgfplotscreateplotcyclelist{defaultcolorlist}{%
+  {blue!85!black,line width=0.9pt,mark=*,solid},
+  {red!85!black,line width=0.9pt,mark=square*,dashed},
+  {lime!60!black,line width=0.9pt,mark=triangle*,dotted},
+  {orange!90!black,line width=0.9pt,mark=diamond*,loosely dashed},
+  {black,mark=star,loosely dotted},
+  {violet!85!black,mark=o,solid},
+  {brown!85!black,mark=square,dashed},
+  {purple!85!black,mark=triangle,dotted}}
+%
+\pgfplotsset{
+  every axis/.append style={
+    font=\footnotesize,
+    width=.8\columnwidth,
+    height=.6\columnwidth,
+    %!line width=0.6pt,
+    legend style={at={(1.02,1)}, anchor={north west}},
+    cycle list name=defaultcolorlist,
+  },
+  every axis title/.style={
+    at={(0.5,1)},
+    below
+  },
+ }
+%
+\begin{document}
+
+  \begin{tikzpicture} 
+    \begin{axis}[ 
+      title ={PKALessNoise-PKA-Sort linear-Sobol+LMS},
+      xlabel=log(n),
+      ylabel=log(Var),
+       grid,
+,
+      ] 
+      \addplot table[x=log(n),y=log(Var)] { 
+      log(n)  log(Var) 
+      18.0  -17.87649832123547 
+      19.0  -19.802711948057283 
+      20.0  -20.475928495235035 
+ }; 
+      \addlegendentry{Sobol+LMS}
+      \label{Sobol+LMS}
+%   
+    \end{axis}
+  \end{tikzpicture}
+  \end{document}
