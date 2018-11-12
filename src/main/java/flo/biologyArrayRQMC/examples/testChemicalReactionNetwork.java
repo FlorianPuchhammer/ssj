@@ -1,9 +1,13 @@
 package flo.biologyArrayRQMC.examples;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
+import umontreal.ssj.functionfit.LeastSquares;
 import umontreal.ssj.hups.LMScrambleShift;
 import umontreal.ssj.hups.PointSet;
 import umontreal.ssj.hups.PointSetRandomization;
@@ -67,7 +71,8 @@ public class testChemicalReactionNetwork {
 		
 		 model = new PKA(c,x0,tau,T);
 		 System.out.println(model.toString());
-		 String modelDescription = "PKALessNoise";
+//		 String modelDescription = "PKALessNoise";
+		 String modelDescription = "PKA-linear-last-Bias";
 //		String dataFolder = "data/PKA/";
 		model.init();
 
@@ -76,12 +81,11 @@ public class testChemicalReactionNetwork {
 //		 int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144,
 //		 524288, 1048576 }; // n from 8
 		// to 20.
-		int[] N = {262144,
-				 524288, 1048576}; // n from 8
+		int[] N = {512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072}; // n from 8
 		
 
 		int[] logN = { 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
-		int mink = 18;
+		int mink = 9;
 		int numSets = N.length;
 
 		ArrayList<Integer> sortCoordPtsList = new ArrayList<Integer>();
@@ -93,8 +97,32 @@ public class testChemicalReactionNetwork {
 //		sortList.add(new PKASort(4001.843189480257,0.187482040311803,0.5491689981787978,0.33930041742527806,1.4881627893660272,1.8965252334871867,-0.20397563983883307));
 //		sortCoordPtsList.add(1);
 		//less-noise PKASort
-		sortList.add(new PKASort(206.19660957631277,0.996641406322496,-0.025224064624056866,0.0004189966548408367,0.0013143537810302761,0.15111412538331995,0.0837105163740771));
+		
+		
+		int rows = 8192;
+		int cols = 7;
+
+		
+		Scanner sc;
+		double[][] vars = new double[rows][cols-1];
+		double[] response = new double[rows];
+		double[] reg;
+		
+		sc = new Scanner( new BufferedReader(new FileReader("data/PKA/MCDataLessNoise_Step_" + 19 + ".csv")));
+//		sc = new Scanner( new BufferedReader(new FileReader("data/cAMP/MCData_Step_" + 19 + ".csv")));
+
+		for (int i=0; i<rows; i++) {
+            String[] line = sc.nextLine().trim().split(",");
+            response[i] = Double.parseDouble(line[cols-1]);
+            for (int j=0; j<cols-1; j++) {
+              vars[i][j] =Double.parseDouble(line[j]);
+            }
+         }
+		sc.close();
+		 reg = LeastSquares.calcCoefficients0(vars, response);
+		sortList.add(new PKASort(reg));
 		sortCoordPtsList.add(1);
+		
 //		sortList.add(new SplitSort<MarkovChainComparable>(6));
 //		sortCoordPtsList.add(6);
 //		sortList.add(new HilbertCurveSort(6, 12));
@@ -104,7 +132,7 @@ public class testChemicalReactionNetwork {
 		// MultiDimSort sortPointSet = new SchloeglSystemSort(); //set here if
 		// sortCoordPts>1
 
-		int m = 50;
+		int m = 100;
 
 
 		StringBuffer sb = new StringBuffer("");

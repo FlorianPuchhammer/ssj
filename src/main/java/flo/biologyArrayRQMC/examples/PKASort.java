@@ -4,27 +4,34 @@ import umontreal.ssj.util.sort.MultDimToOneDimSort;
 
 public class PKASort extends MultDimToOneDimSort{
 
-	double a,b,c,d,e,f,g;
+	double [] coeffs;
+	boolean bias;
 	
-	public PKASort(double a,double b,double c,double d,double e,double f,double g) {
-		this.a = a;
-		this.b = b;
-		this.c = c;
-		this.d = d;
-		this.e = e;
-		this.f = f;
-		this.g = g;
+	
+	
+	public PKASort(double[] coeffs) {
+		this.dimension = 6;
+		this.coeffs = new double [coeffs.length];
+		for(int i = 0; i < coeffs.length; i++)
+			this.coeffs[i] = coeffs[i];
+		
+		bias = !(coeffs.length == dimension);
 	}
+	
 	@Override
 	public double scoreFunction(double[] v) {
-		 double x;
-		x =b * v[0];
-		x = c * v[1];
-		x = d*v[2];
-		x = e * v[3];
-		x = f*v[4];
-		x =  g*v[5];
-		return (a + b * v[0] + c * v[1] + d*v[2] + e * v[3] + f*v[4] + g*v[5]);
+		double score = 0.0;
+		if(bias) {
+			score = coeffs[0];
+			for(int j = 0; j < v.length; j++)
+				score += coeffs[j+1] * v[j];
+		}
+		else {
+			for(int j = 0; j < v.length; j++)
+				score += coeffs[j] * v[j];
+		}
+		
+		return score;
 	}
 	
 	@Override

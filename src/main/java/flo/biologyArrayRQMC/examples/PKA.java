@@ -100,8 +100,8 @@ public class PKA extends ChemicalReactionNetwork implements MultiDim01 {
 
 	@Override
 	public double getPerformance() {
-		return X[0]; //PKA
-//		return X[1]; //cAMP
+//		return X[0]; //PKA
+		return X[1]; //cAMP
 	}
 
 }

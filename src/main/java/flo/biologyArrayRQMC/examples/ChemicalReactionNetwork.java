@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import flo.neuralNet.NeuralNet;
 import umontreal.ssj.markovchainrqmc.MarkovChainComparable;
 import umontreal.ssj.probdist.PoissonDist;
 import umontreal.ssj.rng.MRG32k3a;
@@ -133,8 +134,8 @@ public abstract class ChemicalReactionNetwork extends MarkovChainComparable impl
 		   		
 		   		//update the future state avg.
 		   		for( int j = 0; j < state.length; j++) {
-			   		futureState[j] = ((double)j) * futureState[j] + (getState())[j];
-			   		futureState[j]/= (double)(j+1.0);
+			   		futureState[j] = ((double)r) * futureState[j] + (getState())[j];
+			   		futureState[j]/= (double)(r+1.0);
 		   		}
 		   		
 		   	}
@@ -250,7 +251,8 @@ public abstract class ChemicalReactionNetwork extends MarkovChainComparable impl
 		
 		
 		 model = new PKA(c,x0,tau,T);
-		String dataFolder = "data/PKA/";
+//		String dataFolder = "data/cAMP/";
+		String dataFolder = "";
 		model.init();
 		
 		System.out.println(model.toString());
@@ -265,9 +267,12 @@ public abstract class ChemicalReactionNetwork extends MarkovChainComparable impl
 		Chrono timer = new Chrono();
 		RandomStream stream = new MRG32k3a(); 
 		
-		String dataLabel = "MCDataLessNoise";
+//		String dataLabel = "MCData";		
+//		NeuralNet.genData(model,dataFolder,dataLabel, numChains, model.numSteps, stream);
 		
+		String dataLabel = "MCDataLessNoise";
 		model.genData(dataFolder,dataLabel, numChains, model.numSteps, stream,reps);
+		
 		System.out.println("\n\nTiming:\t" + timer.format());
 	}
 	
