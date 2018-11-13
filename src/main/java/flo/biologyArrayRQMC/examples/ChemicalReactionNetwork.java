@@ -251,17 +251,17 @@ public abstract class ChemicalReactionNetwork extends MarkovChainComparable impl
 		
 		
 		 model = new PKA(c,x0,tau,T);
-//		String dataFolder = "data/cAMP/";
-		String dataFolder = "";
+		String dataFolder = "data/PKA/";
+//		String dataFolder = "";
 		model.init();
 		
 		System.out.println(model.toString());
 
 		
 		
-		int numChains = 524288*2/4;
+		int numChains = 524288*2/32;
 		int logNumChains = 19 + 1;
-		int reps = 256;
+		int reps = 128;
 
 		
 		Chrono timer = new Chrono();

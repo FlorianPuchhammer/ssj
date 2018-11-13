@@ -41,11 +41,11 @@ public class testChemicalReactionNetworkMultipleSorts {
 		
 		 model = new PKA(c,x0,tau,T);
 		 System.out.println(model.toString());
-		 String modelDescription = "PKALessNoise-noBias";
+		 String modelDescription = "PKALessNoise";
 		 String dataLabel = "MCDataLessNoise";
-		String sortLabel = "linear-noBias";
+		String sortLabel = "linear";
 			
-		int rows = 8192;
+		int rows = 32768;
 		int cols = 7;
 
 		
@@ -65,7 +65,7 @@ public class testChemicalReactionNetworkMultipleSorts {
 	              vars[i][j] =Double.parseDouble(line[j]);
 	            }
 	         }
-			 reg = LeastSquares.calcCoefficients(vars, response);
+			 reg = LeastSquares.calcCoefficients0(vars, response);
 //			 System.out.println("TEST: " + reg[0] + ", " + reg[reg.length-1]);
 			sortList.add(new PKASort(reg));
 			if(s==1) {
@@ -140,8 +140,9 @@ public class testChemicalReactionNetworkMultipleSorts {
 		
 
 		int[] logN = { 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
-		int mink = 9;
+		int mink = 18;
 		int numSets = N.length;
+		numSets = 3;
 
 		int sortCoordPtsList = 1;
 	
@@ -149,7 +150,7 @@ public class testChemicalReactionNetworkMultipleSorts {
 		// MultiDimSort sortPointSet = new SchloeglSystemSort(); //set here if
 		// sortCoordPts>1
 
-		int m = 100;
+		int m = 50;
 
 		StringBuffer sb = new StringBuffer("");
 		String str;
