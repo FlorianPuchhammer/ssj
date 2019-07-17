@@ -17,7 +17,7 @@ import umontreal.ssj.randvarmulti.MultinormalPCAGen;
 import umontreal.ssj.rng.MRG32k3a;
 import umontreal.ssj.rng.RandomStream;
 
-public class CreditMetrics implements MonteCarloModelDouble{
+public class CreditMetrics implements MonteCarloModelDouble {
 
 	/**
 	 * Forward interest rates \f$f_{0,k}\f$ (in %). The first index represents the
@@ -94,12 +94,12 @@ public class CreditMetrics implements MonteCarloModelDouble{
 
 	public static class Credit {
 		private double amount;
-		private int rating; //AAA==0, AA==1,...,CCC==6
-		private int duration;//in years (1--9)
-		private double coupon; //in %
+		private int rating; // AAA==0, AA==1,...,CCC==6
+		private int duration;// in years (1--9)
+		private double coupon; // in %
 		private int securityClass; // SeniorSecured == 0, SeniorUnsecured == 1, ..., JuniorSubordinated == 4
-		private int sector; 
-		
+		private int sector;
+
 		public Credit(double amount, int rating, int duration, double coupon, int securityClass, int sector) {
 			this.setAmount(amount);
 			this.setRating(rating);
@@ -108,8 +108,6 @@ public class CreditMetrics implements MonteCarloModelDouble{
 			this.setSecurityClass(securityClass);
 			this.setSector(sector);
 		}
-		
-
 
 		/**
 		 * @return the amount
@@ -119,7 +117,8 @@ public class CreditMetrics implements MonteCarloModelDouble{
 		}
 
 		/**
-		 * @param amount the amount to set
+		 * @param amount
+		 *            the amount to set
 		 */
 		public void setAmount(double amount) {
 			this.amount = amount;
@@ -133,7 +132,8 @@ public class CreditMetrics implements MonteCarloModelDouble{
 		}
 
 		/**
-		 * @param rating the rating to set
+		 * @param rating
+		 *            the rating to set
 		 */
 		public void setRating(int rating) {
 			this.rating = rating;
@@ -147,7 +147,8 @@ public class CreditMetrics implements MonteCarloModelDouble{
 		}
 
 		/**
-		 * @param duration the duration to set
+		 * @param duration
+		 *            the duration to set
 		 */
 		public void setDuration(int duration) {
 			this.duration = duration;
@@ -161,7 +162,8 @@ public class CreditMetrics implements MonteCarloModelDouble{
 		}
 
 		/**
-		 * @param coupon the coupon to set
+		 * @param coupon
+		 *            the coupon to set
 		 */
 		public void setCoupon(double coupon) {
 			this.coupon = coupon;
@@ -175,7 +177,8 @@ public class CreditMetrics implements MonteCarloModelDouble{
 		}
 
 		/**
-		 * @param securityClass the securityClass to set
+		 * @param securityClass
+		 *            the securityClass to set
 		 */
 		public void setSecurityClass(int securityClass) {
 			this.securityClass = securityClass;
@@ -189,17 +192,18 @@ public class CreditMetrics implements MonteCarloModelDouble{
 		}
 
 		/**
-		 * @param sector the sector to set
+		 * @param sector
+		 *            the sector to set
 		 */
 		public void setSector(int sector) {
 			this.sector = sector;
 		}
-		
+
 		public String toString() {
 			StringBuffer sb = new StringBuffer("");
 			sb.append("***************************************\n");
 			sb.append("CREDIT:\n");
-			sb.append("\tNominal value:\t" + getAmount()+"\n" );
+			sb.append("\tNominal value:\t" + getAmount() + "\n");
 			sb.append("\tRating:\t" + getRating() + "\n");
 			sb.append("\tDuration:\t" + getDuration() + "\n");
 			sb.append("\tCoupon:\t" + getCoupon() + "\n");
@@ -265,6 +269,51 @@ public class CreditMetrics implements MonteCarloModelDouble{
 		this.dimension = portfolio.size();
 		this.trafoMat = DoubleFactory2D.sparse.identity(dimension);
 		this.utilStream = utilStream;
+	}
+
+	/**
+	 * Same as #CreditMetrics(String, double[][], RandomStream), but now the
+	 * covariance matrix is read from the file \a matrixFile. The separator for
+	 * different lines should be a return and the separator between columns should
+	 * be a tabulator.
+	 * 
+	 * @param portfolioFile
+	 *            file, where the portfolio is stored.
+	 * @param matrixFile
+	 *            file, where the covariance matrix is stored.
+	 * @param utilStream
+	 *            the stream to be used as utility-stream.
+	 * @throws FileNotFoundException
+	 */
+	public CreditMetrics(String portfolioFile, String matrixFile, RandomStream utilStream)
+			throws FileNotFoundException {
+		readPortfolio(portfolioFile);
+		this.dimension = portfolio.size();
+		this.utilStream = utilStream;
+		readMatrix(matrixFile);
+	}
+
+	/**
+	 * Reads the covariance matrix from the file \a matrixFile and stores its PCA
+	 * decomposition to #trafomat. The separator should be a return for lines and a
+	 * tabulator for columns. One way to generate such a file is to export the
+	 * matrix to a .dat file in Mathematica. For a matrix \f$A\f$ and the file
+	 * file.dat This works via the command <tt>Export[file.dat,A]<\tt>.
+	 * 
+	 * @param matrixFile
+	 * @throws FileNotFoundException
+	 */
+	private void readMatrix(String matrixFile) throws FileNotFoundException {
+		Scanner sc = new Scanner(new BufferedReader(new FileReader(matrixFile)));
+		double[][] sigma = new double[dimension][dimension];
+		String[] line;
+		for (int i = 0; i < dimension; i++) { // lines indexed by i
+			line = sc.nextLine().trim().split("\t");
+			for (int j = 0; j < dimension; j++) // rows indexed by j
+				sigma[i][j] = Double.parseDouble(line[j]);
+		}
+		sc.close();
+		this.trafoMat = MultinormalPCAGen.decompPCA(sigma);
 	}
 
 	/**
@@ -389,7 +438,7 @@ public class CreditMetrics implements MonteCarloModelDouble{
 	 *            the random stream (to generate a Beta-variate).
 	 * @return the value \f$A_1\f$ of \a cred.
 	 */
-	//TODO: check if no. of iteration changes much
+	// TODO: check if no. of iteration changes much
 	public static double A1(Credit cred, int rating, RandomStream stream) {
 
 		double a1 = 0.0;
@@ -405,32 +454,41 @@ public class CreditMetrics implements MonteCarloModelDouble{
 
 		return a1;
 	}
-	
+
 	/**
-	 * Based on the future ratings \a rating, this function computes the value \f$A_1\f$ for the entire portfolio.
-	 * @param rating the future ratings.
+	 * Based on the future ratings \a rating, this function computes the value
+	 * \f$A_1\f$ for the entire portfolio.
+	 * 
+	 * @param rating
+	 *            the future ratings.
 	 * @return \f$A_1\f$ of the portfolio.
 	 */
-	public double A1(int [] rating) {
+	public double A1(int[] rating) {
 		double sum = 0.0;
-		for(int j = 0; j < rating.length; j++)
-			sum += A1(portfolio.get(j),rating[j], utilStream);
+		for (int j = 0; j < rating.length; j++)
+			sum += A1(portfolio.get(j), rating[j], utilStream);
 		return sum;
 	}
 
 	/**
-	 * Generates a beta variate whose parameters are the solutions of a certain two-dimensional system of
-	 * non-linear equations (TODO: add equation). These equations are solved by newton-iteration with \a maxIts iterations and initial
-	 * values \a p and \a q.
+	 * Generates a beta variate whose parameters are the solutions of a certain
+	 * two-dimensional system of non-linear equations (TODO: add equation). These
+	 * equations are solved by newton-iteration with \a maxIts iterations and
+	 * initial values \a p and \a q.
 	 * 
-	 * @param cred the underlying credit.
-	 * @param p initial value for the first coordinate for Newton method.
-	 * @param q initial value for the second coordinate Newton method.
-	 * @param maxIts the maximal number of iterations of the Newton method
-	 * @param stream the random stream to draw from the Beta distribution.
+	 * @param cred
+	 *            the underlying credit.
+	 * @param p
+	 *            initial value for the first coordinate for Newton method.
+	 * @param q
+	 *            initial value for the second coordinate Newton method.
+	 * @param maxIts
+	 *            the maximal number of iterations of the Newton method
+	 * @param stream
+	 *            the random stream to draw from the Beta distribution.
 	 * @return a beta variate with certain parameters.
 	 */
-	//TODO: re-check this method/formulas/...!
+	// TODO: re-check this method/formulas/...!
 	private static double getBetaVariate(Credit cred, double p, double q, int maxIts, RandomStream stream) {
 		double pTemp, qTemp, denom;
 		double c1 = recoveryRates[cred.getSecurityClass()][0] * 0.01;
@@ -451,13 +509,12 @@ public class CreditMetrics implements MonteCarloModelDouble{
 		return BetaDistFlo.inverseF(p, q, stream.nextDouble()) * cred.getAmount();
 
 	}
-	
-	
+
 	public static double trueA1(Credit cred, int rating) {
 		double a1 = 0.0;
 		if (rating != 7) {
-			a1 = cred.getAmount()
-					/ Math.pow(1.0 + fwdInterest1[rating][cred.getDuration() - 2] * 0.01, (double) cred.getDuration() - 1.0);
+			a1 = cred.getAmount() / Math.pow(1.0 + fwdInterest1[rating][cred.getDuration() - 2] * 0.01,
+					(double) cred.getDuration() - 1.0);
 			for (int i = 1; i < cred.getDuration(); i++)
 				a1 += cred.getCoupon() * 0.01 * cred.getAmount()
 						/ Math.pow(1.0 + fwdInterest1[rating][i - 1] * 0.01, (double) i);
@@ -466,7 +523,7 @@ public class CreditMetrics implements MonteCarloModelDouble{
 
 		return a1;
 	}
-	
+
 	/**
 	 * Computes the nominal value of the portfolio.
 	 * 
@@ -479,10 +536,12 @@ public class CreditMetrics implements MonteCarloModelDouble{
 		}
 		return sum;
 	}
-	
+
 	/**
 	 * Normalizes the credit portfolio using the normalizing value \a nomVal.
-	 * @param nomVal the value w.r.t. which to normalize.
+	 * 
+	 * @param nomVal
+	 *            the value w.r.t. which to normalize.
 	 */
 	public void normalize(double nomVal) {
 		double val;
@@ -491,16 +550,17 @@ public class CreditMetrics implements MonteCarloModelDouble{
 			portfolio.get(j).setAmount(val);
 		}
 	}
-	
+
 	/**
 	 * Computes \f$\mathbb{E}A_1\f$ for the credit \a cred.
 	 * 
-	 * @param cred the credit
-	 * @return the expected future value of  \a cred.
+	 * @param cred
+	 *            the credit
+	 * @return the expected future value of \a cred.
 	 */
 	public static double expectedA1(Credit cred) {
-		double sum = transitionProbabilities[cred.getRating()][7] * recoveryRates[cred.getSecurityClass()][0]
-				* 0.0001 * cred.getAmount();
+		double sum = transitionProbabilities[cred.getRating()][7] * recoveryRates[cred.getSecurityClass()][0] * 0.0001
+				* cred.getAmount();
 		for (int i = 0; i < 7; i++) {
 			sum += transitionProbabilities[cred.getRating()][i] * 0.01 * trueA1(cred, i);
 		}
@@ -509,18 +569,22 @@ public class CreditMetrics implements MonteCarloModelDouble{
 
 	/**
 	 * Computes \f$\mathbb{E}A_1\f$ for the portfolio.
+	 * 
 	 * @return the expected future value of the portfolio.
 	 */
 	public double expectedA1() {
 		double sum = 0.0;
-		for(Credit cred : portfolio)
+		for (Credit cred : portfolio)
 			sum += expectedA1(cred);
-		
+
 		return sum;
 	}
+
 	/**
 	 * Computes the variance of \f$A1\f$ based on the credit \a cred.
-	 * @param cred the underlying credit.
+	 * 
+	 * @param cred
+	 *            the underlying credit.
 	 * @return the variance of \f$A1\f$ for \a cred.
 	 */
 	public static double varA1(Credit cred) {
@@ -529,28 +593,30 @@ public class CreditMetrics implements MonteCarloModelDouble{
 		double fac1 = transitionProbabilities[cred.getRating()][7] * 0.01;
 		double fac2 = recoveryRates[cred.getSecurityClass()][0] * cred.getAmount() * 0.01 - ew;
 		double fac3 = recoveryRates[cred.getSecurityClass()][1] * cred.getAmount() * 0.01;
-		double sum = fac1 * (fac2 * fac2 +  fac3 * fac3);
+		double sum = fac1 * (fac2 * fac2 + fac3 * fac3);
 		for (int i = 0; i < 7; i++) {
 			diff = trueA1(cred, i) - ew;
 			sum += transitionProbabilities[cred.getRating()][i] * 0.01 * diff * diff;
 		}
 		return sum;
 	}
-	
+
 	/**
 	 * Computes the variance of \f$A_1\f$ of the entire portfolio.
+	 * 
 	 * @return the variance of \f$A_1\f$ of the portfolio.
 	 */
 	public double varA1() {
 		double sum = 0.0;
-		for(Credit cred : portfolio) {
+		for (Credit cred : portfolio) {
 			sum += varA1(cred);
 		}
 		return sum;
 	}
-	
+
 	/**
 	 * Computes the future ratings based on the vector \a y.
+	 * 
 	 * @param y
 	 */
 	public void newRating(double[] y) {
@@ -563,7 +629,7 @@ public class CreditMetrics implements MonteCarloModelDouble{
 			}
 		}
 	}
-	
+
 	/**
 	 * Creates an instance of the future ratings of the portfolio.
 	 */
@@ -571,16 +637,19 @@ public class CreditMetrics implements MonteCarloModelDouble{
 
 		double[] z = new double[dimension];
 		nextPoint(z, stream);
-		
 
 		newRating(z);
 	}
-	
+
 	/**
-	 * Generates a vector of uniforms, transforms them into standard normals and uses the transformation matrix #trafoMat
-	 * to draw from the desired multinormal distribution. The variates are stored in \a z.
-	 * @param z the array in which the variates are stored.
-	 * @param stream the random stream used.
+	 * Generates a vector of uniforms, transforms them into standard normals and
+	 * uses the transformation matrix #trafoMat to draw from the desired multinormal
+	 * distribution. The variates are stored in \a z.
+	 * 
+	 * @param z
+	 *            the array in which the variates are stored.
+	 * @param stream
+	 *            the random stream used.
 	 */
 	private void nextPoint(double[] z, RandomStream stream) {
 		double[] u = new double[dimension];
@@ -593,47 +662,46 @@ public class CreditMetrics implements MonteCarloModelDouble{
 				z[j] += trafoMat.getQuick(j, c) * u[c];
 		}
 	}
-	
+
 	/**
 	 * Gives the dimension, i.e. the number of credits in the portfolio.
+	 * 
 	 * @return the dimension of the problem.
 	 */
 	public int getDimension() {
 		return dimension;
 	}
-	
+
 	/**
-	 * Computes the expected future value of \f$A_1\f$ with future ratings #ratings for this portfolio.
+	 * Computes the expected future value of \f$A_1\f$ with future ratings #ratings
+	 * for this portfolio.
 	 */
 	public double getPerformance() {
 		return A1(ratings);
 	}
-	
+
 	public String toString() {
 		return "CreditMetrics (" + dimension + " Credits)";
 	}
-	
+
 	public String toStringHeader() {
 		StringBuffer sb = new StringBuffer("");
 		sb.append("*****************************************************************\n");
 		sb.append("* CREDIT METRICS \n");
 		sb.append("*\t Number of Credits:\t" + dimension + "\n");
-		sb.append("*\t A0:\t\t\t" + A0()+"\n");
+		sb.append("*\t A0:\t\t\t" + A0() + "\n");
 		sb.append("*\t Expected A1:\t\t" + expectedA1() + "\n");
-		sb.append("*\t Variance A1:\t\t" + varA1()+"\n");
+		sb.append("*\t Variance A1:\t\t" + varA1() + "\n");
 		sb.append("*****************************************************************\n\n");
 		return sb.toString();
 	}
-	
+
 	public static void main(String[] args) throws FileNotFoundException {
 		String filename = "data/creditMetrics/KP5/KP5.dat";
 		CreditMetrics portfolio = new CreditMetrics(filename);
 		portfolio.normalize(portfolio.nom());
 		System.out.println(portfolio.toStringHeader());
 
-
-		
 	}
 
-	
 }

@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import umontreal.ssj.hups.LMScrambleShift;
 import umontreal.ssj.hups.PointSet;
@@ -12,14 +13,27 @@ import umontreal.ssj.hups.PointSetRandomization;
 import umontreal.ssj.hups.RQMCPointSet;
 import umontreal.ssj.hups.SobolSequence;
 import umontreal.ssj.mcqmctools.MonteCarloModelDouble;
+import umontreal.ssj.mcqmctools.MonteCarloModelDoubleArray;
 import umontreal.ssj.mcqmctools.RQMCExperiment;
+import umontreal.ssj.mcqmctools.examples.AsianOption;
+import umontreal.ssj.mcqmctools.examples.AsianOptionVars;
 import umontreal.ssj.mcqmctools.examples.CreditMetrics;
+import umontreal.ssj.mcqmctools.examples.LookBackOption;
+import umontreal.ssj.mcqmctools.examples.MultiNormalIndependent;
+import umontreal.ssj.mcqmctools.examples.San13;
+import umontreal.ssj.mcqmctools.examples.ShortColumn;
+import umontreal.ssj.mcqmctools.examples.ShortColumnVars;
+import umontreal.ssj.mcqmctools.examples.SumOfNormals;
 import umontreal.ssj.probdist.ContinuousDistribution;
 import umontreal.ssj.probdist.NormalDist;
+import umontreal.ssj.randvar.NormalGen;
 import umontreal.ssj.rng.MRG32k3a;
 import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.stat.PgfDataTable;
 import umontreal.ssj.stat.Tally;
+import umontreal.ssj.stat.list.ListOfTallies;
+import umontreal.ssj.stochprocess.BrownianMotion;
+import umontreal.ssj.stochprocess.GeometricBrownianMotion;
 
 /**
  * This abstract class represents a univariate density estimator (DE).
@@ -127,6 +141,7 @@ public abstract class DensityEstimator {
 		for (int j = 0; j < k; j++)
 			dens[j] = evalDensity(evalPoints[j]);
 		return dens;
+		
 	}
 
 	/**
@@ -584,17 +599,77 @@ public abstract class DensityEstimator {
 		return evalPts;
 	}
 	public static void main(String[] args) throws IOException {
-		int n = 32768;
-		int mink = 15;
+		int n = 32768*4;
+		int mink = 15+2;
 		int m = 1;
 		int numEvalPoints = 100;
 		RandomStream noise = new MRG32k3a();
-		String outdir = "data/creditMetrics/KP5/";
-		String filename = "KP5.dat";
-		MonteCarloModelDouble model = new CreditMetrics(outdir + filename, noise);
-		int dim  = ((CreditMetrics) model).getDimension();
-		double nomVal = ((CreditMetrics) model).nom();
-		((CreditMetrics) model).normalize(nomVal);
+		noise.resetNextSubstream();
+//		String outdir = "data/creditMetrics/KP5/";
+//		String filename = "KP5.dat";
+//		MonteCarloModelDouble model = new CreditMetrics(outdir + filename, noise);
+//		int dim  = ((CreditMetrics) model).getDimension();
+//		double nomVal = ((CreditMetrics) model).nom();
+//		((CreditMetrics) model).normalize(nomVal);
+		
+//		String outdir = "san";
+//		MonteCarloModelDouble model = new San13("san13a.dat");
+//		int dim  = 13;
+		
+//		double strike= 101.0;
+//		double s0 = 100.0;
+//		double sigma = 0.12136;
+//		int dim =12;
+//		double[] obsTimes = new double[dim + 1];
+//		obsTimes[0] = 0.0;
+//		for (int j = 1; j <= dim; j++) {
+//			obsTimes[j] = (double) j / (double) dim;
+//		}
+//		double r =Math.log(1.09); r=0;
+//		
+//		AsianOption model = new AsianOption(r,dim, obsTimes,strike);
+//		NormalGen gen = new NormalGen(new MRG32k3a());
+////		GeometricBrownianMotion sp = new GeometricBrownianMotion(s0, 0.1,
+////				sigma, new BrownianMotion(0.0, 0.0, 1.0, gen));
+//		GeometricBrownianMotion sp = new GeometricBrownianMotion(s0, 0.1,
+//				sigma,new MRG32k3a());
+//		model.setProcess(sp);
+//		String outdir = "AsianGBM";
+		
+//		double[] mus = {2.9E7,500.0,1000.0}; //Canti
+//		double[] sigmas = {1.45E6,100.0,100.0}; //Canti
+//		int dim = mus.length;
+//
+////
+//		MonteCarloModelDoubleArray model = new MultiNormalIndependent(mus,sigmas);
+//		String outdir = "canti";
+		
+//		int dim = 11;
+//		double[] mu = new double[dim];
+//		Arrays.fill(mu,0.0);
+//		double[] sigma = new double[dim];
+//		sigma[0] = 1.0;
+//		for(int j = 1; j < dim; ++j)
+//			sigma[j] = sigma[j-1] * 2.0;
+//		
+//		double norma = 0.0;
+//		for(double s : sigma)
+//			norma += s*s;
+//		norma = Math.sqrt(norma);
+//		
+//		SumOfNormals model = new SumOfNormals(mu,sigma,norma);
+//		
+//		
+//		String outdir = "SumOfNormals";
+		
+		double strike= 101.0;
+		double s0 = 100.0;
+		double sigma = 0.12136;
+		double r = 0.1;
+		int dim = 12;
+		
+		LookBackOption model = new LookBackOption(dim,s0,strike,r,sigma);
+		
 		double[][] data = new double[m][];
 		
 		
@@ -603,14 +678,28 @@ public abstract class DensityEstimator {
 
 		PointSetRandomization rand = new LMScrambleShift(noise);
 		
-		double a = 98.5;
-		double b = 102.4;
+//		double a = 98.5; //CreditMetrics
+//		double b = 102.4;
 		
+//		double a =22.0; //SAN
+//		double b = 106.24; //95% non-centralized
 		
+//		double a =  -5.338; //ShortColumn
+//		double b = -0.528;
+		
+//		double a = 0.0; double b=27.13; //ASIAN
+		
+//		double a = -2.0; double b = 2.0; // Sum of normals
+		
+		double a = strike; double b = strike + 34.4; //Lookback
+		String outdir = "Lookback";
 		
 		double [] evalPoints = genEvalPoints(numEvalPoints,a,b); 
 		
 		RQMCExperiment.simulReplicatesRQMC(model, p,rand, m, new Tally(), data);
+		
+//		ListOfTallies<Tally> statRepsList = ListOfTallies.createWithTally(model.getPerformanceDim());
+//		RQMCExperiment.simulReplicatesRQMC(model, new RQMCPointSet(p,rand), m, statRepsList, data);
 		
 		int numLeft = 0;
 		int numRight = 0;
@@ -625,7 +714,7 @@ public abstract class DensityEstimator {
 		System.out.println("Total Mass:\t" + (1.0 - (double) (numLeft+numRight)/(double)data[0].length));
 		
 		
-		DEKernelDensity de = new DEKernelDensity(new NormalDist(), (b-a)/64.0,data[0]);
+		DEKernelDensity de = new DEKernelDensity(new NormalDist(), (b-a)/16.0,data[0]);
 		double[] density = new double[numEvalPoints];
 		density = de.evalDensity(evalPoints);
 		String[] axis = {"A1", "dens"};

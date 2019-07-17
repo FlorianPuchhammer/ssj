@@ -182,7 +182,8 @@ public class RQMCExperimentSeries {
 	    	System.out.println("RQMC simulation for mean estimation:  ");
 	    	System.out.println("Model: " + model.toString());
 	    	System.out.println(" Number of indep copies m  = " + m);
-	    	System.out.println(" Point sets: " + theSets[0].toString() + "\n");
+//	    	System.out.println(" Point sets: " + theSets[0].toString() + "\n");
+	    	System.out.println(" Point sets: " + theSets[0].getLabel() + "\n");
 			System.out.println(" n \tCPU time \tmean \t\tlog(var) ");	    	
 	    }
 //	    System.out.println("   log(n)\tmean\tlog(variance)\t\n");
@@ -288,7 +289,8 @@ public class RQMCExperimentSeries {
 		sb.append("RQMC simulation for mean estimation: \n ");
 		sb.append("Model: " + model.toString() + "\n");
 		sb.append("\tNumber of indep copies m  = " + numReplicates + "\n");
-		sb.append("\tRQMC point sets: " + theSets[0].toString() + "\n\n");
+//		sb.append("\tRQMC point sets: " + theSets[0].toString() + "\n\n");
+		sb.append("\tRQMC point sets: " + theSets[0].getLabel() + "\n\n");
 		sb.append("RQMC variance \n");
 		if (details) sb.append(dataLogForPlot());
 		sb.append (formatRegression (regressionLogVariance (numSkip)));

@@ -150,6 +150,7 @@ public double nextObservation (double nextTime) {
  */
 public double[] generatePath (double[] uniform01) {
         double x = x0;
+        
         for (int j = 0; j < d; j++) {
             x += mudt[j] + sigmasqrdt[j] * NormalDist.inverseF01(uniform01[j]);
             path[j + 1] = x;
@@ -158,6 +159,7 @@ public double[] generatePath (double[] uniform01) {
         observationCounter = d;
         return path;
     }
+
 
 
    public double[] generatePath (RandomStream stream) {

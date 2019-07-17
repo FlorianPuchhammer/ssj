@@ -3,8 +3,10 @@ package umontreal.ssj.stat.density;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import umontreal.ssj.functionfit.LeastSquares;
+import umontreal.ssj.hups.BakerTransformedPointSet;
 import umontreal.ssj.hups.CachedPointSet;
 import umontreal.ssj.hups.FaureSequence;
 import umontreal.ssj.hups.IndependentPointsCached;
@@ -14,17 +16,23 @@ import umontreal.ssj.hups.PointSet;
 import umontreal.ssj.hups.PointSetRandomization;
 import umontreal.ssj.hups.RQMCPointSet;
 import umontreal.ssj.hups.RandomShift;
+import umontreal.ssj.hups.Rank1Lattice;
 import umontreal.ssj.hups.SobolSequence;
+import umontreal.ssj.hups.StratifiedUnitCube;
 import umontreal.ssj.mcqmctools.MonteCarloModelDouble;
 import umontreal.ssj.mcqmctools.RQMCExperiment;
 import umontreal.ssj.mcqmctools.RQMCExperimentSeries;
 import umontreal.ssj.mcqmctools.examples.CreditMetrics;
+import umontreal.ssj.mcqmctools.examples.LookBackOption;
+import umontreal.ssj.mcqmctools.examples.San13;
+import umontreal.ssj.mcqmctools.examples.SumOfNormalsNormalized;
 import umontreal.ssj.mcqmctools.examples.SumOfStandardNormalsNormalized;
 import umontreal.ssj.probdist.NormalDist;
 import umontreal.ssj.rng.MRG32k3a;
 import umontreal.ssj.rng.RandomStream;
 import umontreal.ssj.stat.PgfDataTable;
 import umontreal.ssj.stat.Tally;
+import umontreal.ssj.util.Num;
 import umontreal.ssj.util.PrintfFormat;
 
 /**
@@ -556,7 +564,7 @@ public class DEModelBandwidthBased {
 	 * @param h  the desired bin width.
 	 */
 	public static void setH(DEHistogram de, double h) {
-//		de.setH(h)de;
+		// de.setH(h)de;
 		de.setH(h);
 	}
 
@@ -882,8 +890,8 @@ public class DEModelBandwidthBased {
 				data = new double[m][];
 
 				RQMCExperiment.simulReplicatesRQMC(model, rqmcPts[i], m, statReps, data);
-//				de.setData(data[0]);
-//				setH(de,hArray[j]);
+				// de.setData(data[0]);
+				// setH(de,hArray[j]);
 				numBins = (int) ((b - a) / hArray[j]);
 
 				density = new double[m][numBins];
@@ -1419,9 +1427,9 @@ public class DEModelBandwidthBased {
 			density = new double[m][numBins];
 			density = DEHistogram.evalDensity(data, a, b, numBins);
 
-//			setH(de,Math.pow(baseOfLog, logHOpt[i]));
-//			density = new double[m][de.getNumBins()];
-//			density = DEHistogram.evalDensity(data, a, b,de.getNumBins());
+			// setH(de,Math.pow(baseOfLog, logHOpt[i]));
+			// density = new double[m][de.getNumBins()];
+			// density = DEHistogram.evalDensity(data, a, b,de.getNumBins());
 
 			variance = new double[numBins];
 
@@ -1648,6 +1656,19 @@ public class DEModelBandwidthBased {
 		return sb.toString();
 	}
 
+	public String testMISERate(MonteCarloModelDouble model, ArrayList<RQMCPointSet[]> rqmcPtsList, int m,
+			DEKernelDensity de, double[] hArray, double[] evalPoints) throws IOException {
+		StringBuffer sb = new StringBuffer("");
+		ArrayList<PgfDataTable> pgfTblList = new ArrayList<PgfDataTable>();
+		for (RQMCPointSet[] rqmcPts : rqmcPtsList) {
+			sb.append(testMISERate(model, rqmcPts, m, de, hArray, evalPoints, true));
+			if (producePlots)
+				pgfTblList.add(genPgfDataTable(rqmcPts[0].getLabel(), rqmcPts[0].getLabel()));
+		}
+
+		return sb.toString();
+	}
+
 	public String testMISERate(MonteCarloModelDouble model, RQMCPointSet[] rqmcPts, int m, DEHistogram de,
 			double[] hArray, double[] evalPoints, boolean genSinglePlots2D) throws IOException {
 		StringBuffer sb = new StringBuffer("");
@@ -1686,6 +1707,7 @@ public class DEModelBandwidthBased {
 		return sb.toString();
 	}
 
+	// GOTO
 	public String testMISERate(MonteCarloModelDouble model, ArrayList<RQMCPointSet[]> rqmcPtsList, int m,
 			DensityEstimator de, double[] hArray, double[] evalPoints) throws IOException {
 		StringBuffer sb = new StringBuffer("");
@@ -1698,7 +1720,7 @@ public class DEModelBandwidthBased {
 
 		return sb.toString();
 	}
-	
+
 	public String testMISERate(MonteCarloModelDouble model, ArrayList<RQMCPointSet[]> rqmcPtsList, int m,
 			DEHistogram de, double[] hArray, double[] evalPoints) throws IOException {
 		StringBuffer sb = new StringBuffer("");
@@ -1765,7 +1787,7 @@ public class DEModelBandwidthBased {
 		FileWriter fw;
 		String plotBody;
 
-		PgfDataTable pgfTbl = genPgfDataTable3D(modelDescr + "-" + deDescr + "-" + pointSetDescr, "2D-traits");
+		PgfDataTable pgfTbl = genPgfDataTable(modelDescr + "-" + deDescr + "-" + pointSetDescr, "2D-traits");
 
 		fw = new FileWriter(modelDescr + "_" + deDescr + "_" + pointSetDescr + "_IVoptH.tex");
 		plotBody = pgfTbl.drawPgfPlotSingleCurve("Empirical log(IV) with opt. h", "axis", 0, 1, (int) baseOfLog, "",
@@ -1928,38 +1950,134 @@ public class DEModelBandwidthBased {
 		RandomStream noise = new MRG32k3a();
 		int mink = 14; // first log(N) considered
 		int i;
-		int m = 50; // Number of RQMC randomizations.
-//		int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576, 2097152 }; // 13
-		int[] N = { 16384,32768, 65536, 131072, 262144, 524288 };
+		int m = 100; //  m=20;// Number of RQMC randomizations.
+		// int[] N = { 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144,
+		// 524288, 1048576, 2097152 }; // 13
+		int[] N = { 16384, 32768, 65536, 131072, 262144, 524288 };
 		int numSets = N.length; // Number of sets in the series.
-
-		/* ************************
-		 * MODEL
-		 ****************************************/
-
-		String outdir = "data/creditMetrics/KP5/";
-		String filename = "KP5.dat";
-		MonteCarloModelDouble model = new CreditMetrics(outdir + filename, noise);
-		int dim = ((CreditMetrics) model).getDimension();
-		double nomVal = ((CreditMetrics) model).nom();
-		((CreditMetrics) model).normalize(nomVal);
 		double[][] data = new double[m][];
 
-		/* ************************
-		 * DENSITY ESTIMATOR
-		 ****************************************/
-		
-		double a = 98.5;
-		double b = 102.4;
-		int numEvalPts = 32;
-		double[] evalPoints = genEvalPoints(numEvalPts, a, b, noise);
-		DEHistogram de = new DEHistogram(a, b, 32);
-//		DEKernelDensity de = new DEKernelDensity(new NormalDist());
-		double[] hArray = {0.24375, 0.172357, 0.121875, 0.0861786, 0.0609375, 0.0430893};
+		// 0.8^k
+//		int[][] aa = {
+//				{ 1, 2433, 1715, 131, 3829, 2941, 395, 137, 659, 399, 137, 397, 397, 397, 397, 397, 397, 397, 397, 925,
+//						925, 925, 925, 3039, 3039 }, // 13
+//
+//				{ 1, 6915, 3959, 7595, 6297, 1183, 1545, 4297, 5855, 869, 7413, 7413, 7413, 7413, 7413, 7413, 7413,
+//						7413, 7413, 7413, 7413, 7413, 7413, 7413, 7413 }, // 14
+//
+//				{ 1, 12033, 7503, 15835, 1731, 273, 12823, 7895, 16313, 1591, 8571, 16313, 16313, 16313, 16313, 16313,
+//						16313, 16313, 16313, 16313, 16313, 16313, 16313, 16313, 16313 }, // 15
+//
+//				{ 1, 25015, 5425, 24095, 30915, 12607, 29583, 1203, 10029, 23717, 21641, 21381, 21381, 21381, 21381,
+//						21381, 21381, 21381, 21381, 21381, 21381, 21381, 21381, 21381, 21381 }, // 16
+//
+//				{ 1, 50687, 44805, 12937, 21433, 42925, 47259, 14741, 265, 60873, 28953, 36059, 25343, 36059, 36059,
+//						36059, 36059, 36059, 36059, 36059, 36059, 36059, 36059, 36059, 36059 }, // 17
+//
+//				{ 1, 100135, 28235, 39865, 43103, 121135, 93235, 1647, 50163, 39377, 122609, 115371, 89179, 69305,
+//						89179, 89179, 89179, 89179, 89179, 89179, 89179, 89179, 89179, 89179, 89179 }, // 18
+//
+//				{ 1, 154805, 242105, 171449, 27859, 174391, 129075, 50511, 24671, 156015, 5649, 194995, 71129, 71127,
+//						71129, 71129, 71129, 71129, 71129, 71129, 71129, 71129, 71129, 71129, 71129 }, // 19
+//
+//				{ 1, 387275, 314993, 50301, 174023, 354905, 481763, 269925, 287657, 445979, 109871, 314929, 215641,
+//						166525, 184945, 184945, 184945, 184945, 184945, 184945, 184945, 184945, 184945, 184945, 184945 } // 20
+//		};
 
+		// 0.6^k
+		int[][] aa = {
+				{ 1, 3455, 1967, 1029, 2117, 3871, 533, 2411, 1277, 2435, 1723, 3803, 1469, 569, 1035, 3977, 721, 797,
+						297, 1659 }, // 13
+
+				{ 1, 6915, 3959, 7743, 3087, 5281, 6757, 3369, 7107, 6405, 7753, 1641, 3613, 1819, 5827, 2087, 4417,
+						6909, 5623, 4739 }, // 14
+
+				{ 1, 12031, 14297, 677, 6719, 15787, 10149, 7665, 1017, 2251, 12105, 2149, 16273, 14137, 8179, 6461,
+						15051, 6593, 12763, 8497 }, // 15
+
+				{ 1, 19463, 8279, 14631, 12629, 26571, 30383, 1337, 6431, 3901, 12399, 20871, 5175, 3111, 26857, 15111,
+						22307, 30815, 25901, 27415 }, // 16
+
+				{ 1, 38401, 59817, 33763, 32385, 2887, 45473, 48221, 3193, 63355, 40783, 37741, 54515, 11741, 10889,
+						17759, 6115, 18687, 19665, 26557 }, // 17
+
+				{ 1, 100135, 28235, 46895, 82781, 36145, 36833, 130557, 73161, 2259, 3769, 2379, 80685, 127279, 45979,
+						66891, 8969, 56169, 92713, 67743 }, // 18
+
+				{ 1, 154805, 242105, 171449, 27859, 76855, 183825, 38785, 178577, 18925, 260553, 130473, 258343, 79593,
+						96263, 36291, 2035, 198019, 15473, 148703 }, // 19
+
+				{ 1, 387275, 314993, 50301, 174023, 354905, 303021, 486111, 286797, 463237, 211171, 216757, 29831,
+						155061, 315509, 193933, 129563, 276501, 395079, 139111 } // 20
+		};
+
+		// 0.6^k
+		int[] aMult = { 1, 103259, 511609, 482163, 299529, 491333, 30987, 286121, 388189, 39885, 413851, 523765, 501705,
+				93009, 44163, 325229, 345483, 168873, 376109, 146111 };
+
+		/*
+		 * ************************ MODEL
+		 ****************************************/
+
+		// String outdir = "data/creditMetrics/KP5/";
+		// String filename = "KP5.dat";
+		// MonteCarloModelDouble model = new CreditMetrics(outdir + filename, noise);
+		// int dim = ((CreditMetrics) model).getDimension();
+		// double nomVal = ((CreditMetrics) model).nom();
+		// ((CreditMetrics) model).normalize(nomVal);
+
+//		MonteCarloModelDouble model = new San13("san13a.dat");
+//		int dim = 13;
+
+		double strike = 101.0;
+		double s0 = 100.0;
+		double sigma = 0.12136;
+		double r = 0.1;
+		int dim = 12;
+
+		LookBackOption model = new LookBackOption(dim, s0, strike, r, sigma);
+
+//		int dim = 11;
+//		double[] sigmas = new double[dim];
+////		Arrays.fill(sigmas,1.0);
+//		
+//		sigmas[0] = 1.0;
+//		for(int j = 1; j<dim; j++)
+//			sigmas[j] = sigmas[j-1] / Math.sqrt(2.0);
+//
+//		MonteCarloModelDouble model = new SumOfNormalsNormalized(sigmas);
+
+		/*
+		 * ************************ DENSITY ESTIMATOR
+		 ****************************************/
+
+		// double a = 98.5; //credit metrics
+		// double b = 102.4;
+
+//		double a = 22.0; // SAN
+//		double b = 106.24;
 		
-		/* ************************
-		 * POINT SETS
+		double a = strike; double b = strike + 34.4; //Lookback; cuts 0.08 left and 0.05 right --> 87% of mass
+
+
+//		double a = -2.0;
+//		double b = 2.0;
+
+		int numEvalPts = 128; // numEvalPts =8;
+		double[] evalPoints = genEvalPoints(numEvalPts, a, b, noise);
+		// DEHistogram de = new DEHistogram(a, b, 32);
+		DEKernelDensity de = new DEKernelDensity(new NormalDist());
+		// double[] hArray = {0.24375, 0.172357, 0.121875, 0.0861786, 0.0609375,
+		// 0.0430893};//CreditMetrics
+//		double[] hArray = { 0.707107, 1.0, 1.41421, 2.0, 2.82843, 4.0 };// SAN MC
+//		double[] hArray = {0.5, 0.707107, 1.0, 1.41421, 2.0, 2.82843};//SAN RQMC
+//		double[] hArray = {0.0441942, 0.0625, 0.0883883, 0.125, 0.176777, 0.25}; //Sum 2^-j d=2 MC
+//		double[] hArray = {0.0220971, 0.03125, 0.0441942, 0.0625, 0.0883883, 0.125}; //Sum 2^-j d=2 STRAT
+//		double[] hArray = {0.00276214, 0.00390625, 0.00552427, 0.0078125, 0.0110485, 0.015625}; //Sum 2^-j d=2 RQMC
+//		double[] hArray = {0.0625, 0.0883883, 0.125, 0.176777, 0.25, 0.353553};
+		double[] hArray = {0.353553, 0.5, 0.707107, 1., 1.41421, 2.};// lookback MC
+		/*
+		 * ************************ POINT SETS
 		 ****************************************/
 		// Create a list of series of RQMC point sets.
 		ArrayList<RQMCPointSet[]> listRQMC = new ArrayList<RQMCPointSet[]>();
@@ -1978,64 +2096,89 @@ public class DEModelBandwidthBased {
 //		listRQMC.add(rqmcPts);
 
 		// Stratification
-//		rqmcPts = new RQMCPointSet[numSets];
-//		int k;
-//		for (i = 0; i < numSets; ++i) {
-//			k = (int) Math.round(Math.pow(Num.TWOEXP[i + mink], 1.0 / (double) (dim)));
-//			p = new StratifiedUnitCube(k, dim);
-//
-//			rand = new RandomShift(noise);
-//			rqmcPts[i] = new RQMCPointSet(p, rand);
-//		}
-//		rqmcPts[0].setLabel("Stratification");
-//		listRQMC.add(rqmcPts);
+//		 rqmcPts = new RQMCPointSet[numSets];
+//		 int k;
+//		 for (i = 0; i < numSets; ++i) {
+//		 k = (int) Math.round(Math.pow(Num.TWOEXP[i + mink], 1.0 / (double) (dim)));
+//		 p = new StratifiedUnitCube(k, dim);
+//		
+//		 rand = new RandomShift(noise);
+//		 rqmcPts[i] = new RQMCPointSet(p, rand);
+//		 }
+//		 rqmcPts[0].setLabel("Stratification");
+//		 listRQMC.add(rqmcPts);
 
-		// FAURE + LMS
+		// lattice+shift
+		rqmcPts = new RQMCPointSet[numSets];
+		for (i = 0; i < numSets; ++i) {
+
+//			p = new Rank1Lattice(N[i], aa[i], dim);
+			p = new Rank1Lattice(N[i], aMult, dim);
+
+
+			rand = new RandomShift(noise);
+			rqmcPts[i] = new RQMCPointSet(p, rand);
+		}
+		rqmcPts[0].setLabel("Lattice+Shift");
+		listRQMC.add(rqmcPts);
+
+		// lattice+baker
+		 rqmcPts = new RQMCPointSet[numSets];
+		 for (i = 0; i < numSets; ++i) {
+		
+//		 p =  new BakerTransformedPointSet(new Rank1Lattice(N[i],aa[i],dim));
+			 p =  new BakerTransformedPointSet(new Rank1Lattice(N[i],aMult,dim));
+
+		
+		 rand = new RandomShift(noise);
+		 rqmcPts[i] = new RQMCPointSet(p, rand);
+		 }
+		 rqmcPts[0].setLabel("Lattice+Baker");
+		 listRQMC.add(rqmcPts);
+
+//		// Sobol + LMS
 //		rqmcPts = new RQMCPointSet[numSets];
 //		for (i = 0; i < numSets; ++i) {
 //
-//			p = new FaureSequence(2, i + mink, 31, 31, dim);
+//			p = new SobolSequence(i + mink, 31, dim);
 //
 //			rand = new LMScrambleShift(noise);
 //			rqmcPts[i] = new RQMCPointSet(p, rand);
 //		}
-//		rqmcPts[0].setLabel("Faure+LMS");
+//		rqmcPts[0].setLabel("Sobol+LMS");
 //		listRQMC.add(rqmcPts);
-
-		// Sobol + LMS
-		rqmcPts = new RQMCPointSet[numSets];
-		for (i = 0; i < numSets; ++i) {
-
-			p = new SobolSequence(i + mink, 31, dim);
-
-			rand = new LMScrambleShift(noise);
-			rqmcPts[i] = new RQMCPointSet(p, rand);
-		}
-		rqmcPts[0].setLabel("Sobol+LMS");
-		listRQMC.add(rqmcPts);
-
-		// Sobol+NUS
+//
+//		// Sobol+NUS
+////		long[] seed = {111111,111111,111111,111111,111111,111111};
+////		((MRG32k3a)noise).setSeed(seed);
 //		rqmcPts = new RQMCPointSet[numSets];
 //		for (i = 0; i < numSets; ++i) {
-//			CachedPointSet cp = new CachedPointSet(new SobolSequence(i + mink, 31, dim));
+//			CachedPointSet cp = new CachedPointSet(new SobolSequence(N[i], dim));
+//
 //			cp.setRandomizeParent(false);
 //			p = cp;
 //
-//			rand = new NestedUniformScrambling(noise);
+//			rand = new NestedUniformScrambling(noise, i + mink + 1);
 //			rqmcPts[i] = new RQMCPointSet(p, rand);
 //		}
 //		rqmcPts[0].setLabel("Sobol+NUS");
 //		listRQMC.add(rqmcPts);
 
-//		DEModelBandwidthBased modelbb = new DEModelBandwidthBased((DEKernelDensity)de,a,b);
-		DEModelBandwidthBased modelbb = new DEModelBandwidthBased(de, a, b);
+		DEModelBandwidthBased modelbb = new DEModelBandwidthBased((DEKernelDensity) de, a, b);
+		// DEModelBandwidthBased modelbb = new DEModelBandwidthBased(de, a, b);
 		modelbb.setDisplayExec(true);
 		modelbb.setProducePlots(true);
 
-//		System.out.println(modelbb.testMISERate( model,  rqmcPts,  m,  (DEKernelDensity)de,
-//				 hArray,  evalPoints, true));
-		System.out.println(modelbb.testMISERate(model, listRQMC, m, de, hArray, evalPoints));
-		
+		// System.out.println(modelbb.testMISERate( model, rqmcPts, m,
+		// (DEKernelDensity)de,
+		// hArray, evalPoints, true));
+		String output = modelbb.testMISERate(model, listRQMC, m, de, hArray, evalPoints);
+		System.out.println(output);
+
+		FileWriter fw = new FileWriter("output.txt");
+		fw.write(output);
+		fw.close();
+
 	}
 
 }

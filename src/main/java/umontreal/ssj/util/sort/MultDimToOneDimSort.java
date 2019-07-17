@@ -29,11 +29,13 @@ public abstract class MultDimToOneDimSort implements MultiDimSort<MultiDim> {
 	}
 	
 	public void sort(MultiDim[] a, int iMin, int iMax) {
-		if (iMin == iMax)
-			return;
+//		if (iMin == iMax)
+//			return;
 		double b[][] = new double[iMax][dimension];
 		for (int i = iMin; i < iMax; ++i) {
 			b[i] = a[i].getState();
+//			for(int j = 0; j < a[i].getState().length; j++)
+//			b[i][j] = a[i].getState()[j];
 		}
 		sort(b, iMin, iMax);
 
@@ -41,8 +43,10 @@ public abstract class MultDimToOneDimSort implements MultiDimSort<MultiDim> {
 		// We do not want to clone all the objects in a,
 		// but only the array of pointers.
 		MultiDim[] aclone = a.clone(); // new Object[iMax];
+//		MultiDim[] aclone = new MultiDim[a.length];
 		for (int i = iMin; i < iMax; ++i)
 			a[i] = aclone[(int) indexForSort[i][0]];
+		
 	}
 	
 	public abstract double scoreFunction(double [] b);
@@ -75,22 +79,30 @@ public abstract class MultDimToOneDimSort implements MultiDimSort<MultiDim> {
 
 	@Override
 	public void sort(double[][] a, int iMin, int iMax) {
-		if (iMin + 1 == iMax)
-			return;
-		indexForSort = new double[iMax][2];
+//		if (iMin + 1 == iMax)
+//			return;
+		indexForSort = new double[iMax][dimension];
 
 		for (int i = iMin; i < iMax; ++i) {
 			indexForSort[i][0] = i;
 			indexForSort[i][1] = scoreFunction(a[i]);
+//			System.out.println(i + ", " + scoreFunction(a[i]));
 		}
 		Arrays.sort(indexForSort, iMin, iMax, new DoubleIndexComparator2());
+//		if(indexForSort[1][0] != 1)
+//			System.out.println("SORTED!");
+//		else
+//			System.out.println("?????????????????????????????????????");
 
 		// Now use indexForSort to sort a.
 		// We do not want to clone all the objects in a,
 		// but only the array of pointers.
 		double[][] aclone = a.clone(); // new Object[iMax];
+//		double[][] aclone = new double[a.length][a[iMin].length];
 		for (int i = iMin; i < iMax; ++i) {
 			a[i] = aclone[(int) indexForSort[i][0]];
+//			for(int j = 0; j < a[i].length; j++)
+//				a[i][j] = aclone[(int) indexForSort[i][0]][j];
 		}
 	}
 

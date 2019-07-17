@@ -138,6 +138,7 @@ public class DigitalNetBase2FromFile extends DigitalNetBase2 {
             throw new IllegalArgumentException (
             "DigitalNetBase2FromFile:   One must have   r1 <= Max num rows");
          if (s1 > dim) {
+//        	 System.out.println("s1:\t" + s1 + "\tdim:" + dim);
             throw new IllegalArgumentException ("s1 is too large");
          }
          if (s1 > 0)

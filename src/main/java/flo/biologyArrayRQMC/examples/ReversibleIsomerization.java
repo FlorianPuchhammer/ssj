@@ -44,9 +44,9 @@ import umontreal.ssj.probdist.PoissonDist;
 import umontreal.ssj.stat.TallyStore;
 
 //class ReversibleisomerisationComparable extends MarkovChainComparable   implements MultiDim01{
-public class ReversibleIsomerizationComparable extends ChemicalReactionNetwork {
+public class ReversibleIsomerization extends ChemicalReactionNetwork implements MultiDim01 {
 
-	public ReversibleIsomerizationComparable(double[] c, double[] X0, double tau, double T) {
+	public ReversibleIsomerization(double[] c, double[] X0, double tau, double T) {
 		this.c = c;
 		this.X0 = X0;
 		this.tau = tau;
@@ -56,7 +56,7 @@ public class ReversibleIsomerizationComparable extends ChemicalReactionNetwork {
 	}
 
 	public double getPerformance() {
-		return X[1];
+		return X[0];
 
 	}
 
@@ -65,13 +65,13 @@ public class ReversibleIsomerizationComparable extends ChemicalReactionNetwork {
 	}
 
 	public int compareTo(MarkovChainComparable m, int i) {
-		if (!(m instanceof ReversibleIsomerizationComparable)) {
+		if (!(m instanceof ReversibleIsomerization)) {
 			throw new IllegalArgumentException(
 					"Can't compare an ReversibleIsomerization with other types of Markov chains.");
 		}
 		double mx;
 
-		mx = ((ReversibleIsomerizationComparable) m).X[i];
+		mx = ((ReversibleIsomerization) m).X[i];
 		return (X[i] > mx ? 1 : (X[i] < mx ? -1 : 0));
 
 	}
@@ -126,60 +126,35 @@ public class ReversibleIsomerizationComparable extends ChemicalReactionNetwork {
 			
 			return new MultiLayerNetwork(conf);
 	}
-	
-	public static final void main(String[] args) throws IOException, InterruptedException {
-		ChemicalReactionNetwork model;
 
-
-		double epsInv = 1E2;
-		double alpha = 1E-4;
-		double[]c = {1.0,alpha};
-		double[] x0 = {epsInv,epsInv/alpha};
-		double T = 1.6;
-		double tau = 0.2;
-
-		
-		
-		 model = new ReversibleIsomerizationComparable(c,x0,tau,T);
-		String dataFolder = "data/ReversibleIsometrization/";
-		model.init();
-		
-NeuralNet test = new NeuralNet(model,dataFolder); // This is the array of comparable chains.
-		
-		System.out.println(model.toString());
-
-		
-		
-		int numChains = 524288 *2;
-//		int numChains = 100;
-		int logNumChains = 19 + 1;
-
-		
-		Chrono timer = new Chrono();
-		RandomStream stream = new MRG32k3a(); 
-		
-		
-
-		/*
-		 ***********************************************************************
-		 ************* BUILD DATA***********************************************
-		 ***********************************************************************
-		 */
-//		boolean genData = true;
-
-//		String dataLabel = "SobData";
-		String dataLabel = "MCData";
-
-//		PointSet sobol = new SobolSequence(logNumChains, 31, model.numSteps * model.getK());
-//		PointSetRandomization rand = new LMScrambleShift(stream);
-//		RQMCPointSet p = new RQMCPointSet(sobol, rand);
-
-//		if (genData) {
-			timer.init();
-//			test.genData(dataLabel, numChains, model.numSteps, p.iterator());
-			test.genData(dataLabel, numChains, model.numSteps, stream);
-			System.out.println("\n\nTiming:\t" + timer.format());
-//		}
+	@Override
+	public double[] getPoint() {
+		double[] state01 = new double[N];
+    	for(int i=0;i<N;i++)
+        state01[i] = getCoordinate(i);       
+        return state01;
 	}
+
+	@Override
+	public double getCoordinate(int j) {
+		double zvalue;                 
+	 	
+//		return X[j];
+    	
+    	switch (j) {
+        case 0:   
+        	zvalue = (X[j]- X0[j]+(c[0]*X0[0]-c[1]*X0[1])*step*tau )/(Math.sqrt((c[0]*X0[0]+c[1]*X0[1])*step*tau));
+            
+        	return NormalDist.cdf01 (zvalue);
+        case 1:   
+        	zvalue = (X[j]- X0[j]-(c[0]*X0[0]-c[1]*X0[1])*step*tau )/(Math.sqrt((c[0]*X0[0]+c[1]*X0[1])*step*tau));
+            return NormalDist.cdf01 (zvalue);
+            
+        default:
+            throw new IllegalArgumentException("Invalid state index");
+    	}
+	}
+	
+	
 
 }

@@ -288,12 +288,15 @@ public class RQMCExperiment extends MonteCarloExperiment {
 				// entries. But the array will be [m][t][n]
 				// which is less practical than [m][n][t]
 				// data[rep][i] = statSave.get(i).getArray();
-				for (int k = 0; k < n; k++)
+				for (int k = 0; k < n; k++) {
 					// creates [m][n][t]-array
 					data[rep][k][i] = statSave.get(i).getArray()[k];
+//			System.out.println("TEST0: " + statSave.get(i).getArray()[k]);
+				}
 			statSave = ListOfTallies.createWithTallyStore(n, t);
 
 		}
+
 
 	}
 

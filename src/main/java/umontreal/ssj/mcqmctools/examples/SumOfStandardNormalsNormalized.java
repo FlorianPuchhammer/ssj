@@ -38,7 +38,7 @@ public class SumOfStandardNormalsNormalized implements MonteCarloModelDensityKno
 	}
 	
 	public String toString() {
-		return "Normalized sum of " + dimension + "standard normals";
+		return "Normalized sum of " + dimension + " standard normals";
 	}
 
 }

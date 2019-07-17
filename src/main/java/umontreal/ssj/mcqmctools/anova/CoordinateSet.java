@@ -106,11 +106,16 @@ public abstract class CoordinateSet {
    }
 
    @Override public String toString() {
-      String s = "";
-      for (Integer coord : asList()) {
-         if (s.length() > 0) s += ",";
-         s += (coord + 1);
-      }
-      return "{" + s + "}";
+     
+      return "{" + toStringNoBraces() + "}";
    }
+
+public String toStringNoBraces() {
+	String s = "";
+    for (Integer coord : asList()) {
+       if (s.length() > 0) s += ",";
+       s += (coord + 1);
+    }
+	return s;
+}
 }

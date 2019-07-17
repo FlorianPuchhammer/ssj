@@ -138,7 +138,6 @@ public class DEDerivativeGaussian extends DensityDerivativeEstimator {
 			
 			density[j] *= norma;
 		}
-
 		return density;
 	}
 

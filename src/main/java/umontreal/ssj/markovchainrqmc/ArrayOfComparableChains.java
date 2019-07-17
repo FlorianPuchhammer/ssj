@@ -16,9 +16,11 @@ import java.io.Writer;
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
@@ -129,6 +131,9 @@ public class ArrayOfComparableChains<T extends MarkovChainComparable> {
 	protected PointSetRandomization randomization;
 	protected MultiDimSort<T> savedSort;
 	protected int sortCoordPts = 0; // Point coordinates used to sort points.
+	
+	public Tally[] performancePerRun;
+	
 	double[][] object;
 	static String PerformanceFile;
 	static String filename;
@@ -152,6 +157,9 @@ public class ArrayOfComparableChains<T extends MarkovChainComparable> {
 	public ArrayOfComparableChains(T baseChain) {
 		this.baseChain = baseChain;
 		// stateDim = baseChain.stateDim;
+		performancePerRun = new Tally[baseChain.numSteps];
+		for(int j = 0; j < baseChain.numSteps; ++j)
+			performancePerRun[j] = new Tally();		
 	}
 
 	/**
@@ -165,6 +173,12 @@ public class ArrayOfComparableChains<T extends MarkovChainComparable> {
 		// stateDim = baseChain.stateDim;
 		randomization = rand;
 		savedSort = sort;
+		
+		performancePerRun = new Tally[baseChain.numSteps];
+		for(int j = 0; j < baseChain.numSteps; ++j)
+			performancePerRun[j] = new Tally();
+		
+	
 	}
 
 	/**
@@ -203,6 +217,7 @@ public class ArrayOfComparableChains<T extends MarkovChainComparable> {
 			performances[i] = mc.getPerformance(); // Needed? Why do this?
 			++i;
 		}
+		
 	}
 
 	/**
@@ -282,6 +297,8 @@ public class ArrayOfComparableChains<T extends MarkovChainComparable> {
 			if (mc.hasStopped()) {
 				++nStopped;
 			} else {
+//				if(sortCoordPts == 0)
+//					stream.setCurCoordIndex(1); 
 				stream.setCurCoordIndex(sortCoordPts); // Skip first sortCoordPts coord.
 				mc.nextStep(stream); // simulate next step of the chain.
 				stream.resetNextSubstream(); // Go to next point.
@@ -1056,12 +1073,73 @@ public class ArrayOfComparableChains<T extends MarkovChainComparable> {
 					performances[i] = mc.getPerformance();
 					++i;
 				}
+				performancePerRun[step].add( Arrays.stream(performances).average().orElse(Double.NaN) );
 				++step;
 			}
 			// System.out.println("calcMeanPerf"+calcMeanPerf());
 			return calcMeanPerf();
 
-		}//goto
+		}
+
+	}
+
+	//NEW BY FLORIAN
+	public double simulArrayRQMC(PointSet p, PointSetRandomization rand, MultiDimSort sort, int sortCoordPts, int coordsForSort,
+			double numSteps) {
+		// String [] file =TrainTestFile(filename);
+
+		// sort = new NeuralNetworkSort(chains[0].stateDim);
+
+		// NeuralNetworkSort sort = new NeuralNetworkSort(chains[0].stateDim, file[0],
+		// file[1],chains[0].stateDim, 1, 10, seed, learningRate, nEpochs );
+		int stateDim = chains[0].stateDim;
+		object = new double[n][chains[0].stateDim + 1];
+		states = new double[n][];
+		char SEPARATOR = ',';
+		int step;
+		int numNotStopped = n;
+
+		
+
+			initialStates();
+			step = 0;
+			while (step < numSteps && numNotStopped > 0) {
+
+				if (numNotStopped == n)
+					sort.sort(chains, 0, n);
+				else
+					sortNotStoppedChains(sort); // Sort the numNotStopped first chains.
+				p.randomize(rand); // Randomize the point set.
+				if (sortCoordPts > 0) {
+					if (!(p instanceof CachedPointSet))
+						throw new IllegalArgumentException("p is not a CachedPointSet.");
+					if (sortCoordPts > 1)
+						((CachedPointSet) p).sort(sort); // Sort points using first sortCoordPts coordinates.
+					else
+						((CachedPointSet) p).sortByCoordinate(0); // Sort by first coordinate.
+				}
+				PointSetIterator stream = p.iterator();
+				stream.resetCurPointIndex(); // Go to first point.
+				int i = 0;
+				for (T mc : chains) { // Assume the chains are sorted
+					if (mc.hasStopped()) {
+						numNotStopped--;
+					} else {
+						stream.setCurCoordIndex(coordsForSort); // Skip first sortCoordPts coord.
+						mc.nextStep(stream); // simulate next step of the chain.
+						stream.resetNextSubstream(); // Go to next point.
+						if (mc.hasStopped())
+							numNotStopped--;
+					}
+					performances[i] = mc.getPerformance();
+					++i;
+				}
+				++step;
+			}
+			// System.out.println("calcMeanPerf"+calcMeanPerf());
+			return calcMeanPerf();
+
+		
 
 	}
 
@@ -1110,6 +1188,16 @@ public class ArrayOfComparableChains<T extends MarkovChainComparable> {
 		statReps.init();
 		for (int rep = 0; rep < m; rep++) {
 			statReps.add(simulArrayRQMC(p, rand, sort, sortCoordPts, numSteps));
+		}
+	}
+	
+	//NEW BY FLORIAN
+	public void simulReplicatesArrayRQMC(PointSet p, PointSetRandomization rand, MultiDimSort sort, int sortCoordPts,
+			int coordsForSort, double numSteps, int m, Tally statReps) {
+		makeCopies(p.getNumPoints());
+		statReps.init();
+		for (int rep = 0; rep < m; rep++) {
+			statReps.add(simulArrayRQMC(p, rand, sort, sortCoordPts, coordsForSort,numSteps)); 
 		}
 	}
 
@@ -1175,8 +1263,11 @@ public class ArrayOfComparableChains<T extends MarkovChainComparable> {
 		StringBuffer str = new StringBuffer("\n\n --------------------------");
 		str.append(methodLabel + "\n  MC Variance : " + varMC + "\n\n");
 
+		
 		// Array-RQMC experiment with each pointSet.
 		for (int i = 0; i < numSets; ++i) {
+			for(int j = 0; j < numSteps; ++j)
+				performancePerRun[j] = new Tally();
 			initTime = System.currentTimeMillis();
 			n = pointSets[i].getNumPoints();
 			str.append("n = " + n + "\n");
@@ -1234,14 +1325,111 @@ public class ArrayOfComparableChains<T extends MarkovChainComparable> {
 		long initTime; // For timings.
 
 		StringBuffer str = new StringBuffer("\n\n --------------------------");
-		str.append(methodLabel + "\n  MC Variance : " + varMC + "\n\n");
+		str.append(methodLabel + "\n  MC Variance per Run : " + varMC / (double) n + "\n\n");
 
 		// Array-RQMC experiment with each pointSet.
 		for (int i = 0; i < numSets; ++i) {
+			
+//			performancePerRun = new Tally[numSteps]; 
+			for(int j = 0; j < numSteps; ++j)
+				performancePerRun[j] = new Tally();
 			initTime = System.currentTimeMillis();
 			n = rqmcPts[i].getNumPoints();
 			str.append("n = " + n + "\n");
 			simulReplicatesArrayRQMC(rqmcPts[i].getPointSet(),rqmcPts[i].getRandomization(), sort, sortCoordPts, numSteps, m, statPerf);
+			logn[i] = Num.log2(n);
+			variance[i] = statPerf.variance();
+			logVariance[i] = Num.log2(variance[i]);
+			str.append("  Average = " + statPerf.average() + "\n");
+			str.append(" RQMC Variance : " +  variance[i] + "\n\n");
+			str.append("  VRF =  " + varMC / (n * variance[i]) + "\n");
+			str.append(formatTime((System.currentTimeMillis() - initTime) / 1000.) + "\n");
+		}
+		// Estimate regression slope and print plot and overall results.
+		double regSlope = slope(logn, logVariance, numSets);
+		str.append("Regression slope (log) for variance = " + regSlope + "\n\n");
+
+		String[] tableField = { "log(n)", "log(Var)" };
+		double[][] data = new double[numSets][2];
+		for (int s = 0; s < numSets; s++) { // For each cardinality n
+			data[s][0] = logn[s];
+			data[s][1] = logVariance[s];
+		}
+
+		// Print plot and overall results in files.
+		if (filenamePlot != null)
+			try {
+				/*
+				 * Writer file = new FileWriter (filenamePlot + ".tex"); XYLineChart chart = new
+				 * XYLineChart(); // ("title", "$log_2(n)$", "$log_2 Var[hat mu_{rqmc,s,n}]$");
+				 * chart.add (logn, logVariance); file.write (chart.toLatex(12, 8));
+				 * file.close();
+				 */
+				PgfDataTable pgf = new PgfDataTable(filenamePlot, rqmcPts[0].getLabel(), tableField, data);
+				String pVar = pgf.drawPgfPlotSingleCurve(filenamePlot, "axis", 0, 1, 2, "", "");
+				String plotIV = (PgfDataTable.pgfplotFileHeader() + pVar + PgfDataTable.pgfplotEndDocument());
+
+				FileWriter fileIV = new FileWriter(filenamePlot + "_" + "VAr.tex");
+				fileIV.write(plotIV);
+				fileIV.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		
+		tableField = new String[] {"step", "average", "variance"};
+		data = new double[numSteps][3];
+		for (int s = 0; s < numSteps; s++) { // For each cardinality n
+			data[s][0] = s+1;
+			data[s][1] = performancePerRun[s].average();
+			data[s][2] = performancePerRun[s].variance();
+		}
+		
+		if (filenamePlot != null)
+			try {
+
+				PgfDataTable pgf = new PgfDataTable(filenamePlot, rqmcPts[0].getLabel(), tableField, data);
+				String pMean = pgf.drawPgfPlotSingleCurve(filenamePlot, "axis", 0, 1, 2, "", "");
+				String pVar = pgf.drawPgfPlotSingleCurve(filenamePlot, "axis", 0, 2, 2, "", "");
+				
+				String plotMean = (PgfDataTable.pgfplotFileHeader() + pMean + PgfDataTable.pgfplotEndDocument());
+				String plotVar = (PgfDataTable.pgfplotFileHeader() + pVar + PgfDataTable.pgfplotEndDocument());
+
+				FileWriter fileIV = new FileWriter(filenamePlot + "_" + "MeanPerStep.tex");
+				fileIV.write(plotMean);
+				fileIV.close();
+				
+				fileIV = new FileWriter(filenamePlot + "_" + "VariancePerStep.tex");
+				fileIV.write(plotVar);
+				fileIV.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+		return str.toString();
+	}
+	
+	//NEW BY FLORIAN
+	public String testVarianceRateFormat(RQMCPointSet[] rqmcPts, MultiDimSort sort,
+			int sortCoordPts,int coordsForSort, int numSteps, int m, double varMC, String filenamePlot, String methodLabel) {
+		label = methodLabel;
+		int numSets = rqmcPts.length; // Number of point sets.
+		Tally statPerf = new Tally("Performance");
+		double[] logn = new double[numSets];
+		double[] variance = new double[numSets];
+		double[] logVariance = new double[numSets];
+		long initTime; // For timings.
+
+		StringBuffer str = new StringBuffer("\n\n --------------------------");
+		str.append(methodLabel + "\n  MC Variance : " + varMC + "\n\n");
+
+		// Array-RQMC experiment with each pointSet.
+		for (int i = 0; i < numSets; ++i) {
+			for(int j = 0; j < numSteps; ++j)
+				performancePerRun[j] = new Tally();
+			initTime = System.currentTimeMillis();
+			n = rqmcPts[i].getNumPoints();
+			str.append("n = " + n + "\n"); 
+			simulReplicatesArrayRQMC(rqmcPts[i].getPointSet(),rqmcPts[i].getRandomization(), sort, sortCoordPts, coordsForSort, numSteps, m, statPerf);
 			logn[i] = Num.log2(n);
 			variance[i] = statPerf.variance();
 			logVariance[i] = Num.log2(variance[i]);
